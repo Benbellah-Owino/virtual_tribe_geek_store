@@ -2,7 +2,7 @@ use surrealdb::engine::remote::ws::{Client, Ws};
 use surrealdb::opt::auth::Root;
 use surrealdb::Surreal;
 use surrealdb;
-use tracing::{info};
+use tracing::info;
 use std::{
     fs,
     env
@@ -17,10 +17,10 @@ pub enum Error{
 
 pub type Db = Result<Surreal<Client>, Error>;
 
-#[derive(Clone)]
-pub struct State{
-    db: Surreal<Client>
-}
+// #[derive(Clone)]
+// pub struct State{
+//     db: Surreal<Client>
+// }
 
 
 pub async fn connect_db() -> Db{

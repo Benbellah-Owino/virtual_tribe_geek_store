@@ -13,9 +13,29 @@ pub mod routers;
 
 // section:     -- structs
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Socials{
+    pub facebook: String,
+    pub twitter_x: String,
+    pub instagram: String
+}
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Creator{
+    pub username: String,
+    pub email: String,
+    pub role: Vec<String>,
+    pub password: String,
+    pub description: String,
+    pub verified: bool,
+    pub refresh_token: Option<String>,
+    pub socials: Option<Socials>,
+    pub login_attempts: i8,
+    pub joined_at : String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CreatorForCreate{
     pub username: String,
-    pub email:String,
+    pub email: String,
     pub role: Vec<String>,
     pub password: String
 }
@@ -23,11 +43,8 @@ pub struct CreatorForCreate{
 // login struct
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreatorForLogin{
-    pub username: String,
-    pub email:String,
-    pub role: Vec<String>,
-    pub describe: String,
-    pub verified: String
+    pub email: String,
+    pub password: String
 }
 
 impl CreatorForCreate{
@@ -61,7 +78,8 @@ pub enum CreatorError{
 
 
 
-// section:     -- imports
+// section:     -- tests
+
 #[cfg(test)]
 mod tests {
     use crate::dev_initial::db::connect_db;
@@ -88,6 +106,31 @@ mod tests {
     assert_eq!(vec![String::from("writer")], t.role);    
     assert_eq!(String::from("password"), t.password);    
     }
+
+
+    #[tokio::test]
+    async fn creator_login(){
+        let db = connect_db().await.expect("TEST ERROR:-> Connection to db failed");
+        
+        let creater = CreatorForCreate{ 
+            username: String::from("TestCreator"),
+            email: String::from("testcreator@gmail.com"),
+            role: vec![String::from("writer")],
+            password: String::from("password"), 
+    };
+        let _t = register(&db, creater).await.unwrap();
+        let creator =  CreatorForLogin{ 
+            email: String::from("testcreator@gmail.com"),
+            password: String::from("password")
+        };
+
+        let _t = login(&db, creator).await.unwrap();
+
+        let _delete:Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
+        
+        assert!(true)
+        }
+
     
 }
-// endsection:  -- imports
+// endsection:  -- tests

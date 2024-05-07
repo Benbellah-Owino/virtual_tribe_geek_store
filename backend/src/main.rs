@@ -12,17 +12,12 @@ use surrealdb::engine::remote::ws::Ws;
 // use surrealdb::opt::auth::Root;
 // use surrealdb::sql::Thing;
 // use surrealdb::Surreal;
-use tracing::Level;
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
-use std::fs;
-use dotenv::dotenv;
-
 #[tokio::main]
 async fn main() -> surrealdb::Result<()> {
     
 // \\#region Setup
-
     let subscriber = FmtSubscriber::builder()
     .finish();
 
