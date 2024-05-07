@@ -1,0 +1,6 @@
+#V2
+DEFINE NAMESPACE virtual_tribe;
+USE NS virtual_tribe;
+DEFINE DATABASE geek_store;
+USE DB geek_store
+USE DB geek_store;
