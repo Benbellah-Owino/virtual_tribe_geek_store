@@ -1,5 +1,6 @@
 // section:     -- imports
 use serde::{Deserialize, Serialize};
+use surrealdb::sql::Thing;
 // endection:   -- imports
 
 // section:     -- mods
@@ -40,11 +41,20 @@ pub struct CreatorForCreate{
     pub password: String
 }
 
-// login struct
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreatorForLogin{
     pub email: String,
     pub password: String
+}
+// login struct
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreatorForLoginSuccess{
+    pub id: Thing,
+    pub email: String,
+    pub username:String,
+    pub password: String,
+    pub verified: bool,
+    pub login_attempts: u8
 }
 
 impl CreatorForCreate{
@@ -69,9 +79,14 @@ impl CreatorForCreate{
 #[derive(Debug, Serialize, Deserialize)]
 pub enum CreatorError{
     RegistrationError,
+    
+    //Login Errors
     LoginError,
-
-    //
+    WrongCredentialsError,
+    LoginAttemptsError,
+    
+    //Details Errors
+    DetailsRetrievingError
     
 }
 // endsection:   -- error
@@ -113,23 +128,27 @@ mod tests {
         let db = connect_db().await.expect("TEST ERROR:-> Connection to db failed");
         
         let creater = CreatorForCreate{ 
-            username: String::from("TestCreator"),
             email: String::from("testcreator@gmail.com"),
+            username: String::from("TestCreator"),
             role: vec![String::from("writer")],
             password: String::from("password"), 
-    };
-        let _t = register(&db, creater).await.unwrap();
+        };
+        let _new_creator = register(&db, creater).await.unwrap();
+
         let creator =  CreatorForLogin{ 
+            
             email: String::from("testcreator@gmail.com"),
             password: String::from("password")
         };
 
-        let _t = login(&db, creator).await.unwrap();
+        let logged_in_creator = login(&db, creator).await.unwrap();
 
         let _delete:Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
         
-        assert!(true)
-        }
+        assert_eq!(String::from("TestCreator"), logged_in_creator.username);    
+        assert_eq!(String::from("testcreator@gmail.com"), logged_in_creator.email);    
+        assert_eq!(String::from("creator"), logged_in_creator.acc_type);    
+    }
 
     
 }
