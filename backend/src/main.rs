@@ -9,6 +9,7 @@ use backend::dev_initial::db::{connect_db, init_queries};
 
 #[allow(unused_imports)]
 use surrealdb::engine::remote::ws::Ws;
+use tower_cookies::CookieManagerLayer;
 // use surrealdb::opt::auth::Root;
 // use surrealdb::sql::Thing;
 // use surrealdb::Surreal;
@@ -38,6 +39,7 @@ async fn main() -> surrealdb::Result<()> {
     let app = Router::new()
                             .route("/", get(|| async {"Hello, world"}))
                             .nest("/creator", creator::routers::creator_router() )
+                            .layer(CookieManagerLayer::new())
                             .with_state(Ok(db));
                             
 

@@ -25,12 +25,13 @@ pub struct Creator{
     pub email: String,
     pub role: Vec<String>,
     pub password: String,
-    pub description: String,
+    pub description: Option<String>,
     pub verified: bool,
     pub refresh_token: Option<String>,
     pub socials: Option<Socials>,
     pub login_attempts: i8,
     pub joined_at : String,
+    pub avatar: Option<String>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -55,6 +56,11 @@ pub struct CreatorForLoginSuccess{
     pub password: String,
     pub verified: bool,
     pub login_attempts: u8
+}
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreatorForUpdate<I: Serialize + for<'a> Deserialize<'a>>{
+    pub field: String,
+    pub value: I
 }
 
 impl CreatorForCreate{
@@ -86,7 +92,8 @@ pub enum CreatorError{
     LoginAttemptsError,
     
     //Details Errors
-    DetailsRetrievingError
+    DetailsRetrievingError,
+    DetailsUpdateError
     
 }
 // endsection:   -- error

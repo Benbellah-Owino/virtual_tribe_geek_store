@@ -7,8 +7,9 @@ use surrealdb::{
 use crate::{creator::{Creator, CreatorError, CreatorForLoginSuccess}, middleware::auth::jwt::Claims};
 
 use super::{ CreatorForCreate, CreatorForLogin};
-use tracing::{ info, debug,error};
+use tracing::{info, debug, error, warn};
 use chrono::Utc;
+use serde::{Deserialize, Serialize};
 // endsection:   -- imports
 
 
@@ -25,13 +26,14 @@ use chrono::Utc;
 /// 
 /// ```
 /// #[ignore]
+/// async fn register(db:&Surreal<Client>){
 /// let creator = CreatorForCreate{ 
 ///        username: String::from("TestCreator"),
 ///        email: String::from("testcreator@gmail.com"),
 ///        role: vec![String::from("writer")],
 ///        password: String::from("password"), 
 ///  };
-/// let new_creator = creator::controllers::register(&db, creator)
+/// let new_creator = creator::controllers::register(&db, creator);
 /// let t = register(&db, creater).await.unwrap();
 /// let t = &t[0];
 /// let _delete:Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
@@ -39,7 +41,8 @@ use chrono::Utc;
 /// assert_eq!(String::from("TestCreator"), t.username);    
 /// assert_eq!(String::from("testcreator@gmail.com"), t.email);    
 /// assert_eq!(vec![String::from("writer")], t.role);    
-/// assert_eq!(String::from("password"), t.password);    
+/// assert_eq!(String::from("password"), t.password);
+///}
 /// ```
 pub async fn register<'a>(db: &Surreal<Client>,creator:CreatorForCreate) -> Result<Vec<CreatorForCreate>, CreatorError>{
 
@@ -76,12 +79,13 @@ pub async fn register<'a>(db: &Surreal<Client>,creator:CreatorForCreate) -> Resu
 /// 
 /// ```
 /// #[ignore]
-/// let creator = CreatorForLogin{ 
+///async fn login(db:&Surreal<Client>,creator: _){
+/// let creator = CreatorForLogin{
 ///        email: String::from("testcreator@gmail.com"),
 ///        password: String::from("password"), 
 /// };
 /// 
-/// let logged = creator::controllers::login(&db, creator)
+/// let logged = creator::controllers::login(&db, creator);
 /// let claim = login(&db, creator).await.unwrap();
 /// 
 /// let _delete:Result<Vec<Creator>, surrealdb::Error> = db.delete("creator").await;
@@ -89,7 +93,9 @@ pub async fn register<'a>(db: &Surreal<Client>,creator:CreatorForCreate) -> Resu
 /// assert_eq!(String::from("TestCreator"), t.username);    
 /// assert_eq!(String::from("testcreator@gmail.com"), t.email);    
 /// assert_eq!(vec![String::from("creator")], t.acc_type);    
-/// assert_eq!(false, t.verified);    
+/// assert_eq!(false, t.verified);
+/// }
+///
 /// ```
 pub async fn login(db: &Surreal<Client>,creator:CreatorForLogin) -> Result<Claims, CreatorError> {
     //lequery
@@ -142,7 +148,7 @@ pub async fn login(db: &Surreal<Client>,creator:CreatorForLogin) -> Result<Claim
                             username: String::from(&db_creator.username),
                             acc_type: String::from("creator"),
                             verified: db_creator.verified,
-                            exp:now + 18000
+                            exp:now 
                         };// To be used to generate JWT token
 
                         let _query:Option<CreatorForLoginSuccess> = db.update(("creator", &record_id)).merge(json!({"login_attempts": 0})).await.unwrap(); // reset the number of login attempts
@@ -179,28 +185,41 @@ pub async fn login(db: &Surreal<Client>,creator:CreatorForLogin) -> Result<Claim
 pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<Creator, CreatorError>{
     println!("\n\n{:<12}=====================================================================\n\n", "creator::details()");
     let id: &str= id.split(":").collect::<Vec<&str>>()[1];
+    println!("{id}");
     let creator:Result<Option<Creator>, surrealdb::Error> = db.select(("creator", id)).await;
 
     match creator{
         Ok(c) => {
-                dbg!(&c);
+                // dbg!(&c);
                 if let Some(ct) = c{
-                    println!("{:?}", ct);
                     return Ok(ct)
                 }else{
                     return Err(CreatorError::DetailsRetrievingError)
                 }
         },
-        Err(e) => {
+        Err(_) => {
             Err(CreatorError::DetailsRetrievingError)
         },
     }
 }
 
+pub async fn update_details<I: Serialize + for<'a> Deserialize<'a>>(db: &Surreal<Client>, id: String, field:&str, item: I) -> Result<bool, CreatorError>  {
+    println!("\n\n{:<12}=====================================================================\n\n", "creator::details()");
+    let id: &str = id.split(":").collect::<Vec<&str>>()[1];
+    println!("{id}");
+    //TODO: test if it accepts different types o
+    let query:Option<CreatorForLoginSuccess> = db.update(("creator", field)).merge(json!({field: item})).await.unwrap(); // reset the number of login attempts
+    return if let None = query {
+        Err(CreatorError::DetailsUpdateError)
+    } else if let Some(c) = query {
+        Ok(true)
+    } else {
+        Err(CreatorError::DetailsUpdateError)
+    }
+}
 //async fn get_details() -> Result<Vec<CreatorForCreate>, CreatorError>{}
 
 // endsection:   -- controllers
-
 
 // section:     -- imports
 // endsection:   -- imports
