@@ -1,14 +1,13 @@
-pub mod jwt;
 pub mod cookies;
-
+pub mod jwt;
 
 // section:      -- error
-pub enum AuthError{
+pub enum AuthError {
     // Token Error
     TokenGenerationError,
-    
+
     //CookieError
-    AuthTokenError
+    AuthTokenError,
 }
 // endsection:   -- error
 
