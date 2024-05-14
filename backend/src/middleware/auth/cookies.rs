@@ -56,7 +56,8 @@ pub fn gen_auth_cookie(claims: &Claims, cookies: &Cookies) -> Result<&'static st
     let token = gen_token(&c, secret); //Generate the auth token
     if let Ok(s) = token {
         // TODO: Create a cookie with cookie.builder
-        cookies.add(Cookie::new("auth_token", s)); //add it to cookies
+        let cookie = Cookie::build(("auth_token", s)).path("/");
+        cookies.add(Cookie::from(cookie)); //add it to cookies
         Ok("Auth cookie added")
     } else {
         Err(AuthError::AuthTokenError)
@@ -103,6 +104,7 @@ pub async fn verify_user(
         .get("auth_token")
         .map(|t| t.to_string())
         .ok_or(CookieError::MissingCookieError);
+    eprintln!("{:?}",cookies.list());
     match auth_token {
         Ok(t) => {
             let token_split: Vec<&str> = t.split("=").collect();

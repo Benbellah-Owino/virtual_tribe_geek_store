@@ -18,7 +18,7 @@ pub struct User {
     pub email: String,
     pub password: String,
     pub refresh_token: Option<String>,
-    pub login_attempts: i8,
+    pub login_attempts: u8,
     pub joined_at: String,
     pub verified: bool,
     pub avatar: Option<String>,

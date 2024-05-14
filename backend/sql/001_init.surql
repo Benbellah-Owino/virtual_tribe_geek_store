@@ -35,3 +35,15 @@ DEFINE TABLE IF NOT EXISTS studio_creator SCHEMAFULL;
 DEFINE FIELD studio ON TABLE studio_creator TYPE record<studio>;
 DEFINE FIELD creator ON TABLE studio_creator TYPE record<creator>;
 DEFINE FIELD role ON TABLE studio TYPE string;
+
+-- Create schemafull creator table;
+DEFINE TABLE IF NOT EXISTS user SCHEMAFULL;
+DEFINE FIELD username ON TABLE user TYPE string;
+DEFINE FIELD email ON TABLE user TYPE string VALUE string::lowercase($value) ASSERT string::is::email($value);
+DEFINE FIELD avatar ON TABLE user TYPE option<string>;
+DEFINE FIELD password ON TABLE user TYPE string;
+DEFINE FIELD joined_at ON TABLE user TYPE datetime DEFAULT time::now();
+DEFINE FIELD verified ON TABLE user TYPE bool DEFAULT false PERMISSIONS FOR update WHERE $auth.role="admin";
+DEFINE FIELD refresh_token ON TABLE user TYPE option<string>;
+DEFINE FIELD login_attempts ON TABLE user TYPE number DEFAULT 0;
+-- End of creator table;

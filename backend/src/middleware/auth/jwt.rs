@@ -36,7 +36,6 @@ pub fn decode_token(token: &str, secret: &str) -> Result<Claims, jsonwebtoken::e
         &DecodingKey::from_secret(secret.as_ref()),
         &Validation::default(),
     );
-    println!("{token}");
     match c {
         Ok(tk) => Ok(tk.claims),
         Err(e) => {

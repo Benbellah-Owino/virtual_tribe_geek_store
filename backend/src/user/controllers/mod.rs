@@ -53,7 +53,7 @@ pub async fn register<'a>(
         "User::register()"
     );
     let created: Result<Vec<UserForCreate>, surrealdb::Error> =
-        db.create("User").content(user).await;
+        db.create("user").content(user).await;
 
     match created {
         Ok(c) => {
@@ -104,15 +104,16 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
     );
     dbg!(&user);
     let ct = db.
-        query("SELECT id,email, role, password, username, verified, login_attempts FROM User WHERE email = $email")
+        query("SELECT id,email, role, password, username, verified, login_attempts FROM user WHERE email = $email")
         .bind(("email", &user.email))
         .await;
 
     match ct {
         //We format the result for comparison and send back appropriate result
         Ok(mut c) => {
-            debug!("{:<12} - User login", "FOR-DEV-ONLY");
+            debug!("{:<12} - user login", "FOR-DEV-ONLY");
 
+            dbg!(&c);
             #[allow(unused_mut)]
             let mut res: Result<Vec<UserForLoginSuccess>, surrealdb::Error> = c.take(0); // Convert the result to a vector containing the User for login
             dbg!(&res);
@@ -149,13 +150,13 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
                             id,
                             email: String::from(&db_user.email),
                             username: String::from(&db_user.username),
-                            acc_type: String::from("User"),
+                            acc_type: String::from("user"),
                             exp: now,
                             verified: db_user.verified,
                         }; // To be used to generate JWT token
 
                         let _query: Option<UserForLoginSuccess> = db
-                            .update(("User", &record_id))
+                            .update(("user", &record_id))
                             .merge(json!({"login_attempts": 0}))
                             .await
                             .unwrap(); // reset the number of login attempts
@@ -166,7 +167,7 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
                         print!("Wrong credentials");
 
                         let query: Option<UserForLoginSuccess> = db
-                            .update(("User", &record_id))
+                            .update(("user", &record_id))
                             .merge(json!({"login_attempts": &db_user.login_attempts + 1}))
                             .await
                             .unwrap();
@@ -199,7 +200,7 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<User, UserE
     );
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
     println!("{id}");
-    let user: Result<Option<User>, surrealdb::Error> = db.select(("User", id)).await;
+    let user: Result<Option<User>, surrealdb::Error> = db.select(("user", id)).await;
 
     match user {
         Ok(c) => {
@@ -234,7 +235,7 @@ pub async fn update_details(
         // Matching the field to restrict it to the user updatable  items named above
         "username" | "description" => {
             query = db
-                .update(("User", id))
+                .update(("user", id))
                 .merge(json!({&payload.field: &payload.value}))
                 .await
                 .unwrap(); // reset the number of login attempts
@@ -265,7 +266,7 @@ pub async fn delete_user(db: &Surreal<Client>, id: String) -> Result<User, UserE
     //TODO: test if it accepts different types o
     // Items to update username, password, socials, description,
     let deleted_user: Result<Option<User>, surrealdb::Error> =
-        db.delete(("User", id)).await;
+        db.delete(("user", id)).await;
     match deleted_user {
         Ok(dc) => {
             if let Some(c) = dc {

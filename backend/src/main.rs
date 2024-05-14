@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use axum::{routing::get, Router};
-use backend::creator;
+use backend::{creator, user};
 
 use backend::dev_initial::db::{connect_db, init_queries};
 
@@ -32,6 +32,7 @@ async fn main() -> surrealdb::Result<()> {
     // routers
     let app = Router::new()
         .route("/", get(|| async { "Hello, world" }))
+        .nest("/user", user::routers::user_router())
         .nest("/creator", creator::routers::creator_router())
         .layer(CookieManagerLayer::new())
         .with_state(Ok(db));
