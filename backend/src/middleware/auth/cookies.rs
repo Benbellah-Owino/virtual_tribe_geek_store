@@ -80,7 +80,7 @@ pub async fn gen_refresh_cookie(
     };
     c.exp = c.exp + 604_800; //Change the expiry to 1 week
     println!("{:?}", c);
-    let secret = &env::var("AUTH_TOKEN").expect("Set auth_token"); // Generate secret
+    let secret = &env::var("REFRESH_TOKEN").expect("Set refresh_token_secret"); // Generate secret
     let token = gen_token(&c, secret); //Generate the token
     if let Ok(s) = token {
         let query: Option<UserRefreshToken> = db

@@ -111,6 +111,13 @@ pub enum CreatorError {
     //Details Errors
     DetailsRetrievingError,
     DetailsUpdateError,
+
+    //Updating Error
+    UpdatingError,
+    WrongFieldError,
+
+    //Deleting Error
+    DeletingError,
 }
 // endsection:   -- error
 

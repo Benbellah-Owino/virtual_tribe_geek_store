@@ -7,17 +7,17 @@ use axum::{middleware, routing::*, Json, Router};
 use serde_json::json;
 use tower_cookies::{Cookie, Cookies};
 
-use crate::creator::controllers::delete_creator;
+use crate::user::controllers::delete_user;
 use crate::dev_initial::db::Db;
 use crate::middleware::auth::cookies::{gen_auth_cookie, gen_refresh_cookie, verify_user};
 
 use super::controllers::{get_details, login, register, update_details};
-use super::{CreatorForCreate, CreatorForLogin, CreatorForUpdateClient};
+use super::{UserForCreate, UserForLogin, UserForUpdateClient};
 
 // endsection:   -- imports
 
 // section:      -- router
-pub fn creator_router() -> Router<Db> {
+pub fn user_router() -> Router<Db> {
     return Router::new()
         .route("/", get(details_handler).patch(details_update_handler).delete(delete_handler))
         .layer(middleware::from_fn(verify_user))
@@ -29,13 +29,13 @@ pub fn creator_router() -> Router<Db> {
 
 // section:      -- handlers
 // #[axum_macros::debug_handler]
-/// <h1> Handles registration of Creator </h1>
-/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /creator </b> </h2>
+/// <h1> Handles registration of User </h1>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /User </b> </h2>
 ///
 /// <h3> Request body</h3>
 /// { <br>
-///     "username": "test_creator1", <br>
-///     "email": "test_creator1@gmail.com", <br>
+///     "username": "test_User1", <br>
+///     "email": "test_User1@gmail.com", <br>
 ///     "role": ["writer", "artist"], <br>
 ///     "password": "password" <br>
 /// }<br><br>
@@ -45,13 +45,13 @@ pub fn creator_router() -> Router<Db> {
 /// </h5>
 async fn register_handler(
     State(db): State<Db>,
-    Json(payload): Json<CreatorForCreate>,
+    Json(payload): Json<UserForCreate>,
 ) -> impl IntoResponse {
     dbg!(&payload);
     let db = db.unwrap();
-    let creator = register(&db, payload).await;
+    let user = register(&db, payload).await;
 
-    match creator {
+    match user {
         Ok(_c) => {
             return (StatusCode::CREATED).into_response();
         }
@@ -62,12 +62,12 @@ async fn register_handler(
 }
 
 #[axum_macros::debug_handler]
-/// <h1> Handles logging in of Creator </h1>
-/// <h2> <b>Endpoint: <strong>[GET]</strong>  /creator </b> </h2>
+/// <h1> Handles logging in of User </h1>
+/// <h2> <b>Endpoint: <strong>[GET]</strong>  /User </b> </h2>
 ///
 /// <h3> Request body</h3>
 /// { <br>
-///     "email": "test_creator1@gmail.com", <br>
+///     "email": "test_User1@gmail.com", <br>
 ///     "password": "password" <br>
 /// }<br><br>
 ///
@@ -77,13 +77,13 @@ async fn register_handler(
 async fn login_handler(
     State(db): State<Db>,
     cookies: Cookies,
-    Json(payload): Json<CreatorForLogin>,
+    Json(payload): Json<UserForLogin>,
 ) -> impl IntoResponse {
     dbg!(&payload);
     let db = db.unwrap();
-    let creator = login(&db, payload).await;
+    let user = login(&db, payload).await;
 
-    match creator {
+    match user {
         Ok(claims) => {
             match gen_auth_cookie(&claims, &cookies) {
                 // Generating the auth token and saving it as a cookie then handling the error
@@ -97,16 +97,16 @@ async fn login_handler(
                     return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
                 }
             }
-            return (StatusCode::ACCEPTED, Json(json!({"creator":claims}))).into_response();
+            return (StatusCode::ACCEPTED, Json(json!({"User":claims}))).into_response();
         }
         Err(e) => match e {
-            crate::creator::CreatorError::LoginError => {
+            crate::user::UserError::LoginError => {
                 return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
             }
-            crate::creator::CreatorError::WrongCredentialsError => {
+            crate::user::UserError::WrongCredentialsError => {
                 return (StatusCode::UNAUTHORIZED).into_response();
             }
-            crate::creator::CreatorError::LoginAttemptsError => {
+            crate::user::UserError::LoginAttemptsError => {
                 return (
                     StatusCode::FORBIDDEN,
                     Json(json!({"msg":"Too many login attempts"})),
@@ -120,8 +120,8 @@ async fn login_handler(
     }
 }
 
-/// <h1> Handles getting details of Creator </h1>
-/// <h2> <b>Endpoint: /creator </b> </h2>
+/// <h1> Handles getting details of User </h1>
+/// <h2> <b>Endpoint: /User </b> </h2>
 ///
 /// <h3> No request body</h3>
 ///
@@ -133,15 +133,15 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
     if let Some(id) = req.extensions().get::<String>() {
         println!("{id}");
         let db = db.unwrap();
-        let creator = get_details(&db, id.to_owned()).await;
-        match creator {
+        let user = get_details(&db, id.to_owned()).await;
+        match user {
             Ok(c) => {
-                return (StatusCode::FOUND, Json(json!({"creator": c})));
+                return (StatusCode::FOUND, Json(json!({"User": c})));
             }
             Err(_) => {
                 return (
                     StatusCode::NOT_FOUND,
-                    Json(json!({"msg": "Creator not found"})),
+                    Json(json!({"msg": "User not found"})),
                 );
             }
         }
@@ -149,21 +149,21 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
         println!("Error");
         return (
             StatusCode::NOT_FOUND,
-            Json(json!({"msg": "Creator not found"})),
+            Json(json!({"msg": "User not found"})),
         );
     }
 }
 
 // #[axum_macros::debug_handler]
-// pub async fn details_update_handler(State(db): State<Db>, Json(payload):Json<Vec<CreatorForUpdate>>) -> impl IntoResponse{
+// pub async fn details_update_handler(State(db): State<Db>, Json(payload):Json<Vec<UserForUpdate>>) -> impl IntoResponse{
 #[axum_macros::debug_handler]
-/// <h1> Handles updating details of Creators </h1>
-/// <h2> <b>Endpoint:  <strong>[PATHC]</strong>  /creator </b> </h2>
+/// <h1> Handles updating details of Users </h1>
+/// <h2> <b>Endpoint:  <strong>[PATHC]</strong>  /User </b> </h2>
 ///
 /// <h3> Request body</h3>
 /// { <br>
 ///     "field": "email", <br>
-///     "value": "test_creator1@gmail.com", <br>
+///     "value": "test_User1@gmail.com", <br>
 /// }<br><br>
 ///
 /// <h5>
@@ -177,35 +177,35 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
 
         // the 2 lines below extract request body and serialize it into the correct format
         let body_bytes = to_bytes(req.into_body(), 10480).await.unwrap();
-        let payload: CreatorForUpdateClient = serde_json::from_slice(&body_bytes).unwrap();
+        let payload: UserForUpdateClient = serde_json::from_slice(&body_bytes).unwrap();
 
         let db = db.unwrap(); //select db
-        let creator = update_details(&db, id.to_owned(), payload).await;
+        let user = update_details(&db, id.to_owned(), payload).await;
 
         // Items to update username, password, socials, description,
-        match creator {
+        match user {
             Ok(_) => {
-                let creator = get_details(&db, id.to_owned()).await.unwrap();
-                (StatusCode::FOUND, Json(json!({"creator": creator})))
+                let user = get_details(&db, id.to_owned()).await.unwrap();
+                (StatusCode::FOUND, Json(json!({"User": user})))
             }
             Err(_) => {
-                let creator = get_details(&db, id.to_owned()).await.unwrap();
+                let user = get_details(&db, id.to_owned()).await.unwrap();
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(json!({"msg": "Update error", "c":creator})),
+                    Json(json!({"msg": "Update error", "c": user})),
                 )
             }
         }
     } else {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({"msg": "Creator not updated"})),
+            Json(json!({"msg": "User not updated"})),
         )
     };
 }
 
-/// <h1> Handles deleting of Creators </h1>
-/// <h2> <b>Endpoint:  <strong>[DELETE]</strong>  /creator </b> </h2>
+/// <h1> Handles deleting of Users </h1>
+/// <h2> <b>Endpoint:  <strong>[DELETE]</strong>  /User </b> </h2>
 ///
 /// <h3> No request body</h3>
 /// 
@@ -218,16 +218,16 @@ pub async fn delete_handler(State(db): State<Db>, cookies:Cookies, req: Request)
     if let Some(id) = req.extensions().get::<String>() {
         println!("{id}");
         let db = db.unwrap();
-        let creator = delete_creator(&db, id.to_owned()).await;
-        match creator {
+    let user = delete_user(&db, id.to_owned()).await;
+        match user {
             Ok(c) => {
                 cookies.remove(Cookie::from("auth_token"));
-                return (StatusCode::OK, Json(json!({"creator": c})));
+                return (StatusCode::OK, Json(json!({"User": c})));
             }
             Err(_) => {
                 return (
                     StatusCode::NOT_FOUND,
-                    Json(json!({"msg": "Creator not found"})),
+                    Json(json!({"msg": "User not found"})),
                 );
             }
         }
@@ -235,7 +235,7 @@ pub async fn delete_handler(State(db): State<Db>, cookies:Cookies, req: Request)
         println!("Error");
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({"msg": "Creator not found"})),
+            Json(json!({"msg": "User not found"})),
         );
     }
 }
