@@ -1,16 +1,13 @@
-
 use serde_json::json;
 // section:     -- imports
 use surrealdb::{engine::remote::ws::Client, Surreal};
 
 use crate::{
-    user::{User, UserError, UserForLoginSuccess},
     middleware::auth::jwt::Claims,
+    user::{User, UserError, UserForLoginSuccess},
 };
 
-use super::{
-    UserForCreate, UserForLogin, UserForUpdateClient, UserForUpdateDb, 
-};
+use super::{UserForCreate, UserForLogin, UserForUpdateClient, UserForUpdateDb};
 use chrono::Utc;
 use tracing::{debug, error, info};
 // endsection:   -- imports
@@ -214,7 +211,7 @@ pub async fn update_details(
     db: &Surreal<Client>,
     id: String,
     payload: UserForUpdateClient,
-) -> Result< UserForUpdateDb, UserError> {
+) -> Result<UserForUpdateDb, UserError> {
     println!(
         "\n\n{:<12}=====================================================================\n\n",
         "User::details()"
@@ -233,7 +230,6 @@ pub async fn update_details(
                 .merge(json!({&payload.field: &payload.value}))
                 .await
                 .unwrap(); // reset the number of login attempts
-
         }
         "password" => {
             // Password is also special
@@ -259,8 +255,7 @@ pub async fn delete_user(db: &Surreal<Client>, id: String) -> Result<User, UserE
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
     //TODO: test if it accepts different types o
     // Items to update username, password, socials, description,
-    let deleted_user: Result<Option<User>, surrealdb::Error> =
-        db.delete(("user", id)).await;
+    let deleted_user: Result<Option<User>, surrealdb::Error> = db.delete(("user", id)).await;
     match deleted_user {
         Ok(dc) => {
             if let Some(c) = dc {

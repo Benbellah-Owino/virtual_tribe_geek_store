@@ -102,14 +102,13 @@ pub async fn verify_user(
         .get("auth_token")
         .map(|t| t.to_string())
         .ok_or(CookieError::MissingCookieError);
-    eprintln!("{:?}",cookies.list());
+    eprintln!("{:?}", cookies.list());
     match auth_token {
         Ok(t) => {
             let token_split: Vec<&str> = t.split("=").collect();
             let secret = &env::var("AUTH_TOKEN").expect("Set auth_token"); // Generate secret
             match decode_token(&token_split[1], secret) {
                 Ok(c) => {
-
                     request.extensions_mut().insert(c.id.clone());
                     Ok(next.run(request).await)
                 }

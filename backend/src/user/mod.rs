@@ -60,7 +60,7 @@ pub struct UserForLoginSuccess {
     pub login_attempts: u8,
 }
 
-// Items to update username, password, 
+// Items to update username, password,
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserForUpdateClient {
     pub field: String,
@@ -105,7 +105,7 @@ mod tests {
 
     use crate::dev_initial::db::connect_db;
 
-    use self::controllers::{login, register, update_details, get_details, delete_user};
+    use self::controllers::{delete_user, get_details, login, register, update_details};
 
     use super::*;
 
@@ -153,10 +153,7 @@ mod tests {
         let _delete: Result<Vec<UserForCreate>, surrealdb::Error> = db.delete("user").await;
 
         assert_eq!(String::from("Testuser"), logged_in_user.username);
-        assert_eq!(
-            String::from("testuser@gmail.com"),
-            logged_in_user.email
-        );
+        assert_eq!(String::from("testuser@gmail.com"), logged_in_user.email);
         assert_eq!(String::from("user"), logged_in_user.acc_type);
     }
 
@@ -187,7 +184,9 @@ mod tests {
             value: String::from("testuserupdated@gmail.com"),
         };
 
-        let updated_user = update_details(&db, logged_user.id, user_for_update).await.unwrap();
+        let updated_user = update_details(&db, logged_user.id, user_for_update)
+            .await
+            .unwrap();
 
         let _delete: Result<Vec<UserForCreate>, surrealdb::Error> = db.delete("user").await;
 
@@ -196,7 +195,6 @@ mod tests {
             String::from("testuserupdated@gmail.com"),
             updated_user.email
         );
-        
     }
 
     #[serial]
@@ -225,17 +223,9 @@ mod tests {
 
         let _delete: Result<Vec<UserForCreate>, surrealdb::Error> = db.delete("user").await;
 
-        assert_eq!(
-            String::from("testuser@gmail.com"),
-            user.email
-        );
-        assert_eq!(
-            String::from("Testuser"),
-            user.username
-        );
-        
+        assert_eq!(String::from("testuser@gmail.com"), user.email);
+        assert_eq!(String::from("Testuser"), user.username);
     }
-
 
     #[serial]
     #[tokio::test]
@@ -259,17 +249,9 @@ mod tests {
 
         let logged_user = login(&db, user_for_login).await.unwrap();
 
-
         let delete = delete_user(&db, logged_user.id).await.unwrap();
 
-        assert_eq!(
-            String::from("testuser@gmail.com"),
-            delete.email
-        );
-        assert_eq!(
-            String::from("Testuser"),
-            delete.username
-        );
-        
+        assert_eq!(String::from("testuser@gmail.com"), delete.email);
+        assert_eq!(String::from("Testuser"), delete.username);
     }
 }

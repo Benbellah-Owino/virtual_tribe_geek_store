@@ -24,6 +24,7 @@ DEFINE TABLE IF NOT EXISTS studio SCHEMAFULL;
 DEFINE FIELD name ON TABLE studio TYPE string;
 DEFINE FIELD owner ON TABLE studio TYPE record<creator>;
 DEFINE FIELD email ON TABLE studio TYPE string VALUE string::lowercase($value) ASSERT string::is::email($value);
+DEFINE FIELD description ON TABLE studio TYPE option<string>;
 
 -- DEFINE FUNCTION fn::no_ips($studio: record){
 --     TODO: Write function to calculate the number of ip's the studio has

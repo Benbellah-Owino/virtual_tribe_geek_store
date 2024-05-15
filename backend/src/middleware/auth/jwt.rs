@@ -38,8 +38,6 @@ pub fn decode_token(token: &str, secret: &str) -> Result<Claims, jsonwebtoken::e
     );
     match c {
         Ok(tk) => Ok(tk.claims),
-        Err(e) => {
-            Err(e)
-        }
+        Err(e) => Err(e),
     }
 }

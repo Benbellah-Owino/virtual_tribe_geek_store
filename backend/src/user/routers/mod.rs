@@ -7,9 +7,9 @@ use axum::{middleware, routing::*, Json, Router};
 use serde_json::json;
 use tower_cookies::{Cookie, Cookies};
 
-use crate::user::controllers::delete_user;
 use crate::dev_initial::db::Db;
 use crate::middleware::auth::cookies::{gen_auth_cookie, gen_refresh_cookie, verify_user};
+use crate::user::controllers::delete_user;
 
 use super::controllers::{get_details, login, register, update_details};
 use super::{UserForCreate, UserForLogin, UserForUpdateClient};
@@ -19,7 +19,12 @@ use super::{UserForCreate, UserForLogin, UserForUpdateClient};
 // section:      -- router
 pub fn user_router() -> Router<Db> {
     return Router::new()
-        .route("/", get(details_handler).patch(details_update_handler).delete(delete_handler))
+        .route(
+            "/",
+            get(details_handler)
+                .patch(details_update_handler)
+                .delete(delete_handler),
+        )
         .layer(middleware::from_fn(verify_user))
         .route("/", post(register_handler))
         .route("/login", get(login_handler));
@@ -206,16 +211,20 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
 /// <h2> <b>Endpoint:  <strong>[DELETE]</strong>  /User </b> </h2>
 ///
 /// <h3> No request body</h3>
-/// 
+///
 /// <h5>
 ///     Empty parameters <br>
 ///     Need auth token <br>
 /// </h5>
-/// 
-pub async fn delete_handler(State(db): State<Db>, cookies:Cookies, req: Request) -> impl IntoResponse {
+///
+pub async fn delete_handler(
+    State(db): State<Db>,
+    cookies: Cookies,
+    req: Request,
+) -> impl IntoResponse {
     if let Some(id) = req.extensions().get::<String>() {
         let db = db.unwrap();
-    let user = delete_user(&db, id.to_owned()).await;
+        let user = delete_user(&db, id.to_owned()).await;
         match user {
             Ok(c) => {
                 cookies.remove(Cookie::from("auth_token"));
@@ -236,7 +245,6 @@ pub async fn delete_handler(State(db): State<Db>, cookies:Cookies, req: Request)
         );
     }
 }
-
 
 // endsection:   -- handlers
 

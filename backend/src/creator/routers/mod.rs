@@ -19,7 +19,12 @@ use super::{CreatorForCreate, CreatorForLogin, CreatorForUpdateClient};
 // section:      -- router
 pub fn creator_router() -> Router<Db> {
     return Router::new()
-        .route("/", get(details_handler).patch(details_update_handler).delete(delete_handler))
+        .route(
+            "/",
+            get(details_handler)
+                .patch(details_update_handler)
+                .delete(delete_handler),
+        )
         .layer(middleware::from_fn(verify_user))
         .route("/", post(register_handler))
         .route("/login", get(login_handler));
@@ -204,13 +209,17 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
 /// <h2> <b>Endpoint:  <strong>[DELETE]</strong>  /creator </b> </h2>
 ///
 /// <h3> No request body</h3>
-/// 
+///
 /// <h5>
 ///     Empty parameters <br>
 ///     Need auth token <br>
 /// </h5>
-/// 
-pub async fn delete_handler(State(db): State<Db>, cookies:Cookies, req: Request) -> impl IntoResponse {
+///
+pub async fn delete_handler(
+    State(db): State<Db>,
+    cookies: Cookies,
+    req: Request,
+) -> impl IntoResponse {
     if let Some(id) = req.extensions().get::<String>() {
         let db = db.unwrap();
         let creator = delete_creator(&db, id.to_owned()).await;
@@ -234,7 +243,6 @@ pub async fn delete_handler(State(db): State<Db>, cookies:Cookies, req: Request)
         );
     }
 }
-
 
 // endsection:   -- handlers
 

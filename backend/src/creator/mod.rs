@@ -129,7 +129,7 @@ mod tests {
 
     use crate::dev_initial::db::connect_db;
 
-    use self::controllers::{login, register, update_details, get_details, delete_creator};
+    use self::controllers::{delete_creator, get_details, login, register, update_details};
 
     use super::*;
 
@@ -215,7 +215,9 @@ mod tests {
             value: String::from("testcreatorupdated@gmail.com"),
         };
 
-        let updated_creator = update_details(&db, logged_creator.id, creator_for_update).await.unwrap();
+        let updated_creator = update_details(&db, logged_creator.id, creator_for_update)
+            .await
+            .unwrap();
 
         let _delete: Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
 
@@ -223,7 +225,6 @@ mod tests {
             String::from("testcreatorupdated@gmail.com"),
             updated_creator.email
         );
-        
     }
 
     #[serial]
@@ -253,17 +254,9 @@ mod tests {
 
         let _delete: Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
 
-        assert_eq!(
-            String::from("testcreator@gmail.com"),
-            creator.email
-        );
-        assert_eq!(
-            String::from("TestCreator"),
-            creator.username
-        );
-        
+        assert_eq!(String::from("testcreator@gmail.com"), creator.email);
+        assert_eq!(String::from("TestCreator"), creator.username);
     }
-
 
     #[serial]
     #[tokio::test]
@@ -288,18 +281,10 @@ mod tests {
 
         let logged_creator = login(&db, creator_for_login).await.unwrap();
 
-
         let delete = delete_creator(&db, logged_creator.id).await.unwrap();
 
-        assert_eq!(
-            String::from("testcreator@gmail.com"),
-            delete.email
-        );
-        assert_eq!(
-            String::from("TestCreator"),
-            delete.username
-        );
-        
+        assert_eq!(String::from("testcreator@gmail.com"), delete.email);
+        assert_eq!(String::from("TestCreator"), delete.username);
     }
 }
 // endsection:  -- tests
