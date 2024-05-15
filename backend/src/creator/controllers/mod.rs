@@ -57,14 +57,12 @@ pub async fn register<'a>(
     match created {
         Ok(c) => {
             debug!("{:<12} - registered new creator", "FOR-DEV-ONLY");
-            println!("{:?}", c);
 
             println!("\n\n============================================================================================\n\n");
             return Ok(c);
         }
-        Err(e) => {
+        Err(_e) => {
             error!("        - Creator registration error");
-            dbg!(e);
             println!("\n\n============================================================================================\n\n\n");
             return Err(CreatorError::RegistrationError);
         }
@@ -114,7 +112,6 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
 
             #[allow(unused_mut)]
             let mut res: Result<Vec<CreatorForLoginSuccess>, surrealdb::Error> = c.take(0); // Convert the result to a vector containing the creator for login
-            dbg!(&res);
 
             match res {
                 //INNER MATCH ------------------------------------------------------------------
@@ -129,7 +126,6 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
                     let record_id = id.id.to_string();
                     let tb = id.tb.to_string();
                     let id = format!("{tb}:{record_id}");
-                    println!("Record id :->  {id}");
 
                     if db_creator.login_attempts >= 10 as u8 {
                         //Check if user has exceded the required amount of logins
@@ -137,7 +133,6 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
                         println!("\n\n============================================================================================\n\n\n");
                         return Err(CreatorError::LoginAttemptsError); //else
                     }
-                    println!("cont....");
                     if creator.password == db_creator.password {
                         //Check if password is correct
                         info!("{:?} has logged in", &t[0].username);
@@ -197,7 +192,6 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<Creator, Cr
         "creator::details()"
     );
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
-    println!("{id}");
     let creator: Result<Option<Creator>, surrealdb::Error> = db.select(("creator", id)).await;
 
     match creator {
@@ -217,7 +211,7 @@ pub async fn update_details(
     db: &Surreal<Client>,
     id: String,
     payload: CreatorForUpdateClient,
-) -> Result<bool, CreatorError> {
+) -> Result<CreatorForUpdateDb, CreatorError> {
     println!(
         "\n\n{:<12}=====================================================================\n\n",
         "creator::details()"
@@ -225,8 +219,7 @@ pub async fn update_details(
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
     //TODO: test if it accepts different types o
     // Items to update username, password, socials, description,
-    println!("{:?}", payload);
-    let mut query: Option<CreatorForLoginSuccess> = None;
+    let mut query: Option<CreatorForUpdateDb> = None;
     let field = payload.field.clone();
 
     match field.as_str() {
@@ -238,7 +231,6 @@ pub async fn update_details(
                 let socials_db = c.socials; // Get the socials object from db
                 let value = payload.value.clone();
                 let value: Vec<&str> = value.split(".").collect();
-                println!("{:?}", value);
                 let mut socials: Socials;
                 if let Some(s) = socials_db {
                     socials = s;
@@ -264,7 +256,7 @@ pub async fn update_details(
                     .update(("creator", id))
                     .merge(json!({"socials": socials}))
                     .await
-                    .unwrap(); // reset the number of login attempts
+                    .unwrap() // reset the number of login attempts
             }
         } //End of socials arm
         "username" | "description" => {
@@ -283,8 +275,8 @@ pub async fn update_details(
 
     return if let None = query {
         Err(CreatorError::DetailsUpdateError)
-    } else if let Some(_c) = query {
-        Ok(true)
+    } else if let Some(c) = query {
+        Ok(c)
     } else {
         Err(CreatorError::DetailsUpdateError)
     };

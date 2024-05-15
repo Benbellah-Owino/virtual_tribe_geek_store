@@ -47,7 +47,6 @@ async fn register_handler(
     State(db): State<Db>,
     Json(payload): Json<UserForCreate>,
 ) -> impl IntoResponse {
-    dbg!(&payload);
     let db = db.unwrap();
     let user = register(&db, payload).await;
 
@@ -97,7 +96,7 @@ async fn login_handler(
                     return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
                 }
             }
-            return (StatusCode::ACCEPTED, Json(json!({"User":claims}))).into_response();
+            return (StatusCode::ACCEPTED, Json(json!({"ser":claims}))).into_response();
         }
         Err(e) => match e {
             crate::user::UserError::LoginError => {
@@ -131,7 +130,6 @@ async fn login_handler(
 /// </br>
 pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoResponse {
     if let Some(id) = req.extensions().get::<String>() {
-        println!("{id}");
         let db = db.unwrap();
         let user = get_details(&db, id.to_owned()).await;
         match user {
@@ -186,13 +184,13 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
         match user {
             Ok(_) => {
                 let user = get_details(&db, id.to_owned()).await.unwrap();
-                (StatusCode::FOUND, Json(json!({"User": user})))
+                (StatusCode::FOUND, Json(json!({"user": user})))
             }
             Err(_) => {
                 let user = get_details(&db, id.to_owned()).await.unwrap();
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(json!({"msg": "Update error", "c": user})),
+                    Json(json!({"msg": "Update error", "user": user})),
                 )
             }
         }
@@ -216,7 +214,6 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
 /// 
 pub async fn delete_handler(State(db): State<Db>, cookies:Cookies, req: Request) -> impl IntoResponse {
     if let Some(id) = req.extensions().get::<String>() {
-        println!("{id}");
         let db = db.unwrap();
     let user = delete_user(&db, id.to_owned()).await;
         match user {

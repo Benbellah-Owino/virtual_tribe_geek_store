@@ -47,7 +47,6 @@ async fn register_handler(
     State(db): State<Db>,
     Json(payload): Json<CreatorForCreate>,
 ) -> impl IntoResponse {
-    dbg!(&payload);
     let db = db.unwrap();
     let creator = register(&db, payload).await;
 
@@ -79,7 +78,6 @@ async fn login_handler(
     cookies: Cookies,
     Json(payload): Json<CreatorForLogin>,
 ) -> impl IntoResponse {
-    dbg!(&payload);
     let db = db.unwrap();
     let creator = login(&db, payload).await;
 
@@ -88,9 +86,8 @@ async fn login_handler(
             match gen_auth_cookie(&claims, &cookies) {
                 // Generating the auth token and saving it as a cookie then handling the error
                 Ok(_) => {
-                    if let Ok(refresh_token) = gen_refresh_cookie(&claims, &db).await {
+                    if let Ok(_refresh_token) = gen_refresh_cookie(&claims, &db).await {
                         //Generate refresh token and save it to db
-                        println!("{:?}", refresh_token);
                     }
                 }
                 Err(_) => {
@@ -131,7 +128,6 @@ async fn login_handler(
 /// </br>
 pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoResponse {
     if let Some(id) = req.extensions().get::<String>() {
-        println!("{id}");
         let db = db.unwrap();
         let creator = get_details(&db, id.to_owned()).await;
         match creator {
@@ -216,7 +212,6 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
 /// 
 pub async fn delete_handler(State(db): State<Db>, cookies:Cookies, req: Request) -> impl IntoResponse {
     if let Some(id) = req.extensions().get::<String>() {
-        println!("{id}");
         let db = db.unwrap();
         let creator = delete_creator(&db, id.to_owned()).await;
         match creator {

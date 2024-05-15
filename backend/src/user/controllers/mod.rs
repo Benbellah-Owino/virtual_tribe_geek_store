@@ -58,14 +58,12 @@ pub async fn register<'a>(
     match created {
         Ok(c) => {
             debug!("{:<12} - registered new User", "FOR-DEV-ONLY");
-            println!("{:?}", c);
 
             println!("\n\n============================================================================================\n\n");
             return Ok(c);
         }
-        Err(e) => {
+        Err(_e) => {
             error!("        - User registration error");
-            dbg!(e);
             println!("\n\n============================================================================================\n\n\n");
             return Err(UserError::RegistrationError);
         }
@@ -113,10 +111,8 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
         Ok(mut c) => {
             debug!("{:<12} - user login", "FOR-DEV-ONLY");
 
-            dbg!(&c);
             #[allow(unused_mut)]
             let mut res: Result<Vec<UserForLoginSuccess>, surrealdb::Error> = c.take(0); // Convert the result to a vector containing the User for login
-            dbg!(&res);
 
             match res {
                 //INNER MATCH ------------------------------------------------------------------
@@ -131,7 +127,6 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
                     let record_id = id.id.to_string();
                     let tb = id.tb.to_string();
                     let id = format!("{tb}:{record_id}");
-                    println!("Record id :->  {id}");
 
                     if db_user.login_attempts >= 10 as u8 {
                         //Check if user has exceded the required amount of logins
@@ -199,12 +194,12 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<User, UserE
         "User::details()"
     );
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
-    println!("{id}");
     let user: Result<Option<User>, surrealdb::Error> = db.select(("user", id)).await;
 
     match user {
         Ok(c) => {
-            // dbg!(&c);
+            dbg!(&c);
+
             if let Some(ct) = c {
                 return Ok(ct);
             } else {
@@ -227,7 +222,6 @@ pub async fn update_details(
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
     //TODO: test if it accepts different types o
     // Items to update username, password, socials, description,
-    println!("{:?}", payload);
     let mut query: Option<UserForUpdateDb> = None;
     let field = payload.field.clone();
 

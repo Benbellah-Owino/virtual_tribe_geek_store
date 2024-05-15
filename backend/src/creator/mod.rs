@@ -125,12 +125,15 @@ pub enum CreatorError {
 
 #[cfg(test)]
 mod tests {
+    use serial_test::serial;
+
     use crate::dev_initial::db::connect_db;
 
-    use self::controllers::{login, register};
+    use self::controllers::{login, register, update_details, get_details, delete_creator};
 
     use super::*;
 
+    #[serial]
     #[tokio::test]
     async fn creator_registration() {
         let db = connect_db()
@@ -152,6 +155,7 @@ mod tests {
         assert_eq!(String::from("password"), t.password);
     }
 
+    #[serial]
     #[tokio::test]
     async fn creator_login() {
         let db = connect_db()
@@ -181,6 +185,121 @@ mod tests {
             logged_in_creator.email
         );
         assert_eq!(String::from("creator"), logged_in_creator.acc_type);
+    }
+
+    #[serial]
+    #[tokio::test]
+    async fn creator_update() {
+        let db = connect_db()
+            .await
+            .expect("TEST ERROR:-> Connection to db failed");
+        //Create creator
+        let creater = CreatorForCreate {
+            email: String::from("testcreator@gmail.com"),
+            username: String::from("TestCreator"),
+            role: vec![String::from("writer")],
+            password: String::from("password"),
+        };
+        let _new_creator = register(&db, creater).await.unwrap();
+
+        //loggin creator to get id
+        let creator_for_login = CreatorForLogin {
+            email: String::from("testcreator@gmail.com"),
+            password: String::from("password"),
+        };
+
+        let logged_creator = login(&db, creator_for_login).await.unwrap();
+
+        let creator_for_update = CreatorForUpdateClient {
+            field: String::from("email"),
+            value: String::from("testcreatorupdated@gmail.com"),
+        };
+
+        let updated_creator = update_details(&db, logged_creator.id, creator_for_update).await.unwrap();
+
+        let _delete: Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
+
+        assert_eq!(
+            String::from("testcreatorupdated@gmail.com"),
+            updated_creator.email
+        );
+        
+    }
+
+    #[serial]
+    #[tokio::test]
+    async fn creator_details() {
+        let db = connect_db()
+            .await
+            .expect("TEST ERROR:-> Connection to db failed");
+        //Create creator
+        let creater = CreatorForCreate {
+            email: String::from("testcreator@gmail.com"),
+            username: String::from("TestCreator"),
+            role: vec![String::from("writer")],
+            password: String::from("password"),
+        };
+        let _new_creator = register(&db, creater).await.unwrap();
+
+        //loggin creator to get id
+        let creator_for_login = CreatorForLogin {
+            email: String::from("testcreator@gmail.com"),
+            password: String::from("password"),
+        };
+
+        let logged_creator = login(&db, creator_for_login).await.unwrap();
+
+        let creator = get_details(&db, logged_creator.id).await.unwrap();
+
+        let _delete: Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
+
+        assert_eq!(
+            String::from("testcreator@gmail.com"),
+            creator.email
+        );
+        assert_eq!(
+            String::from("TestCreator"),
+            creator.username
+        );
+        
+    }
+
+
+    #[serial]
+    #[tokio::test]
+    async fn creator_delete() {
+        let db = connect_db()
+            .await
+            .expect("TEST ERROR:-> Connection to db failed");
+        //Create creator
+        let creater = CreatorForCreate {
+            email: String::from("testcreator@gmail.com"),
+            username: String::from("TestCreator"),
+            role: vec![String::from("writer")],
+            password: String::from("password"),
+        };
+        let _new_creator = register(&db, creater).await.unwrap();
+
+        //loggin creator to get id
+        let creator_for_login = CreatorForLogin {
+            email: String::from("testcreator@gmail.com"),
+            password: String::from("password"),
+        };
+
+        let logged_creator = login(&db, creator_for_login).await.unwrap();
+
+
+        let delete = delete_creator(&db, logged_creator.id).await.unwrap();
+
+        assert_eq!(
+            String::from("testcreator@gmail.com"),
+            delete.email
+        );
+        assert_eq!(
+            String::from("TestCreator"),
+            delete.username
+        );
+        
     }
 }
 // endsection:  -- tests

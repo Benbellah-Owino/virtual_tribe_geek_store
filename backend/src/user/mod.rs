@@ -99,66 +99,177 @@ pub enum UserError {
 // endsection:   -- error
 
 // section:     -- tests
+#[cfg(test)]
+mod tests {
+    use serial_test::serial;
 
-// #[cfg(test)]
-// mod tests {
-//     use crate::dev_initial::db::connect_db;
+    use crate::dev_initial::db::connect_db;
 
-//     use self::controllers::{login, register};
+    use self::controllers::{login, register, update_details, get_details, delete_user};
 
-//     use super::*;
+    use super::*;
 
-//     #[tokio::test]
-//     async fn User_registration() {
-//         let db = connect_db()
-//             .await
-//             .expect("TEST ERROR:-> Connection to db failed");
-//         let creater = UserForCreate {
-//             username: String::from("TestUser"),
-//             email: String::from("testUser@gmail.com"),
-//             role: vec![String::from("writer")],
-//             password: String::from("password"),
-//         };
-//         let t = register(&db, creater).await.unwrap();
-//         let t = &t[0];
-//         let _delete: Result<Vec<UserForCreate>, surrealdb::Error> = db.delete("User").await;
+    #[serial]
+    #[tokio::test]
+    async fn user_registration() {
+        let db = connect_db()
+            .await
+            .expect("TEST ERROR:-> Connection to db failed");
+        let creater = UserForCreate {
+            username: String::from("Testuser"),
+            email: String::from("testuser@gmail.com"),
+            password: String::from("password"),
+        };
+        let t = register(&db, creater).await.unwrap();
+        let t = &t[0];
+        let _delete: Result<Vec<UserForCreate>, surrealdb::Error> = db.delete("user").await;
 
-//         assert_eq!(String::from("TestUser"), t.username);
-//         assert_eq!(String::from("testUser@gmail.com"), t.email);
-//         assert_eq!(vec![String::from("writer")], t.role);
-//         assert_eq!(String::from("password"), t.password);
-//     }
+        assert_eq!(String::from("Testuser"), t.username);
+        assert_eq!(String::from("testuser@gmail.com"), t.email);
+        assert_eq!(String::from("password"), t.password);
+    }
 
-//     #[tokio::test]
-//     async fn User_login() {
-//         let db = connect_db()
-//             .await
-//             .expect("TEST ERROR:-> Connection to db failed");
+    #[serial]
+    #[tokio::test]
+    async fn user_login() {
+        let db = connect_db()
+            .await
+            .expect("TEST ERROR:-> Connection to db failed");
 
-//         let creater = UserForCreate {
-//             email: String::from("testUser@gmail.com"),
-//             username: String::from("TestUser"),
-//             role: vec![String::from("writer")],
-//             password: String::from("password"),
-//         };
-//         let _new_User = register(&db, creater).await.unwrap();
+        let creater = UserForCreate {
+            email: String::from("testuser@gmail.com"),
+            username: String::from("Testuser"),
+            password: String::from("password"),
+        };
+        let _new_user = register(&db, creater).await.unwrap();
 
-//         let User = UserForLogin {
-//             email: String::from("testUser@gmail.com"),
-//             password: String::from("password"),
-//         };
+        let user = UserForLogin {
+            email: String::from("testuser@gmail.com"),
+            password: String::from("password"),
+        };
 
-//         let logged_in_User = login(&db, User).await.unwrap();
+        let logged_in_user = login(&db, user).await.unwrap();
 
-//         let _delete: Result<Vec<UserForCreate>, surrealdb::Error> = db.delete("User").await;
+        let _delete: Result<Vec<UserForCreate>, surrealdb::Error> = db.delete("user").await;
 
-//         assert_eq!(String::from("TestUser"), logged_in_User.username);
-//         assert_eq!(
-//             String::from("testUser@gmail.com"),
-//             logged_in_User.email
-//         );
-//         assert_eq!(String::from("User"), logged_in_User.acc_type);
-//     }
-//}
-// // endsection:  -- tests
+        assert_eq!(String::from("Testuser"), logged_in_user.username);
+        assert_eq!(
+            String::from("testuser@gmail.com"),
+            logged_in_user.email
+        );
+        assert_eq!(String::from("user"), logged_in_user.acc_type);
+    }
 
+    #[serial]
+    #[tokio::test]
+    async fn user_update() {
+        let db = connect_db()
+            .await
+            .expect("TEST ERROR:-> Connection to db failed");
+        //Create user
+        let creater = UserForCreate {
+            email: String::from("testuser@gmail.com"),
+            username: String::from("Testuser"),
+            password: String::from("password"),
+        };
+        let _new_user = register(&db, creater).await.unwrap();
+
+        //loggin user to get id
+        let user_for_login = UserForLogin {
+            email: String::from("testuser@gmail.com"),
+            password: String::from("password"),
+        };
+
+        let logged_user = login(&db, user_for_login).await.unwrap();
+
+        let user_for_update = UserForUpdateClient {
+            field: String::from("email"),
+            value: String::from("testuserupdated@gmail.com"),
+        };
+
+        let updated_user = update_details(&db, logged_user.id, user_for_update).await.unwrap();
+
+        let _delete: Result<Vec<UserForCreate>, surrealdb::Error> = db.delete("user").await;
+
+        dbg!(&updated_user.email);
+        assert_eq!(
+            String::from("testuserupdated@gmail.com"),
+            updated_user.email
+        );
+        
+    }
+
+    #[serial]
+    #[tokio::test]
+    async fn user_details() {
+        let db = connect_db()
+            .await
+            .expect("TEST ERROR:-> Connection to db failed");
+        //Create user
+        let creater = UserForCreate {
+            email: String::from("testuser@gmail.com"),
+            username: String::from("Testuser"),
+            password: String::from("password"),
+        };
+        let _new_user = register(&db, creater).await.unwrap();
+
+        //loggin user to get id
+        let user_for_login = UserForLogin {
+            email: String::from("testuser@gmail.com"),
+            password: String::from("password"),
+        };
+
+        let logged_user = login(&db, user_for_login).await.unwrap();
+
+        let user = get_details(&db, logged_user.id).await.unwrap();
+
+        let _delete: Result<Vec<UserForCreate>, surrealdb::Error> = db.delete("user").await;
+
+        assert_eq!(
+            String::from("testuser@gmail.com"),
+            user.email
+        );
+        assert_eq!(
+            String::from("Testuser"),
+            user.username
+        );
+        
+    }
+
+
+    #[serial]
+    #[tokio::test]
+    async fn user_delete() {
+        let db = connect_db()
+            .await
+            .expect("TEST ERROR:-> Connection to db failed");
+        //Create user
+        let creater = UserForCreate {
+            email: String::from("testuser@gmail.com"),
+            username: String::from("Testuser"),
+            password: String::from("password"),
+        };
+        let _new_user = register(&db, creater).await.unwrap();
+
+        //loggin user to get id
+        let user_for_login = UserForLogin {
+            email: String::from("testuser@gmail.com"),
+            password: String::from("password"),
+        };
+
+        let logged_user = login(&db, user_for_login).await.unwrap();
+
+
+        let delete = delete_user(&db, logged_user.id).await.unwrap();
+
+        assert_eq!(
+            String::from("testuser@gmail.com"),
+            delete.email
+        );
+        assert_eq!(
+            String::from("Testuser"),
+            delete.username
+        );
+        
+    }
+}
