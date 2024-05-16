@@ -179,7 +179,7 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
         let id = req_id.clone(); // It's cloned since request is consumed in the next section
 
         // the 2 lines below extract request body and serialize it into the correct format
-        let body_bytes = to_bytes(req.into_body(), 10480).await.unwrap();
+        let body_bytes = to_bytes(req.into_body(), 2480).await.unwrap();
         let payload: UserForUpdateClient = serde_json::from_slice(&body_bytes).unwrap();
 
         let db = db.unwrap(); //select db

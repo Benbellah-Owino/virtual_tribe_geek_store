@@ -1,4 +1,7 @@
+use std::io::Take;
+
 use serde::{Deserialize, Serialize};
+use surrealdb::sql::value;
 mod controllers;
 pub mod routers;
 
@@ -11,8 +14,21 @@ pub struct Studio {
     pub description: Option<String>, //More fields cam be addede
 }
 
+impl Studio{
+    fn from(value: &Studio) -> Self {
+        let val = value.description.to_owned();
+        
+        Studio{
+            name: value.name.to_string(),
+            owner: value.owner.to_string(),
+            email: value.email.to_string(),
+            description: val,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
-struct StudioForCreate {
+pub struct StudioForCreate {
     pub name: String,
     pub owner: String,
     pub email: String,
@@ -20,12 +36,12 @@ struct StudioForCreate {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-struct StudioForUpdate {
+pub struct StudioForUpdate {
     pub field: String,
     pub value: String
 }
 #[derive(Debug, Serialize, Deserialize, Clone)]
-struct StudioUpdateClient {
+pub struct StudioUpdateClient {
     pub id: String,
     pub payload: Vec<StudioForUpdate>
 }
@@ -35,6 +51,7 @@ struct StudioUpdateClient {
 // section:      -- enums
 #[derive(Debug, Clone)]
 pub enum StudioError {
+    OwnerMismatch,
     //Create
     CreateStudioError,
 

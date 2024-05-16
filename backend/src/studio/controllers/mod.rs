@@ -89,9 +89,11 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<StudioForCr
 /// Controller for getting all creators working at a studio
 ///
 /// # Example
+/// ```
 /// fn get_studio_creators{
 ///
 /// }
+/// ```
 pub async fn get_all_creators(db: &Surreal<Client>) {
     todo!()
 }
@@ -104,7 +106,7 @@ pub async fn get_all_creators(db: &Surreal<Client>) {
 ///     let updated = update(db, id, studio_for_update);
 /// }
 /// ```
-pub async fn update(db: &Surreal<Client>,id:String, studio: StudioForUpdate) -> Result<Studio, StudioError> {
+pub async fn update(db: &Surreal<Client>,id:&String, studio: StudioForUpdate) -> Result<Studio, StudioError> {
     println!(
         "\n\n{:<12}=====================================================================\n\n",
         "studio::update()"
@@ -167,6 +169,6 @@ pub async fn delete_studio(db: &Surreal<Client>, id:String) -> Result<Studio, St
 ///
 /// }
 ///
-pub async fn studio() {
+pub fn studio() {
     println!("Get student")
 }

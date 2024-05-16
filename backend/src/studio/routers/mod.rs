@@ -1,1 +1,250 @@
+use axum::{
+    body::to_bytes, extract::{Path, Request, State}, http::StatusCode, response::IntoResponse, routing::{
+        delete, get, patch, post
+    }, Json, Router
+};
+use serde_json::json;
+use surrealdb::{engine::remote::ws::Client, sql::Thing, Surreal};
+use tracing::{debug, error};
 
+use crate::dev_initial::db::Db;
+
+use super::{controllers::{create, delete_studio, get_all, get_details, update}, Studio, StudioError, StudioForCreate, StudioForUpdate, StudioUpdateClient};
+
+struct OwnerStudio{
+    creator:Thing,
+    studio: Thing
+}
+// section:      -- handlers
+
+
+/// <h1> Handles registration of studio </h1>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /studio/ </b> </h2>
+///
+/// <h3> Request body</h3>
+/// { <br>
+///     "name":"test_studio1", <br>
+///     "email":"test_studio1@gmail.com", <br>
+///     "owner":"creator:"ds8dxstwqut33x" <br>
+/// }<br><br>
+///
+/// <h5>
+///     Parameters can be empty
+/// </h5>
+
+pub async fn create_handler(State(db): State<Db>, req: Request) -> impl IntoResponse{
+    let db = db.unwrap();
+
+    if let Some(id) = req.extensions().get::<String>(){
+        let creator_id = id.clone(); // It's cloned since request is consumed in the next section
+
+        // the 2 lines below extract request body and serialize it into the correct format
+        let body_bytes = to_bytes(req.into_body(), 10480).await.unwrap();
+        let mut payload: StudioForCreate = serde_json::from_slice(&body_bytes).unwrap();
+
+        payload.owner = creator_id; //Setting the owner to be the creator making th POST request. Creator must be logged in to do so
+
+        let studio = create(&db, payload).await; //Saving the studio to database
+        
+        match studio{ //Useful for ensuring the operation was succesfull
+            Ok(s) => {
+                return (StatusCode::OK, Json(json!({"payload": s[0]})));
+            },
+            Err(e) =>{
+                debug!("{:?}", e);
+            }
+        }
+    }
+
+    return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"msg": "Error creating studio"})),);
+}
+
+/// <h1> Handles retrieval of studios </h1>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /studio/ </b> </h2>
+///
+/// <h3> Request body</h3>
+/// NO BODY
+///
+/// <h5>
+///     Parameters can be empty
+/// </h5>
+#[axum_macros::debug_handler]
+pub async fn get_all_handler(State(db): State<Db>, req: Request) -> impl IntoResponse{
+    // Subject to make free
+    let db = db.unwrap();
+    
+    let studios = get_all(&db).await;
+
+    match studios{
+        Ok(s) => {
+            return (StatusCode::OK, Json(json!({"payload": s})))
+        },
+        Err(e) => {
+            debug!("{:?}", e);
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"msg": "Error creating studio"})),);
+        }
+    }
+}
+
+
+/// <h1> Handles retrieval of one studio </h1>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /studio/{id} </b> </h2>
+///
+/// <h3> Request body</h3>
+/// NO BODY
+///
+/// <h5>
+///     Parameters can be empty
+/// </h5>
+#[axum_macros::debug_handler]
+pub async fn get_one(State(db): State<Db>, Path(id): Path<String> ) -> impl IntoResponse{
+    // Subject to make free
+    let db = db.unwrap();
+    
+    let studios = get_details(&db, id).await;
+
+    match studios{
+        Ok(s) => {
+            return (StatusCode::OK, Json(json!({"payload": s})))
+        },
+        Err(e) => {
+            debug!("{:?}", e);
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"msg": "Error creating studio"})),);
+        }
+    }
+}
+
+
+pub async fn check_owner(creator: &String, studio:&String, db:&Surreal<Client>) -> Result<Studio, StudioError>{
+    let query = db.query("SELECT * FROM studio WHERE id = $id").bind(("id", studio)).await;
+
+    match query{
+        Ok(mut res) =>{
+            let studio:Result<Vec<Studio>, surrealdb::Error> = res.take(0);
+            if let Ok(s) = studio{
+                let s = Studio::from(&s[0]);
+                
+                if &s.owner == creator{
+                    Ok(s)
+                }else{
+                    Err(StudioError::OwnerMismatch)
+                }
+            }else{
+            Err(StudioError::StudioRetrievingError)
+            }
+        },
+        Err(_) => {
+            Err(StudioError::StudioRetrievingError)
+        }
+    }
+}
+
+/// <h1> Handles updating of studio </h1>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /studio/ </b> </h2>
+///
+/// <h3> Request body</h3>
+/// { <br>[<br>
+///     "field":"email", <br>
+///     "value":"test_studio1@gmail.com", <br>
+///     ]<br>
+/// }<br><br>
+///
+/// <h5>
+///     Parameters can be empty
+/// </h5>
+
+pub async fn update_handler(State(db): State<Db>, req: Request) -> impl IntoResponse{
+    let db = db.unwrap();
+    let mut is_error = false; //Checksum
+
+    if let Some(id) = req.extensions().get::<String>(){
+        let creator_id = id.clone(); // It's cloned since request is consumed in the next section
+
+        // the 2 lines below extract request body and serialize it into the correct format
+        //TODO: Test for the suitable amount of bytes
+        let body_bytes = to_bytes(req.into_body(), 2480).await.unwrap();
+        let payload: StudioUpdateClient = serde_json::from_slice(&body_bytes).unwrap();
+
+
+        let len_t = payload.payload.len() as u8 - 1u8; //Get the last index
+        match check_owner(&creator_id, &payload.id, &db).await{ //Check if the client is the owner of the studio
+            Ok(_c) => { 
+                let mut counter:u8 = 0;
+
+                for i in payload.payload.into_iter(){ //iterate through the fields that need updating
+                    if let Ok(studio) = update(&db, &payload.id, i).await{
+                        if counter == len_t{
+                            return (StatusCode::OK, Json(json!({"payload": studio, "error":is_error}))) // If it's the last item return response
+                        }
+                    }else{
+                        is_error = true; //set error flag to true if error
+                    }
+                    
+                    counter+=1;
+                }
+            },Err(StudioError::OwnerMismatch) => {
+                return (StatusCode::UNAUTHORIZED, Json(json!({"msg": "Error updating studio"})));
+            }
+            Err(_) => {
+                return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"msg": "Error updating studio"})),);
+            },
+        } //Setting the owner to be the creator making th POST request. Creator must be logged in to do so
+    }
+    
+    return (StatusCode::CONTINUE, Json(json!({"msg": "Error updating studio"})),);
+
+}
+
+
+/// <h1> Handles updating of studio </h1>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /studio/ </b> </h2>
+///
+/// <h3> Request body</h3>
+/// { <br>[<br>
+///     "field":"email", <br>
+///     "value":"test_studio1@gmail.com", <br>
+///     ]<br>
+/// }<br><br>
+///
+/// <h5>
+///     Parameters can be empty
+/// </h5>
+
+pub async fn delete_handler(State(db): State<Db>, Path(id):Path<String>, req: Request) -> impl IntoResponse{
+    let db = db.unwrap();
+
+    if let Some(creator_id) = req.extensions().get::<String>(){
+        let creator_id = creator_id.clone(); // It's cloned since request is consumed in the next section
+
+        match check_owner(&creator_id, &id, &db).await{ //Check if the client is the owner of the studio
+            Ok(_c) => { 
+                if let Ok(s) = delete_studio(&db, id).await{
+                            return (StatusCode::OK, Json(json!({"payload": s, "msg":"Studio deleted"}))) // If it's the last item return response
+
+                }else{
+                    error!("Delete Error");
+                    return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"msg": "Error updating studio"})),);
+                }
+
+            },Err(StudioError::OwnerMismatch) => {
+                return (StatusCode::UNAUTHORIZED, Json(json!({"msg": "Error updating studio"})));
+            }
+            Err(_) => {
+                return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"msg": "Error updating studio"})),);
+            },
+        } //Setting the owner to be the creator making th POST request. Creator must be logged in to do so
+    }
+    
+    return (StatusCode::CONTINUE, Json(json!({"msg": "Error updating studio"})),);
+
+}
+
+
+// endsection:   -- handlers
+
+// section:      -- handlers
+// endsection:   -- handlers
+// section:      -- handlers
+// endsection:   -- handlers
+// section:      -- handlers
+// endsection:   -- handlers
