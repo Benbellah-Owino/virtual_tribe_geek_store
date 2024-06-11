@@ -35,7 +35,7 @@ DEFINE FIELD description ON TABLE studio TYPE option<string>;
 DEFINE TABLE IF NOT EXISTS studio_creator SCHEMAFULL;
 DEFINE FIELD studio ON TABLE studio_creator TYPE record<studio>;
 DEFINE FIELD creator ON TABLE studio_creator TYPE record<creator>;
-DEFINE FIELD role ON TABLE studio TYPE string;
+DEFINE FIELD role ON TABLE studio_creator TYPE string;
 
 -- Create schemafull creator table;
 DEFINE TABLE IF NOT EXISTS user SCHEMAFULL;

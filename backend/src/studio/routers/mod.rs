@@ -1,19 +1,27 @@
 use axum::{
-    body::to_bytes, extract::{Path, Request, State}, http::StatusCode, response::IntoResponse, routing::{
+    body::to_bytes, extract::{Path, Request, State}, http::StatusCode, middleware, response::IntoResponse, routing::{
         delete, get, patch, post
     }, Json, Router
 };
 use serde_json::json;
 use surrealdb::{engine::remote::ws::Client, sql::Thing, Surreal};
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
-use crate::dev_initial::db::Db;
+use crate::{dev_initial::db::Db, studio::OwnerId};
 
 use super::{controllers::{create, delete_studio, get_all, get_details, update}, Studio, StudioError, StudioForCreate, StudioForUpdate, StudioUpdateClient};
 
 struct OwnerStudio{
     creator:Thing,
     studio: Thing
+}
+//TODO: Finishs
+pub fn studio_router() -> Router<Db> {
+    return Router::new()
+        .route("/:studio_id",get(get_one).patch(update_handler).delete(delete_handler))
+        .route("/",post(create_handler))
+        .layer(middleware::from_fn(crate::middleware::auth::cookies::verify_user))
+        .route("/", get(get_all_handler))
 }
 // section:      -- handlers
 
@@ -37,21 +45,29 @@ pub async fn create_handler(State(db): State<Db>, req: Request) -> impl IntoResp
 
     if let Some(id) = req.extensions().get::<String>(){
         let creator_id = id.clone(); // It's cloned since request is consumed in the next section
-
+        dbg!(&creator_id);
         // the 2 lines below extract request body and serialize it into the correct format
         let body_bytes = to_bytes(req.into_body(), 10480).await.unwrap();
+        info!("tag1");
         let mut payload: StudioForCreate = serde_json::from_slice(&body_bytes).unwrap();
 
-        payload.owner = creator_id; //Setting the owner to be the creator making th POST request. Creator must be logged in to do so
+        info!("tag2");
+        payload.owner = creator_id.clone(); //Setting the owner to be the creator making th POST request. Creator must be logged in to do so
 
-        let studio = create(&db, payload).await; //Saving the studio to database
+    eprintln!("created {:?}", &payload);
+        info!("tag3");
+        let studio = create(&db, payload, creator_id).await; //Saving the studio to database
         
+        info!("tag4");
         match studio{ //Useful for ensuring the operation was succesfull
             Ok(s) => {
+            eprintln!("created {:?}", &s[0]);
+        info!("tag5");
                 return (StatusCode::OK, Json(json!({"payload": s[0]})));
             },
             Err(e) =>{
-                debug!("{:?}", e);
+        info!("tag6");
+                eprintln!("{:?}", e);
             }
         }
     }
@@ -97,11 +113,11 @@ pub async fn get_all_handler(State(db): State<Db>, req: Request) -> impl IntoRes
 ///     Parameters can be empty
 /// </h5>
 #[axum_macros::debug_handler]
-pub async fn get_one(State(db): State<Db>, Path(id): Path<String> ) -> impl IntoResponse{
+pub async fn get_one(State(db): State<Db>, Path(studio_id): Path<String> ) -> impl IntoResponse{
     // Subject to make free
     let db = db.unwrap();
     
-    let studios = get_details(&db, id).await;
+    let studios = get_details(&db, studio_id).await;
 
     match studios{
         Ok(s) => {
@@ -153,10 +169,10 @@ pub async fn check_owner(creator: &String, studio:&String, db:&Surreal<Client>) 
 ///     Parameters can be empty
 /// </h5>
 
-pub async fn update_handler(State(db): State<Db>, req: Request) -> impl IntoResponse{
+pub async fn update_handler(State(db): State<Db>,Path(studio_id):Path<String>, req: Request) -> impl IntoResponse{
     let db = db.unwrap();
     let mut is_error = false; //Checksum
-
+    let studio_id = studio_id.clone();
     if let Some(id) = req.extensions().get::<String>(){
         let creator_id = id.clone(); // It's cloned since request is consumed in the next section
 
@@ -167,12 +183,12 @@ pub async fn update_handler(State(db): State<Db>, req: Request) -> impl IntoResp
 
 
         let len_t = payload.payload.len() as u8 - 1u8; //Get the last index
-        match check_owner(&creator_id, &payload.id, &db).await{ //Check if the client is the owner of the studio
+        match check_owner(&creator_id, &studio_id, &db).await{ //Check if the client is the owner of the studio
             Ok(_c) => { 
                 let mut counter:u8 = 0;
 
                 for i in payload.payload.into_iter(){ //iterate through the fields that need updating
-                    if let Ok(studio) = update(&db, &payload.id, i).await{
+                    if let Ok(studio) = update(&db, &studio_id, i).await{
                         if counter == len_t{
                             return (StatusCode::OK, Json(json!({"payload": studio, "error":is_error}))) // If it's the last item return response
                         }
@@ -210,15 +226,15 @@ pub async fn update_handler(State(db): State<Db>, req: Request) -> impl IntoResp
 ///     Parameters can be empty
 /// </h5>
 
-pub async fn delete_handler(State(db): State<Db>, Path(id):Path<String>, req: Request) -> impl IntoResponse{
+pub async fn delete_handler(State(db): State<Db>, Path(studio_id):Path<String>, req: Request) -> impl IntoResponse{
     let db = db.unwrap();
 
     if let Some(creator_id) = req.extensions().get::<String>(){
         let creator_id = creator_id.clone(); // It's cloned since request is consumed in the next section
 
-        match check_owner(&creator_id, &id, &db).await{ //Check if the client is the owner of the studio
+        match check_owner(&creator_id, &studio_id, &db).await{ //Check if the client is the owner of the studio
             Ok(_c) => { 
-                if let Ok(s) = delete_studio(&db, id).await{
+                if let Ok(s) = delete_studio(&db, studio_id).await{
                             return (StatusCode::OK, Json(json!({"payload": s, "msg":"Studio deleted"}))) // If it's the last item return response
 
                 }else{

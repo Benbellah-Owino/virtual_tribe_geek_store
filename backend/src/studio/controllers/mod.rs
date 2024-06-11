@@ -1,9 +1,11 @@
 use serde_json::json;
 // section:     -- imports
-use surrealdb::{engine::remote::ws::Client, Surreal};
+use surrealdb::{engine::remote::ws::Client, opt::RecordId, sql::{Id, Thing}, Surreal};
 use tracing::debug;
 
-use super::{Studio, StudioError, StudioForCreate, StudioForUpdate};
+use crate::creator;
+
+use super::{OwnerId, Studio, StudioError, StudioForCreate, StudioForCreateForward, StudioForUpdate};
 
 /// Controller for creating studio
 ///
@@ -15,18 +17,47 @@ use super::{Studio, StudioError, StudioForCreate, StudioForUpdate};
 /// ```
 pub async fn create(
     db: &Surreal<Client>,
-    studio: StudioForCreate,
-) -> Result<Vec<StudioForCreate>, StudioError> {
-    let new_studio: Result<Vec<StudioForCreate>, surrealdb::Error> =
-        db.create("studio").content(studio).await;
+    mut studio: StudioForCreate,
+    creator: String
+) -> Result<Vec<StudioForCreateForward>, StudioError> {
+    
+    let owner = studio.owner.clone();
+    
+    //Extracting the id string
+     
+    let id_string:Vec<&str> = owner.split(':').collect();
+    let rec_id_string = id_string[1].to_string();
+    let creator = Thing{
+        tb : "creator".to_string(),
+        id: Id::from(id_string[1].to_string())
+    };
+    
+    //TODO: Fix this;
+    let creator:Option<OwnerId> = db.select(creator).await.unwrap();
+    // if let Some(c) = creator{
+    //     // studio.owner = OwnerId::Thing(c);
+        
+    //     c
+    // };
 
+    let ct = creator.unwrap();
+
+    let st: StudioForCreateForward = StudioForCreateForward{
+        name : studio.name.clone(),
+        owner: ct.id,
+        email: studio.email.clone(),
+    };
+
+    let new_studio: Result<Vec<StudioForCreateForward>, surrealdb::Error> =
+        db.create("studio").content(st).await;
+    println!("{:?}", new_studio);
     match new_studio {
         Ok(s) => {
-            debug!("{:?}", s);
+            dbg!(&s);
             return Ok(s);
         }
         Err(e) => {
-            debug!("{:?}", e);
+            dbg!(&e);
             return Err(StudioError::CreateStudioError);
         }
     }

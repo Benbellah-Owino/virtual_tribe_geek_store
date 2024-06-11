@@ -102,7 +102,6 @@ pub async fn verify_user(
         .get("auth_token")
         .map(|t| t.to_string())
         .ok_or(CookieError::MissingCookieError);
-    eprintln!("{:?}", cookies.list());
     match auth_token {
         Ok(t) => {
             let token_split: Vec<&str> = t.split("=").collect();
