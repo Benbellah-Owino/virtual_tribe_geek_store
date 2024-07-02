@@ -11,7 +11,7 @@ use serde_json::json;
 use surrealdb::{engine::remote::ws::Client, sql::Thing, Surreal};
 use tracing::{debug, error, info};
 
-use crate::dev_initial::db::Db;
+use crate::{dev_initial::db::Db, vrt_lib::surreal_db_fns::check_owner_2};
 
 use super::{
     controllers::{create, delete_studio, get_all, get_details, update},
@@ -113,7 +113,7 @@ pub async fn get_all_handler(State(db): State<Db>, req: Request) -> impl IntoRes
             debug!("{:?}", e);
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"msg": "Error creating studio"})),
+                Json(json!({"msg": "Error getting studios"})),
             );
         }
     }
@@ -132,20 +132,23 @@ pub async fn get_all_handler(State(db): State<Db>, req: Request) -> impl IntoRes
 pub async fn get_one(State(db): State<Db>, Path(studio_id): Path<String>) -> impl IntoResponse {
     // Subject to make free
     let db = db.unwrap();
+    println!("{studio_id}");
 
     let studios = get_details(&db, studio_id).await;
-
+    
+    println!("{:?}", studios);
     match studios {
         Ok(s) => return (StatusCode::OK, Json(json!({"payload": s}))),
         Err(e) => {
             debug!("{:?}", e);
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"msg": "Error creating studio"})),
+                Json(json!({"msg": "Error getting studio"})),
             );
         }
     }
 }
+
 
 pub async fn check_owner(
     creator: &String,
@@ -159,12 +162,14 @@ pub async fn check_owner(
 
     match query {
         Ok(mut res) => {
+            dbg!(&res);
             let studio: Result<Vec<Studio>, surrealdb::Error> = res.take(0);
             if let Ok(s) = studio {
                 let s = Studio::from(&s[0]);
                 //TODO: FIX THIS
-                
-                if &s.owner == creator {
+                let creator: Vec<String> = creator.split(':').map(|s|s.to_string()).collect();
+
+                if &s.owner.id.to_string() == &creator[1] && &s.owner.tb == &creator[0]{
                     Ok(s)
                 } else {
                     Err(StudioError::OwnerMismatch)
@@ -190,7 +195,6 @@ pub async fn check_owner(
 /// <h5>
 ///     Parameters can be empty
 /// </h5>
-
 pub async fn update_handler(
     State(db): State<Db>,
     Path(studio_id): Path<String>,
@@ -199,6 +203,7 @@ pub async fn update_handler(
     let db = db.unwrap();
     let mut is_error = false; //Checksum
     let studio_id = studio_id.clone();
+    println!("{studio_id}");
     if let Some(id) = req.extensions().get::<String>() {
         let creator_id = id.clone(); // It's cloned since request is consumed in the next section
 
@@ -207,8 +212,9 @@ pub async fn update_handler(
         let body_bytes = to_bytes(req.into_body(), 2480).await.unwrap();
         let payload: StudioUpdateClient = serde_json::from_slice(&body_bytes).unwrap();
 
+        eprintln!("{:#?}", payload);
         let len_t = payload.payload.len() as u8 - 1u8; //Get the last index
-        match check_owner(&creator_id, &studio_id, &db).await {
+        match check_owner_2(&creator_id, &studio_id, &db).await {
             //Check if the client is the owner of the studio
             Ok(_c) => {
                 let mut counter: u8 = 0;
@@ -274,7 +280,7 @@ pub async fn delete_handler(
     if let Some(creator_id) = req.extensions().get::<String>() {
         let creator_id = creator_id.clone(); // It's cloned since request is consumed in the next section
 
-        match check_owner(&creator_id, &studio_id, &db).await {
+        match check_owner_2(&creator_id, &studio_id, &db).await {
             //Check if the client is the owner of the studio
             Ok(_c) => {
                 if let Ok(s) = delete_studio(&db, studio_id).await {

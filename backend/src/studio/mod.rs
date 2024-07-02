@@ -1,5 +1,9 @@
+use std::str::FromStr;
+use surrealdb::sql::Id;
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
+
+use crate::vrt_lib::surreal_db_fns::str_to_thing;
 mod controllers;
 pub mod routers;
 
@@ -12,13 +16,14 @@ pub struct Studio {
     pub description: Option<String>, //More fields cam be addede
 }
 
+
 impl Studio {
     fn from(value: &Studio) -> Self {
         let val = value.description.to_owned();
 
         Studio {
             name: value.name.to_string(),
-            owner: value.owner.to_string(),
+            owner: value.owner.to_owned(),
             email: value.email.to_string(),
             description: val,
         }

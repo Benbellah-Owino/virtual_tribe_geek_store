@@ -89,15 +89,17 @@ pub async fn get_all(db: &Surreal<Client>) -> Result<Vec<Studio>, StudioError> {
 /// fn get_studio{
 ///
 /// }
-pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<StudioForCreate, StudioError> {
+pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<Studio, StudioError> {
     println!(
         "\n\n{:<12}=====================================================================\n\n",
         "studio::get_details()"
     );
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
-    let studios: Result<Option<StudioForCreate>, surrealdb::Error> =
+    println!("{id}");
+    let studios: Result<Option<Studio>, surrealdb::Error> =
         db.select(("studio", id)).await;
 
+    println!("{:?}", studios);
     match studios {
         Ok(s) => {
             if let Some(s) = s {
