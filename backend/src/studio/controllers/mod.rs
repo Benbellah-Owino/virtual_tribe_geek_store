@@ -8,7 +8,7 @@ use surrealdb::{
 use tracing::debug;
 
 use super::{
-    OwnerId, Studio, StudioError, StudioForCreate, StudioForCreateForward, StudioForUpdate,
+    OwnerId, Studio, StudioError, StudioForCreate, StudioForCreateForward, StudioForUpdate, StudioFull,
 };
 
 /// Controller for creating studio
@@ -22,7 +22,7 @@ use super::{
 pub async fn create(
     db: &Surreal<Client>,
     studio: StudioForCreate,
-) -> Result<Vec<StudioForCreateForward>, StudioError> {
+) -> Result<Vec<StudioFull>, StudioError> {
     let owner = studio.owner.clone();
 
     println!("{owner}");
@@ -43,7 +43,7 @@ pub async fn create(
         email: studio.email.clone(),
     };
 
-    let new_studio: Result<Vec<StudioForCreateForward>, surrealdb::Error> =
+    let new_studio: Result<Vec<StudioFull>, surrealdb::Error> =
         db.create("studio").content(st).await;
     println!("{:?}", new_studio);
     match new_studio {

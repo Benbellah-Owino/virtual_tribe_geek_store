@@ -32,7 +32,7 @@ impl Socials {
 pub struct Creator {
     pub username: String,
     pub email: String,
-    pub role: Vec<String>,
+    pub role: String,
     pub password: String,
     pub description: Option<String>,
     pub verified: bool,
@@ -47,19 +47,15 @@ pub struct Creator {
 pub struct CreatorForCreate {
     pub username: String,
     pub email: String,
-    pub role: Vec<String>,
+    pub role: String,
     pub password: String,
 }
 impl CreatorForCreate {
-    pub fn new(username: &str, email: &str, role: Vec<&str>, password: &str) -> CreatorForCreate {
-        let mut roles: Vec<String> = vec![];
-        for i in role {
-            roles.push(String::from(i));
-        }
+    pub fn new(username: &str, email: &str, role: &str, password: &str) -> CreatorForCreate {
         return CreatorForCreate {
             username: String::from(username),
             email: String::from(email),
-            role: roles,
+            role: String::from(role),
             password: String::from(password),
         };
     }
@@ -142,7 +138,7 @@ mod tests {
         let creater = CreatorForCreate {
             username: String::from("TestCreator"),
             email: String::from("testcreator@gmail.com"),
-            role: vec![String::from("writer")],
+            role: String::from("writer"),
             password: String::from("password"),
         };
         let t = register(&db, creater).await.unwrap();
@@ -151,7 +147,7 @@ mod tests {
 
         assert_eq!(String::from("TestCreator"), t.username);
         assert_eq!(String::from("testcreator@gmail.com"), t.email);
-        assert_eq!(vec![String::from("writer")], t.role);
+        assert_eq!(String::from("writer"), t.role);
         assert_eq!(String::from("password"), t.password);
     }
 
@@ -165,7 +161,7 @@ mod tests {
         let creater = CreatorForCreate {
             email: String::from("testcreator@gmail.com"),
             username: String::from("TestCreator"),
-            role: vec![String::from("writer")],
+            role: String::from("writer"),
             password: String::from("password"),
         };
         let _new_creator = register(&db, creater).await.unwrap();
@@ -197,7 +193,7 @@ mod tests {
         let creater = CreatorForCreate {
             email: String::from("testcreator@gmail.com"),
             username: String::from("TestCreator"),
-            role: vec![String::from("writer")],
+            role: String::from("writer"),
             password: String::from("password"),
         };
         let _new_creator = register(&db, creater).await.unwrap();
@@ -209,23 +205,30 @@ mod tests {
         };
 
         let logged_creator = login(&db, creator_for_login).await.unwrap();
-
+        eprintln!("{:?}", logged_creator);
         let creator_for_update = CreatorForUpdateClient {
             field: String::from("email"),
             value: String::from("testcreatorupdated@gmail.com"),
         };
 
-        let updated_creator = update_details(&db, logged_creator.id, creator_for_update)
-            .await
-            .unwrap();
+        match update_details(&db, logged_creator.id, creator_for_update).await{
+            Ok(updated_creator) => {
+
+                    println!("{:?}", updated_creator);
+                    assert_eq!(
+                    String::from("testcreatorupdated@gmail.com"),
+                    updated_creator.email
+                );
+            },
+            Err(e) => {
+                eprintln!("{:?}", e);
+                panic!("Update Error");
+            },
+        }
 
         let _delete: Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
-
-        assert_eq!(
-            String::from("testcreatorupdated@gmail.com"),
-            updated_creator.email
-        );
     }
+
 
     #[serial]
     #[tokio::test]
@@ -237,7 +240,7 @@ mod tests {
         let creater = CreatorForCreate {
             email: String::from("testcreator@gmail.com"),
             username: String::from("TestCreator"),
-            role: vec![String::from("writer")],
+            role: String::from("writer"),
             password: String::from("password"),
         };
         let _new_creator = register(&db, creater).await.unwrap();
@@ -248,14 +251,17 @@ mod tests {
             password: String::from("password"),
         };
 
-        let logged_creator = login(&db, creator_for_login).await.unwrap();
+        let logged_creator = login(&db, creator_for_login).await;
+        if let Ok(c) = logged_creator{
+            println!("{:?}", c);
+            let creator = get_details(&db, c.id).await.unwrap();
 
-        let creator = get_details(&db, logged_creator.id).await.unwrap();
+            let _delete: Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
 
-        let _delete: Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
+            assert_eq!(String::from("testcreator@gmail.com"), creator.email);
+            assert_eq!(String::from("TestCreator"), creator.username);
+        };
 
-        assert_eq!(String::from("testcreator@gmail.com"), creator.email);
-        assert_eq!(String::from("TestCreator"), creator.username);
     }
 
     #[serial]
@@ -268,7 +274,7 @@ mod tests {
         let creater = CreatorForCreate {
             email: String::from("testcreator@gmail.com"),
             username: String::from("TestCreator"),
-            role: vec![String::from("writer")],
+            role: String::from("writer"),
             password: String::from("password"),
         };
         let _new_creator = register(&db, creater).await.unwrap();

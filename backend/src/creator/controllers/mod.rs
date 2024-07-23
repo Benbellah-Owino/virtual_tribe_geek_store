@@ -214,7 +214,7 @@ pub async fn update_details(
 ) -> Result<CreatorForUpdateDb, CreatorError> {
     println!(
         "\n\n{:<12}=====================================================================\n\n",
-        "creator::details()"
+        "creator::update_details()"
     );
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
     //TODO: test if it accepts different types o
@@ -276,6 +276,7 @@ pub async fn update_details(
     return if let None = query {
         Err(CreatorError::DetailsUpdateError)
     } else if let Some(c) = query {
+        println!("{:?}", c );
         Ok(c)
     } else {
         Err(CreatorError::DetailsUpdateError)

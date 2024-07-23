@@ -14,7 +14,7 @@ DEFINE FIELD password ON TABLE creator TYPE string;
 DEFINE FIELD joined_at ON TABLE creator TYPE datetime DEFAULT time::now();
 DEFINE FIELD verified ON TABLE creator TYPE bool DEFAULT false PERMISSIONS FOR update WHERE $auth.role="admin";
 DEFINE FIELD socials ON TABLE creator FLEXIBLE TYPE option<object>;
-DEFINE FIELD role ON TABLE creator TYPE array<string>;
+DEFINE FIELD role ON TABLE creator TYPE string;
 DEFINE FIELD refresh_token ON TABLE creator TYPE option<string>;
 DEFINE FIELD login_attempts ON TABLE creator TYPE number DEFAULT 0;
 -- End of creator table;
