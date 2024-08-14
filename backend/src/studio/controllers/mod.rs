@@ -8,7 +8,7 @@ use surrealdb::{
 use tracing::debug;
 
 use super::{
-    OwnerId, Studio, StudioError, StudioForCreate, StudioForCreateForward, StudioForUpdate, StudioFull,
+    Studio, StudioError, StudioForCreate, StudioForCreateForward, StudioForUpdate, StudioFull,
 };
 
 /// Controller for creating studio
