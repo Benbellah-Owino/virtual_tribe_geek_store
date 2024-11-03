@@ -1,0 +1,309 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* region:      --- Globals */
+:root{
+    --primary: #F3EC34;
+	--secondary: #030303;
+	--tertiary: #fefefe;
+	--text_color: #361717;
+}
+body {
+    padding: 0;
+}
+/* endregion:   --- Globals */
+
+/* region:      --- Backgrounds */
+.main_bg {
+	background-color: var(--primary);
+}
+
+.secondary_bg {
+	background-color: var(--secondary);
+}
+
+.tertiary_bg {
+	background-color: var(--tertiary);
+}
+/* endregion:   --- Backgrounds */
+
+
+/* region:      --- Hover backgrounds*/
+.main_bg_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.secondary_bg_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.tertiary_bg_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.main_bg_hover:hover {
+	background-color: var(--primary);
+}
+
+.secondary_bg_hover:hover {
+	background-color: var(--secondary);
+}
+
+.tertiary_bg_hover:hover {
+	background-color: var(--tertiary);
+}
+/* endregion:   --- Hover backgrounds*/
+
+
+/* region:      --- Text */
+.main_txt {
+	color: var(--text_color)
+}
+
+.secondary_txt {
+	color: var(--secondary);
+}
+
+.tertiary_txt {
+	color: var(--tertiary);
+}
+/* endregion:   --- Text */
+
+
+
+/* region:      --- Hover text */
+.main_txt_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.secondary_txt_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.tertiary_txt_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.main_txt_hover:hover {
+	color: #fefefe;
+}
+
+.secondary_txt_hover:hover {
+	color: var(--secondary);
+}
+
+.tertiary_txt_hover:hover {
+	color: var(--tertiary);
+}
+/* endregion:   --- Hover text */
+
+
+
+/* region:      --- Border */
+.main_border {
+	border: 1px solid var(--primary)
+}
+
+.secondary_border {
+	border: 1px solid var(--secondary)
+}
+
+.tertiary_border {
+	border: 1px solid var(--tertiary)
+}
+
+.spinner_border {
+	border: 4px solid var(--tertiary)
+}
+/* endregion:   --- Border */
+
+
+/* region:      --- Border hover */
+.main_border_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.secondary_border_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.tertiary_border_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.main_border_hover:hover {
+	border: 1px solid var(--primary)
+}
+
+.secondary_border_hover:hover {
+	border: 1px solid var(--secondary)
+}
+
+.tertiary_border_hover:hover {
+	border: 1px solid var(--tertiary)
+}
+
+/* endregion:   --- Border hover */
+
+
+/* region:      --- Shadow */
+.main_shadow {
+	box-shadow: 0px 4px 4px 4px var(--primary)
+}
+
+.secondary_shadow {
+	box-shadow: 0px 4px 4px 4px var(--secondary)
+}
+
+.tertiary_shadow {
+	box-shadow: 0px 4px 4px 4px var(--tertiary)
+}
+
+/* endregion:   --- Shadow */
+/* region:      --- Shadow Hover */
+.main_shadow_hover {
+	transition: all ease-in-out 0.3s;
+}
+.secondary_shadow_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.tertiary_shadow_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.main_shadow_hover:hover {
+	box-shadow: 0px 4px 4px 4px var(--primary)
+}
+
+.secondary_shadow_hover:hover {
+	box-shadow: 0px 4px 4px 4px var(--secondary)
+}
+
+.tertiary_shadow_hover:hover {
+	box-shadow: 0px 4px 4px 4px var(--tertiary)
+}
+/* endregion:   --- Shadow Hover */
+
+
+/* region:      --- Flex*/
+.flex_col {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.flex_row {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+	align-items: center;
+}
+
+.flex_center {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
+
+/* endregion:   --- Flex*/
+
+
+/* region:      --- Buttons */
+.btn {
+	text-align: center;
+	border: 0.5px solid var(--secondary);
+	cursor: pointer;
+	border-radius: 8px;
+	padding: 4px;
+	transition: all 0.5s ease-in-out;
+}
+
+.primary_btn {
+	font-weight: bold;
+	color: var(--text_color);
+	background-color: var(--secondary);
+	border: 0.5px solid var(--tertiary)
+}
+
+.delete_btn {
+	background-color: red;
+	border: 0.5px white solid;
+	color: white;
+	font-weight: bold;
+	transition: all 0.3s ease-in-out;
+}
+
+.delete_btn:hover {
+	background-color: white;
+	border: 0.5px red solid;
+	color: red;
+	box-shadow: 0px 2px 2px 2px red !important;
+	font-weight: bold;
+}
+
+/* endregion:   --- Buttons */
+
+/* region:      --- Form */
+form{
+	padding: 0.5rem;
+	width: 90%;
+	max-width:500px;
+}
+
+.form_div{
+	margin-top: 0.5rem;
+	margin-bottom: 0.5rem;
+	display:flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	width: 80%;
+}
+
+.form_div label{
+	width: 40%;	
+	text-align: right;
+	padding-right: 8px;
+	font-weight: bold;
+	background: #000;
+}
+.form_div input{
+	width: 60%;
+	float: left;
+	color:#030303;
+	border-radius: 0.25rem;
+	padding: 4px;
+}
+/* endregion:   --- Form */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
+/* region:      --- */
+/* endregion:   --- */
