@@ -4,7 +4,7 @@ use surrealdb::sql::Thing;
 mod controllers;
 pub mod routers;
 
-// section:      -- structs
+// region:      -- structs
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Studio {
     pub name: String,
@@ -66,13 +66,15 @@ pub struct StudioForUpdate {
 pub struct StudioUpdateClient {
     pub payload: Vec<StudioForUpdate>,
 }
-// endsection:   -- structs
+// endregion:   -- structs
 
-// section:      -- enums
+// region:      -- enums
 #[derive(Debug, Clone)]
 pub enum StudioError {
     OwnerMismatch,
-    //Create
+    /*
+    Create
+    */
     CreateStudioError,
 
     //Get
@@ -86,9 +88,9 @@ pub enum StudioError {
     //Delete
     DeleteStudioError,
 }
-// endsection:   -- enums
+// endregion:   -- enums
 
-// section:      -- tests
+// region:      -- tests
 #[cfg(test)]
 mod tests {
     use serial_test::serial;
@@ -98,7 +100,6 @@ mod tests {
     use crate::creator::CreatorForCreate;
     use crate::dev_initial::db::connect_db;
     use crate::studio::controllers::create;
-    use crate::vrt_lib::surreal_db_fns::Err;
     use crate::vrt_lib::ItemId;
 
     use super::*;
@@ -234,4 +235,4 @@ async fn creator_setup(db: &Surreal<Client>) -> ItemId{
     // #[tokio::test]
     // async fn studio_details() {}
 }
-// endsection:   -- tests
+// endregion:   -- tests

@@ -45,9 +45,15 @@ pub fn creator_router() -> Router<Db> {
 ///     "password": "password" <br>
 /// }<br><br>
 ///
-/// <h5>
+/// <p>
 ///     Parameters cannot be empty
-/// </h5>
+/// </p>
+/// 
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 201</li>
+///     <li> <b>Err</b> : 500</li>
+/// </ul>
 async fn register_handler(
     State(db): State<Db>,
     Json(payload): Json<CreatorForCreate>,
@@ -75,11 +81,18 @@ async fn register_handler(
 ///     "password": "password" <br>
 /// }<br><br>
 ///
-/// <h5>
+/// <p>
 ///     Parameters cannot be empty
-/// </h5>
+/// </p>
+/// 
+/// <br><hr>
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 202</li>
+///     <li> <b>Err</b> : 401, 500, 403</li>
+/// </ul>
 async fn login_handler(
-    State(db): State<Db>,
+    State(db): State<Db>,  //TODO: Update the status codes of each rout
     cookies: Cookies,
     Json(payload): Json<CreatorForLogin>,
 ) -> impl IntoResponse {
@@ -127,10 +140,16 @@ async fn login_handler(
 ///
 /// <h3> No request body</h3>
 ///
-/// <h5>
+/// <p>
 ///     Empty parameters <br>
 ///     Need auth token <br>
-/// </br>
+/// </p>
+/// <br><hr>
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 302</li>
+///     <li> <b>Err</b> : 404</li>
+/// </ul>
 pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoResponse {
     //TODO: Change to path
     if let Some(id) = req.extensions().get::<String>() {
@@ -168,17 +187,24 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
 ///     "value": "test_creator1@gmail.com", <br>
 /// }<br><br>
 ///
-/// <h5>
+/// <p>
 ///     Empty parameters <br>
 ///     Need auth token <br>
-/// </h5>
+/// </p>
+/// 
+/// <br><hr>
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 302</li>
+///     <li> <b>Err</b> : 500</li>
+/// </ul>
 pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl IntoResponse {
     return if let Some(req_id) = req.extensions().get::<String>() {
         // Get users id
         let id = req_id.clone(); // It's cloned since request is consumed in the next section
 
         // the 2 lines below extract request body and serialize it into the correct format
-        let body_bytes = to_bytes(req.into_body(), 2480).await.unwrap();
+        let body_bytes: axum::body::Bytes = to_bytes(req.into_body(), 2480).await.unwrap();
         let payload: CreatorForUpdateClient = serde_json::from_slice(&body_bytes).unwrap();
 
         let db = db.unwrap(); //select db
@@ -211,11 +237,17 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
 ///
 /// <h3> No request body</h3>
 ///
-/// <h5>
+/// <p>
 ///     Empty parameters <br>
 ///     Need auth token <br>
-/// </h5>
+/// </p>
 ///
+///<br> <hr>
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 200</li>
+///     <li> <b>Err</b> : 500</li>
+/// </ul>
 pub async fn delete_handler(
     State(db): State<Db>,
     cookies: Cookies,

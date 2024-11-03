@@ -1,11 +1,13 @@
 #[allow(unused_imports)]
 use axum::{routing::get, Router};
+use axum_prometheus::PrometheusMetricLayer;
 use backend::creator::routers::creator_router;
 use backend::studio::routers::studio_router;
 use backend::user::routers::user_router;
 
 use backend::dev_initial::db::{connect_db, init_queries};
 
+use http::header::CONTENT_TYPE;
 #[allow(unused_imports)]
 use surrealdb::engine::remote::ws::Ws;
 use tower_cookies::CookieManagerLayer;
@@ -14,6 +16,8 @@ use tower_cookies::CookieManagerLayer;
 // use surrealdb::Surreal;
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
+use http::Method;
+use tower_http::cors::CorsLayer;
 #[tokio::main]
 async fn main() -> surrealdb::Result<()> {
     // \\#region Setup
@@ -31,13 +35,28 @@ async fn main() -> surrealdb::Result<()> {
 
     // section:     -- Server setup
 
+    // Metrics
+    let (prometheus_layer, metric_handle) = PrometheusMetricLayer::pair();
     // routers
+    let origins = [
+        "http://localhost:5173".parse().unwrap()
+    ];
+
+    let cors = CorsLayer::new()
+                .allow_headers([CONTENT_TYPE])
+                .allow_credentials(true)
+                .allow_methods([Method::GET, Method::POST])
+                .allow_origin(origins);
+
     let app = Router::new()
         .route("/", get(|| async { "Hello, world" }))
         .nest("/studio", studio_router())
         .nest("/user", user_router())
         .nest("/creator", creator_router())
         .layer(CookieManagerLayer::new())
+        .route("/metrics", get(|| async move { metric_handle.render() }))
+        .layer(prometheus_layer)
+        .layer(cors)
         .with_state(Ok(db));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:7878").await.unwrap();
