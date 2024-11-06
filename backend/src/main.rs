@@ -45,7 +45,7 @@ async fn main() -> surrealdb::Result<()> {
     let cors = CorsLayer::new()
                 .allow_headers([CONTENT_TYPE])
                 .allow_credentials(true)
-                .allow_methods([Method::GET, Method::POST])
+                .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
                 .allow_origin(origins);
 
     let app = Router::new()

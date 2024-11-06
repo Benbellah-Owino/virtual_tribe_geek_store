@@ -1,14 +1,19 @@
 // section:      -- imports
 use axum::body::to_bytes;
-use axum::extract::{Request, State};
+use axum::extract::{Multipart, Path, Request, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::{middleware, routing::*, Json, Router};
+use http::HeaderMap;
 use serde_json::json;
+use surrealdb::sql::Thing;
 use tower_cookies::{Cookie, Cookies};
 
 use crate::creator::controllers::delete_creator;
+use crate::creator::CreatorForLoginSuccess;
 use crate::dev_initial::db::Db;
+use crate::file_upload::small_file::{extract_image, MultField};
+use crate::file_upload::storage::{save_to_disk, store};
 use crate::middleware::auth::cookies::{gen_auth_cookie, gen_refresh_cookie, verify_user};
 
 use super::controllers::{get_details, login, register, update_details};
@@ -19,6 +24,7 @@ use super::{CreatorForCreate, CreatorForLogin, CreatorForUpdateClient};
 // section:      -- router
 pub fn creator_router() -> Router<Db> {
     return Router::new()
+        .route("/upload/:email", patch(avatar_upload))
         .route(
             "/",
             get(details_handler)
@@ -27,7 +33,7 @@ pub fn creator_router() -> Router<Db> {
         )
         .layer(middleware::from_fn(verify_user))
         .route("/", post(register_handler))
-        .route("/login", get(login_handler));
+        .route("/login", post(login_handler));
 }
 
 // endsection:   -- router
@@ -48,7 +54,7 @@ pub fn creator_router() -> Router<Db> {
 /// <p>
 ///     Parameters cannot be empty
 /// </p>
-/// 
+///
 /// <h4>Status Codes</h4>
 /// <ul>
 ///     <li> <b>Ok</b>  : 201</li>
@@ -84,7 +90,7 @@ async fn register_handler(
 /// <p>
 ///     Parameters cannot be empty
 /// </p>
-/// 
+///
 /// <br><hr>
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -92,13 +98,13 @@ async fn register_handler(
 ///     <li> <b>Err</b> : 401, 500, 403</li>
 /// </ul>
 async fn login_handler(
-    State(db): State<Db>,  //TODO: Update the status codes of each rout
+    State(db): State<Db>, //TODO: Update the status codes of each rout
     cookies: Cookies,
     Json(payload): Json<CreatorForLogin>,
 ) -> impl IntoResponse {
     let db = db.unwrap();
     let creator = login(&db, payload).await;
-
+    // Add a not found error
     match creator {
         Ok(claims) => {
             match gen_auth_cookie(&claims, &cookies) {
@@ -157,7 +163,7 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
         let creator = get_details(&db, id.to_owned()).await;
         match creator {
             Ok(c) => {
-                return (StatusCode::FOUND, Json(json!({"creator": c})));
+                return (StatusCode::OK, Json(json!({"creator": c})));
             }
             Err(_) => {
                 return (
@@ -191,7 +197,7 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
 ///     Empty parameters <br>
 ///     Need auth token <br>
 /// </p>
-/// 
+///
 /// <br><hr>
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -214,7 +220,7 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
         match creator {
             Ok(_) => {
                 let creator = get_details(&db, id.to_owned()).await.unwrap();
-                (StatusCode::FOUND, Json(json!({"creator": creator})))
+                (StatusCode::OK, Json(json!({"creator": creator})))
             }
             Err(_) => {
                 let creator = get_details(&db, id.to_owned()).await.unwrap();
@@ -277,10 +283,134 @@ pub async fn delete_handler(
     }
 }
 
+// async fn avatar_upload(db: State<Db>, mut multipart: Multipart, req: Parts) -> impl IntoResponse {
+//     let file = extract_image(multipart).await.unwrap();
+
+//     let file = store(Some("media\\user\\creator".to_string()), file).await;
+
+//     if let Some(id) = req.extensions().get::<String>() {
+
+//         let db = db.unwrap();
+//         if let Some(f) = file {
+//             println!("going to save to disk");
+//             let value = String::from(f.0.clone().to_str().unwrap());
+//             save_to_disk(f).await;
+//             let payload: CreatorForUpdateClient = CreatorForUpdateClient {
+//                 field: "avatar".to_string(),
+//                 value,
+//             };
+//             let creator = update_details(&db, id.to_owned(), payload).await;
+
+//             // Items to update username, password, socials, description,
+//             match creator {
+//                 Ok(_) => {
+//                     let creator = get_details(&db, id.to_owned()).await.unwrap();
+//                     return(StatusCode::OK, Json(json!({"creator": creator})));
+//                 }
+//                 Err(_) => {
+//                     let creator = get_details(&db, id.to_owned()).await.unwrap();
+//                     return(
+//                         StatusCode::INTERNAL_SERVER_ERROR,
+//                         Json(json!({"msg": "Update error", "c":creator})),
+//                     );
+//                 }
+//             }
+//         } else {
+//             println!("File upload error.");
+//             return (
+//                 StatusCode::INTERNAL_SERVER_ERROR,
+//                 Json(json!({"msg": "Update error"})),
+//             );
+//         }
+//     }else{
+//             return (
+//                 StatusCode::INTERNAL_SERVER_ERROR,
+//                 Json(json!({"msg": "Update error"})),
+//             );
+//     }
+
+// }
+
+#[axum::debug_handler]
+async fn avatar_upload(
+    State(db): State<Db>,
+    email: Path<String>,
+    mut multipart: Multipart,
+) -> impl IntoResponse {
+    let query = format!("SELECT * FROM creator WHERE email = '{}' ", &email[..]);
+    // };s
+    println!("{:?}", query);
+    let db = db.unwrap();
+    // let id: Option<Thing> = db.select(("table",email)).await.unwrap();
+
+    let mut t = db
+        .clone()
+        .query(query)
+        .bind(("table", "creator"))
+        .await
+        .unwrap();
+    let id: Option<CreatorForLoginSuccess> = t.take(0).unwrap();
+    let mut creator_id =String::new();
+    let id = match id{
+        Some(c) =>  {
+            creator_id = c.id.id.clone().to_string();
+            format!("{}:{}", c.id.tb, c.id.id)
+        },
+        None => "none".to_string()
+    };
+    // Attempt to extract the image file from multipart
+    let file = match extract_image(multipart).await {
+        Ok(file) => file,
+        Err(_) => {
+            println!("File extraction failed.");
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(json!({"msg": "Invalid file upload"})),
+            );
+        }
+    };
+
+    // Store the file in the specified directory
+
+    let file = match store(Some(format!("media\\user\\creator\\{}", creator_id)), file).await {
+        Some(f) => f,
+        None => {
+            println!("File storage failed.");
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"msg": "File storage error"})),
+            );
+        }
+    };
+
+    // Check if we have the ID in request extensions
+    // Proceed with saving to disk and updating details
+    let file = (&file.0.clone(), file.1);
+    let path = file.0.clone();
+    save_to_disk(file).await;
+    let value = path.to_str().unwrap();
+
+    let payload = CreatorForUpdateClient {
+        field: "avatar".to_string(),
+        value:value.to_string(),
+    };
+    match update_details(&db, id, payload).await {
+        Ok(_) => {
+            return (
+                StatusCode::OK,
+                Json(json!({"msg": "File storage error"})),
+            );
+        }
+        Err(_) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"msg": "Upload error"})),
+            )
+        }
+    }
+
+}
+
+// Fallthrough for any unexpected errors
+
 // endsection:   -- handlers
-
-// section:      -- imports
-// endsection:   -- imports
-
-// section:      -- imports
-// endsection:   -- imports

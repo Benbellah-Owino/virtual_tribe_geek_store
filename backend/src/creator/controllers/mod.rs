@@ -8,7 +8,7 @@ use crate::{
 };
 
 use super::{
-    CreatorForCreate, CreatorForLogin, CreatorForUpdateClient, CreatorForUpdateDb, Socials,
+    CreatorDetails, CreatorForCreate, CreatorForLogin, CreatorForUpdateClient, CreatorForUpdateDb, Socials
 };
 use chrono::Utc;
 use tracing::{debug, error, info};
@@ -186,13 +186,13 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
 }
 
 /// Used to get Cretors details
-pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<Creator, CreatorError> {
+pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<CreatorDetails, CreatorError> {
     println!(
         "\n\n{:<12}=====================================================================\n\n",
         "creator::details()"
     );
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
-    let creator: Result<Option<Creator>, surrealdb::Error> = db.select(("creator", id)).await;
+    let creator: Result<Option<CreatorDetails>, surrealdb::Error> = db.select(("creator", id)).await;
 
     match creator {
         Ok(c) => {
@@ -225,12 +225,14 @@ pub async fn update_details(
     match field.as_str() {
         // Matching the field to restrict it to the user updatable  items named above
         "socials" => {
+            println!("socials");
             // Socials is a struct so it needs special processing
             let c: Option<CreatorForUpdateDb> = db.select(("creator", id)).await.unwrap(); // Select user from db
             if let Some(c) = c {
                 let socials_db = c.socials; // Get the socials object from db
                 let value = payload.value.clone();
-                let value: Vec<&str> = value.split(".").collect();
+                let value: Vec<&str> = value.split(";").collect();
+                println!("{:?}",&value);
                 let mut socials: Socials;
                 if let Some(s) = socials_db {
                     socials = s;
@@ -259,7 +261,7 @@ pub async fn update_details(
                     .unwrap() // reset the number of login attempts
             }
         } //End of socials arm
-        "username" | "description" => {
+        "username" | "description" | "avatar" => {
             query = db
                 .update(("creator", id))
                 .merge(json!({&payload.field: &payload.value}))
@@ -269,7 +271,8 @@ pub async fn update_details(
         "password" => {
             // Password is also special
             println!("IS IT THE BRAIDS") //TODO: Implement this
-        }
+        },
+    
         &_ => return Err(CreatorError::DetailsUpdateError),
     }
 
@@ -283,7 +286,7 @@ pub async fn update_details(
     };
 }
 
-pub async fn delete_creator(db: &Surreal<Client>, id: String) -> Result<Creator, CreatorError> {
+pub async fn delete_creator(db: &Surreal<Client>, id: String) -> Result<CreatorDetails, CreatorError> {
     println!(
         "\n\n{:<12}=====================================================================\n\n",
         "creator::details()"
@@ -291,7 +294,7 @@ pub async fn delete_creator(db: &Surreal<Client>, id: String) -> Result<Creator,
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
     //TODO: test if it accepts different types o
     // Items to update username, password, socials, description,
-    let deleted_creator: Result<Option<Creator>, surrealdb::Error> =
+    let deleted_creator: Result<Option<CreatorDetails>, surrealdb::Error> =
         db.delete(("creator", id)).await;
     match deleted_creator {
         Ok(dc) => {

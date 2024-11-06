@@ -44,6 +44,17 @@ pub struct Creator {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CreatorDetails {
+    pub username: String,
+    pub email: String,
+    pub role: String,
+    pub description: Option<String>,
+    pub verified: bool,
+    pub socials: Option<Socials>,
+    pub joined_at: String,
+    pub avatar: Option<String>,
+}
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CreatorForCreate {
     pub username: String,
     pub email: String,

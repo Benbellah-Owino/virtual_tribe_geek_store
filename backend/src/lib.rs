@@ -9,6 +9,7 @@ pub mod middleware;
 pub mod studio;
 pub mod user;
 pub mod vrt_lib;
+pub mod file_upload;
 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
