@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { clearState, updateFormState, type FormState } from '$lib/types/app_state';
+	import { clearState, updateFormState, type FormState } from '$lib/types/state/form_state';
 	import type { Creator, CreatorForCreate } from '$lib/types/creator';
 	import { FormError } from '$lib/types/error';
 	import { Result } from '$lib/types/result';
@@ -9,7 +9,8 @@
 		inner_state: Result.Ok,
 		error: null,
 		message: '',
-		target: ''
+		target: '',
+		locked: false,
 	});
 
 	let register_form: CreatorForCreate = $state({
@@ -34,7 +35,8 @@
 				Result.Err,
 				FormError.PasswordsDontMatch,
 				"Passwords don't match",
-				'password&confirm_password'
+				'password&confirm_password',
+				false
 			);
 		} else {
 			clearState(formState);
@@ -44,11 +46,11 @@
 	async function register(e: Event) {
 		e.preventDefault();
 		console.log('submit');
-		console.log(formState);
+		
 		checkPasswordMatch();
 		for (const key in register_form) {
 			if (register_form[key] == '') {
-				updateFormState(formState, Result.Err, FormError.PasswordsDontMatch, 'Missing Field', key);
+				updateFormState(formState, Result.Err, FormError.PasswordsDontMatch, 'Missing Field', key, false);
 				console.log(formState.target);
 				return;
 			}
@@ -66,6 +68,11 @@
 
 		if (response.status == 201) {
 			//UNIMPLEMENTED
+			setTimeout(()=>{
+				updateFormState(formState, Result.Ok, null, 'Registration success', 'form', true);
+				console.log($state.snapshot(formState))
+			window.open('/user/creator/login', '_self')
+			}, 3000)
 		} else if (response.status == 500) {
 			error(500, 'Registraition failure');
 		}
@@ -76,7 +83,11 @@
 	<h1 class="mb-7 text-center text-3xl font-extrabold">CREATOR REGISTER PAGE</h1>
 	<center>
 		<form class="form alt_bg w-11/12 rounded-lg p-3" onsubmit={register}>
-			<h3 class="float-left mb-4 text-2xl font-bold">Register</h3>
+			<h3 class="float-left mb-4 text-2xl font-bold">Register</h3> <br>
+				{#if formState.inner_state == Result.Ok && formState.target == 'form'}
+					<p class="error main_txt">{formState.message}</p> 
+					
+				{/if}
 			<div class="form_div">
 				<label for="username">Username</label>
 				<input type="text" name="username" id="username" bind:value={register_form.username} />

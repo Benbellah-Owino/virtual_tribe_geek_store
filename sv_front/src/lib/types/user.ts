@@ -1,11 +1,12 @@
 import type { Socials } from "./creator";
 
 export interface User{
-    [key:string] : string | string[]|null| Socials;
+    [key:string] : string | string[]|null| Socials | Date;
     username: string,
     email: string,
     description: string|null,
-    password: string,
+    avatar: string|null,
+    joined_at: Date|null
 }
 
 export interface UserForCreate{

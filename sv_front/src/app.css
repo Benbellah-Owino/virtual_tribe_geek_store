@@ -1,6 +1,7 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 /* region:      --- Globals */
 :root{
@@ -11,6 +12,14 @@
 	--color1: #361717;
 	--color2: #232323;
 }
+
+*{
+	font-family: "Montserrat", sans-serif;
+	font-optical-sizing: auto;
+}
+
+
+
 body {
     margin: 0;
     padding: 0;
@@ -22,6 +31,11 @@ body {
     overflow-x: hidden; /* Prevents horizontal scrolling */
     -webkit-font-smoothing: antialiased; /* Improves font rendering on webkit browsers */
     -moz-osx-font-smoothing: grayscale; /* Improves font rendering on macOS */
+}
+
+.page{
+	width: 100%;
+	height: 100%;
 }
 /* endregion:   --- Globals */
 
@@ -83,6 +97,10 @@ body {
 .tertiary_txt {
 	color: var(--tertiary);
 }
+
+.txt1{
+	color: var(--color1)
+}
 /* endregion:   --- Text */
 
 
@@ -100,6 +118,10 @@ body {
 	transition: all ease-in-out 0.3s;
 }
 
+.txt1_hover {
+	transition: all ease-in-out 0.3s;
+}
+
 .main_txt_hover:hover {
 	color: #fefefe;
 }
@@ -111,12 +133,16 @@ body {
 .tertiary_txt_hover:hover {
 	color: var(--tertiary);
 }
+
+.txt1_hover:hover{
+	color: var(--color1)
+}
 /* endregion:   --- Hover text */
 
 
 
 /* region:      --- Border */
-.main_border {
+.primary_border {
 	border: 1px solid var(--primary)
 }
 
@@ -128,6 +154,9 @@ body {
 	border: 1px solid var(--tertiary)
 }
 
+.border1 {
+	border: 1px solid var(--color1)
+}
 .spinner_border {
 	border: 4px solid var(--tertiary)
 }
@@ -147,6 +176,9 @@ body {
 	transition: all ease-in-out 0.3s;
 }
 
+.border1_hover {
+	transition: all ease-in-out 0.3s;
+}
 .main_border_hover:hover {
 	border: 1px solid var(--primary)
 }
@@ -157,6 +189,10 @@ body {
 
 .tertiary_border_hover:hover {
 	border: 1px solid var(--tertiary)
+}
+
+.border1_hover:hover {
+	border: 1px solid var(--color1)
 }
 
 /* endregion:   --- Border hover */
@@ -304,6 +340,17 @@ form{
     border: var(--secondary) 1px solid;
 	border-radius: 0.25rem;
 	padding: 4px;
+}
+.form_div textarea{
+    margin-bottom: 1rem;
+    font-size: 14px;
+	float: left;
+	color:var(--text_color);
+    background-color: #131313;
+    border: var(--secondary) 1px solid;
+	border-radius: 0.25rem;
+	padding: 4px;
+
 }
 /* endregion:   --- Form */
 /* region:      --- */
