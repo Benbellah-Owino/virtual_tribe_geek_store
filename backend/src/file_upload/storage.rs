@@ -1,6 +1,6 @@
 use std::{
-    fs::{File, OpenOptions},
-    io::{self, ErrorKind, Write},
+    fs::{self, OpenOptions},
+    io:: Write,
     path::{Path, PathBuf},
 };
 
@@ -11,16 +11,21 @@ use super::small_file::MultField;
 #[derive(Debug)]
 pub enum Error {
     FileNameGenError,
+    PathNotFound,
+    FileCreationError,
+    PathCreationError
 }
 
-pub async fn store(destination: Option<String>, file: MultField) -> Option<(PathBuf, Bytes)> {
+pub async fn store(destination: Option<String>, file: MultField) -> Option<(PathBuf,String, Bytes)> {
     if let Some(p) = destination {
+        let dest = p.clone();
         let file_name = &file.name[..];
         let file_path = gen_file_name(p, file_name, &file.content_type).unwrap();
-        return Some((file_path, file.data))
+        return Some((file_path,dest, file.data))
     }
     return None;
 }
+
 
 pub fn gen_file_name(
     mut destination: String,
@@ -40,16 +45,27 @@ pub fn gen_file_name(
     return Ok(path);
 }
 
+
 //TODO: Implement a way to save to disk irregadles of disk content
-pub async fn save_to_disk(to_write: (&PathBuf, Bytes)) {
+pub async fn save_to_disk(to_write: (&PathBuf, String, Bytes)) -> Result<(), Error> {
     println!("saving to disk...");
-    match File::create(to_write.0) {
+    if !Path::new(&to_write.1).exists(){
+        match fs::create_dir_all(&to_write.1){
+            Ok(_) => println!("path created"),
+            Err(_) => return Err(Error::FileCreationError)
+        }
+    }else{}
+
+
+    match OpenOptions::new().create(true).write(true).open(to_write.0) {
         Ok(mut f) => {
-            f.write_all(&to_write.1).unwrap();
-            println!("saved!")
+            f.write_all(&to_write.2).unwrap();
+            println!("saved!");
+            Ok(())
         }
         Err(e) => {
-            eprintln!("FAILED TO SAVE TO DISK.\n{:#?}", e)
+            eprintln!("FAILED TO SAVE TO DISK.\n{:#?}", e);
+            Err(Error::FileCreationError)
         }
     }
 }

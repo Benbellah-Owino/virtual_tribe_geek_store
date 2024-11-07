@@ -385,9 +385,9 @@ async fn avatar_upload(
 
     // Check if we have the ID in request extensions
     // Proceed with saving to disk and updating details
-    let file = (&file.0.clone(), file.1);
+    let file = (&file.0.clone(), file.1, file.2);
     let path = file.0.clone();
-    save_to_disk(file).await;
+    let _ = save_to_disk(file).await;
     let value = path.to_str().unwrap();
 
     let payload = CreatorForUpdateClient {
