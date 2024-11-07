@@ -161,7 +161,7 @@
 		onsubmit={upload_avatar}
 	>
 		<img
-			src={creator.avatar ? creator.avatar : stockProfilePic}
+			src={creator.avatar ? `http://localhost:7878/creator/image/${creator.avatar}` : stockProfilePic}
 			alt="Profile picture of {creator.username}"
 			width="128px"
 			height="128px"

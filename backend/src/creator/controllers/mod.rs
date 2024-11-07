@@ -4,7 +4,7 @@ use surrealdb::{engine::remote::ws::Client, Surreal};
 
 use crate::{
     creator::{Creator, CreatorError, CreatorForLoginSuccess},
-    middleware::auth::jwt::Claims,
+    middleware::auth::jwt::Claims, AvatarUrl,
 };
 
 use super::{
@@ -193,6 +193,26 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<CreatorDeta
     );
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
     let creator: Result<Option<CreatorDetails>, surrealdb::Error> = db.select(("creator", id)).await;
+
+    match creator {
+        Ok(c) => {
+            // dbg!(&c);
+            if let Some(ct) = c {
+                return Ok(ct);
+            } else {
+                return Err(CreatorError::DetailsRetrievingError);
+            }
+        }
+        Err(_) => Err(CreatorError::DetailsRetrievingError),
+    }
+}
+pub async fn get_avatar_url(db: &Surreal<Client>, id: String) -> Result<AvatarUrl, CreatorError> {
+    println!(
+        "\n\n{:<12}=====================================================================\n\n",
+        "creator::details()"
+    );
+    let id: &str = id.split(":").collect::<Vec<&str>>()[1];
+    let creator: Result<Option<AvatarUrl>, surrealdb::Error> = db.select(("creator", id)).await;
 
     match creator {
         Ok(c) => {

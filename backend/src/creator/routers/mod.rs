@@ -1,22 +1,26 @@
+use std::path::{Path, PathBuf};
+
 // section:      -- imports
-use axum::body::to_bytes;
-use axum::extract::{Multipart, Path, Request, State};
+use axum::body::{to_bytes, Body, Bytes};
+use axum::extract::{Multipart, Path as AxumPath, Request, State};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
+use axum::response::{IntoResponse, Response};
 use axum::{middleware, routing::*, Json, Router};
-use http::HeaderMap;
+
+use http::header;
 use serde_json::json;
-use surrealdb::sql::Thing;
+
 use tower_cookies::{Cookie, Cookies};
 
 use crate::creator::controllers::delete_creator;
 use crate::creator::CreatorForLoginSuccess;
 use crate::dev_initial::db::Db;
-use crate::file_upload::small_file::{extract_image, MultField};
+use crate::file_upload::optimization::image_resizer::resize_image;
+use crate::file_upload::small_file::{self, extract_image, MultField};
 use crate::file_upload::storage::{save_to_disk, store};
 use crate::middleware::auth::cookies::{gen_auth_cookie, gen_refresh_cookie, verify_user};
 
-use super::controllers::{get_details, login, register, update_details};
+use super::controllers::{get_avatar_url, get_details, login, register, update_details};
 use super::{CreatorForCreate, CreatorForLogin, CreatorForUpdateClient};
 
 // endsection:   -- imports
@@ -25,6 +29,7 @@ use super::{CreatorForCreate, CreatorForLogin, CreatorForUpdateClient};
 pub fn creator_router() -> Router<Db> {
     return Router::new()
         .route("/upload/:email", patch(avatar_upload))
+        .route("/image/*path", get(get_image))
         .route(
             "/",
             get(details_handler)
@@ -283,59 +288,11 @@ pub async fn delete_handler(
     }
 }
 
-// async fn avatar_upload(db: State<Db>, mut multipart: Multipart, req: Parts) -> impl IntoResponse {
-//     let file = extract_image(multipart).await.unwrap();
-
-//     let file = store(Some("media\\user\\creator".to_string()), file).await;
-
-//     if let Some(id) = req.extensions().get::<String>() {
-
-//         let db = db.unwrap();
-//         if let Some(f) = file {
-//             println!("going to save to disk");
-//             let value = String::from(f.0.clone().to_str().unwrap());
-//             save_to_disk(f).await;
-//             let payload: CreatorForUpdateClient = CreatorForUpdateClient {
-//                 field: "avatar".to_string(),
-//                 value,
-//             };
-//             let creator = update_details(&db, id.to_owned(), payload).await;
-
-//             // Items to update username, password, socials, description,
-//             match creator {
-//                 Ok(_) => {
-//                     let creator = get_details(&db, id.to_owned()).await.unwrap();
-//                     return(StatusCode::OK, Json(json!({"creator": creator})));
-//                 }
-//                 Err(_) => {
-//                     let creator = get_details(&db, id.to_owned()).await.unwrap();
-//                     return(
-//                         StatusCode::INTERNAL_SERVER_ERROR,
-//                         Json(json!({"msg": "Update error", "c":creator})),
-//                     );
-//                 }
-//             }
-//         } else {
-//             println!("File upload error.");
-//             return (
-//                 StatusCode::INTERNAL_SERVER_ERROR,
-//                 Json(json!({"msg": "Update error"})),
-//             );
-//         }
-//     }else{
-//             return (
-//                 StatusCode::INTERNAL_SERVER_ERROR,
-//                 Json(json!({"msg": "Update error"})),
-//             );
-//     }
-
-// }
-
 #[axum::debug_handler]
 async fn avatar_upload(
     State(db): State<Db>,
-    email: Path<String>,
-    mut multipart: Multipart,
+    email: AxumPath<String>,
+    multipart: Multipart,
 ) -> impl IntoResponse {
     let query = format!("SELECT * FROM creator WHERE email = '{}' ", &email[..]);
     // };s
@@ -350,29 +307,45 @@ async fn avatar_upload(
         .await
         .unwrap();
     let id: Option<CreatorForLoginSuccess> = t.take(0).unwrap();
-    let mut creator_id =String::new();
-    let id = match id{
-        Some(c) =>  {
+    let mut creator_id = String::new();
+    let id = match id {
+        Some(c) => {
             creator_id = c.id.id.clone().to_string();
             format!("{}:{}", c.id.tb, c.id.id)
-        },
-        None => "none".to_string()
+        }
+        None => "none".to_string(),
     };
     // Attempt to extract the image file from multipart
     let file = match extract_image(multipart).await {
         Ok(file) => file,
-        Err(_) => {
+        Err(e) => {
             println!("File extraction failed.");
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(json!({"msg": "Invalid file upload"})),
-            );
+            match e {
+                small_file::Error::TooBig => {
+                    return (
+                        StatusCode::BAD_REQUEST,
+                        Json(json!({"msg": "Image is too big, use a smaller image"})),
+                    )
+                }
+                _ => {
+                    return (
+                        StatusCode::BAD_REQUEST,
+                        Json(json!({"msg": "Update Failed"})),
+                    )
+                }
+            }
         }
     };
 
     // Store the file in the specified directory
 
-    let file = match store(Some(format!("media\\user\\creator\\{}", creator_id)), file).await {
+    let file = match store(
+        Some(format!("media\\user\\creator\\{}", creator_id)),
+        format!("{}profile_pic", creator_id),
+        file,
+    )
+    .await
+    {
         Some(f) => f,
         None => {
             println!("File storage failed.");
@@ -392,14 +365,17 @@ async fn avatar_upload(
 
     let payload = CreatorForUpdateClient {
         field: "avatar".to_string(),
-        value:value.to_string(),
+        value: value.to_string(),
     };
+    println!("{:?}", &path);
+    match resize_image(String::from(path.to_str().unwrap()), 480, 360) {
+        Ok(_) => println!("images resized"),
+        Err(_) => eprintln!("errpr resizing image"),
+    }
+
     match update_details(&db, id, payload).await {
         Ok(_) => {
-            return (
-                StatusCode::OK,
-                Json(json!({"msg": "File storage error"})),
-            );
+            return (StatusCode::OK, Json(json!({"msg": "File storage error"})));
         }
         Err(_) => {
             return (
@@ -408,9 +384,57 @@ async fn avatar_upload(
             )
         }
     }
-
 }
 
+/// <h1> Handles getting details of Creator </h1>
+/// <h2> <b>Endpoint: /creator </b> </h2>
+///
+/// <h3> No request body</h3>
+///
+/// <p>
+///     Empty parameters <br>
+///     Need auth token <br>
+/// </p>
+/// <br><hr>
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 302</li>
+///     <li> <b>Err</b> : 404</li>
+/// </ul>
+pub async fn get_image(
+    // State(db): State<Db>,
+    AxumPath(path): AxumPath<String>,
+    // req: Request,
+) -> impl IntoResponse {
+    //TODO: Change to path
+
+    println!("{:?}",path);
+    let path = path.to_string();
+    match tokio::fs::read(path.clone()).await {
+        Ok(d) => {
+            let content_type = match Path::new(&path).extension().and_then(|ext| ext.to_str()) {
+                Some("png") => "image/png",
+                Some("jpg") | Some("jpeg") => "image/jpeg",
+                Some("gif") => "image/gif",
+                Some("bmp") => "image/bmp",
+                Some("webp") => "image/webp",
+                _ => {
+                    return (
+                        StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                        "Unsupported image format",
+                    )
+                        .into_response()
+                }
+            };
+            Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, content_type)
+                .body(Body::from(d))
+                .unwrap()
+        }
+        Err(_) => todo!(),
+    }
+}
 // Fallthrough for any unexpected errors
 
 // endsection:   -- handlers

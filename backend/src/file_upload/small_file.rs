@@ -1,6 +1,6 @@
 use axum::{
     body::Bytes,
-    extract::{multipart::Field, Multipart},
+    extract::{multipart::{Field, MultipartError}, Multipart},
 };
 
 
@@ -13,6 +13,13 @@ use crate::file_upload::storage::{gen_file_name, append_to_disk};
 pub enum Error {
     MEDIARETRIEVALERROR,
     FileNameGenError,
+    TooBig
+}
+
+impl From<MultipartError> for Error{
+    fn from(error: MultipartError) -> Self{
+        Error::TooBig
+    }
 }
 // endregion:   --- Error type
 
@@ -30,7 +37,7 @@ impl MultField {
     ///
     /// TIP: TO be able to upload files bigger that 2mb make sure to disable the default file limit in your router
     /// 
-    pub async fn from_field(mut field: Field<'_>) -> MultField {
+    pub async fn from_field(mut field: Field<'_>) -> Result<MultField, MultipartError> {
         eprintln!("{:#?}", &field);
         let content_type = field.content_type().unwrap().to_string();
         let name = field.file_name().unwrap().to_string();
@@ -38,7 +45,7 @@ impl MultField {
         let mut count = 0 as f32;
         let pow = usize::pow(2, 20) as f32;
         println!("{pow}");
-        while let Some(chunk) = field.chunk().await.unwrap() {
+        while let Some(chunk) = field.chunk().await.map_err(|e| e)? {
             let len =  chunk.len() as f32;
             let mbs = len / pow;
             count = count + mbs;
@@ -62,11 +69,11 @@ impl MultField {
             data.len()
         );
 
-        MultField {
+        Ok(MultField {
             name,
             content_type,
             data, //  TODO: Handle video case
-        }
+        })
     }
 
 pub async fn from_field_big_file(mut field: Field<'_>, destination: String) {
@@ -98,7 +105,7 @@ pub async fn from_field_big_file(mut field: Field<'_>, destination: String) {
 
 pub async fn extract_image(mut multipart: Multipart) -> Result<MultField, Error> {
     while let Some(field) = multipart.next_field().await.unwrap() {
-        let field = MultField::from_field(field).await;
+        let field = MultField::from_field(field).await?;
         return Ok(field);
     }
     Err(Error::MEDIARETRIEVALERROR)

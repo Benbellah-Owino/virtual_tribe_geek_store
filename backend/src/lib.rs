@@ -14,5 +14,10 @@ pub mod file_upload;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DbId {
-    id: Thing,
+    pub id: Thing,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AvatarUrl {
+    pub avatar: Option<String>
 }

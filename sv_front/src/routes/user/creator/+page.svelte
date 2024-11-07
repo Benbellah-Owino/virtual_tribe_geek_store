@@ -66,7 +66,7 @@
 	{:else if pageState.inner_state == Result.Ok && pageState.loading == false}
 		<section class="personal_info border1 flex_col w-11/12 rounded p-3 cursor-pointer">
 			<img
-				src={creator.avatar ? creator.avatar : stockProfilePic}
+				src={creator.avatar ? `http://localhost:7878/creator/image/${creator.avatar}` : stockProfilePic}
 				alt="Profile picture of {creator.username}"
 				width="128px"
 				height="128px"

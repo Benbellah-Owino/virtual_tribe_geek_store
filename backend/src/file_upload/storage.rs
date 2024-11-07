@@ -16,11 +16,11 @@ pub enum Error {
     PathCreationError
 }
 
-pub async fn store(destination: Option<String>, file: MultField) -> Option<(PathBuf,String, Bytes)> {
+pub async fn store(destination: Option<String>,name:String, file: MultField) -> Option<(PathBuf,String, Bytes)> {
     if let Some(p) = destination {
         let dest = p.clone();
-        let file_name = &file.name[..];
-        let file_path = gen_file_name(p, file_name, &file.content_type).unwrap();
+        
+        let file_path = gen_file_name(p, &name[..], &file.content_type).unwrap();
         return Some((file_path,dest, file.data))
     }
     return None;
