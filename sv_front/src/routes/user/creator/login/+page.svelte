@@ -4,7 +4,6 @@
 	import { Result } from '$lib/types/result';
 	import type { UserForLogin } from '$lib/types/user';
 
-
 	let formState: FormState = $state({
 		inner_state: Result.Ok,
 		error: null,
@@ -17,7 +16,6 @@
 		email: '',
 		password: ''
 	});
-
 
 	async function login(e: Event) {
 		e.preventDefault();
@@ -60,9 +58,10 @@
 				message = 'You are blocked from logging in!';
 				locked = true;
 			}
-			if (response.status == 500)
+			if (response.status == 500) {
 				message = 'Server error, please try again. If problem persists come back later';
-			updateFormState(formState, Result.Err, FormError.SubmissionFailed, message, 'form', locked);
+				updateFormState(formState, Result.Err, FormError.SubmissionFailed, message, 'form', locked);
+			}
 		}
 	}
 </script>

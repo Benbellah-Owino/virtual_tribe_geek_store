@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { clearState, updateFormState, type FormState } from '$lib/types/state/form_state';
-	import type { Creator, CreatorForCreate } from '$lib/types/creator';
+	import type { CreatorForCreate } from '$lib/types/creator';
 	import { FormError } from '$lib/types/error';
 	import { Result } from '$lib/types/result';
 	import { error } from '@sveltejs/kit';
@@ -10,7 +10,7 @@
 		error: null,
 		message: '',
 		target: '',
-		locked: false,
+		locked: false
 	});
 
 	let register_form: CreatorForCreate = $state({
@@ -46,48 +46,76 @@
 	async function register(e: Event) {
 		e.preventDefault();
 		console.log('submit');
-		
+
 		checkPasswordMatch();
 		for (const key in register_form) {
 			if (register_form[key] == '') {
-				updateFormState(formState, Result.Err, FormError.PasswordsDontMatch, 'Missing Field', key, false);
+				updateFormState(
+					formState,
+					Result.Err,
+					FormError.PasswordsDontMatch,
+					'Missing Field',
+					key,
+					false
+				);
 				console.log(formState.target);
 				return;
 			}
 		}
 
-		let response = await fetch(`http://localhost:7878/creator`, {
-			method: 'POST',
-			credentials: 'include',
+		try {
+			let response = await fetch(`http://localhost:7878/creator`, {
+				method: 'POST',
+				credentials: 'include',
+				body: JSON.stringify(register_form),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
-			body: JSON.stringify(register_form),
-			headers: {
-				'Content-Type': 'application/json'
+			if (response.status == 201) {
+				//UNIMPLEMENTED
+				setTimeout(() => {
+					updateFormState(formState, Result.Ok, null, 'Registration success', 'form', true);
+					console.log($state.snapshot(formState));
+					window.open('/user/creator/login', '_self');
+				}, 3000);
+			} else if (response.status == 500) {
+				console.error("Failed");
+				updateFormState(
+					formState,
+					Result.Err,
+					FormError.SubmissionFailed,
+					'Submission Failed',
+					'form',
+					false
+				);
 			}
-		});
-
-		if (response.status == 201) {
-			//UNIMPLEMENTED
-			setTimeout(()=>{
-				updateFormState(formState, Result.Ok, null, 'Registration success', 'form', true);
-				console.log($state.snapshot(formState))
-			window.open('/user/creator/login', '_self')
-			}, 3000)
-		} else if (response.status == 500) {
-			error(500, 'Registraition failure');
+		} catch (error) {
+			console.error(error);
+			updateFormState(
+				formState,
+				Result.Err,
+				FormError.SubmissionFailed,
+				'Submission Failed',
+				'form',
+				false
+			);
 		}
 	}
 </script>
 
-<main class="page main_bg flex_col mt-5 h-full w-full">
+<main class="page main_bg mt-5 h-full w-full">
 	<h1 class="mb-7 text-center text-3xl font-extrabold">CREATOR REGISTER PAGE</h1>
 	<center>
-		<form class="form alt_bg w-11/12 rounded-lg p-3" onsubmit={register}>
-			<h3 class="float-left mb-4 text-2xl font-bold">Register</h3> <br>
-				{#if formState.inner_state == Result.Ok && formState.target == 'form'}
-					<p class="error main_txt">{formState.message}</p> 
-					
-				{/if}
+		<form class="form alt_bg w-8/12 rounded-lg p-3 flex_col" onsubmit={register}>
+			<h3 class="float-left mb-4 text-2xl font-bold">Register</h3>
+			<br />
+			{#if formState.inner_state == Result.Ok && formState.target == 'form'}
+				<center><p class="error main_txt text-lg font-semibold">{formState.message}</p></center>
+			{:else if formState.inner_state == Result.Err && formState.target == 'form'}
+				<center><p class="error text-red-400 text-lg font-semibold">{formState.message}</p></center>
+			{/if}
 			<div class="form_div">
 				<label for="username">Username</label>
 				<input type="text" name="username" id="username" bind:value={register_form.username} />

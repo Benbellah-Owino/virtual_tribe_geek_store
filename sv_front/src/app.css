@@ -31,6 +31,10 @@ body {
     overflow-x: hidden; /* Prevents horizontal scrolling */
     -webkit-font-smoothing: antialiased; /* Improves font rendering on webkit browsers */
     -moz-osx-font-smoothing: grayscale; /* Improves font rendering on macOS */
+	min-width: 10vh;
+	min-height: 100%;
+	height: 100vh;
+	border: #F3EC34 1px solid;
 }
 
 .page{
@@ -308,7 +312,7 @@ body {
 /* region:      --- Form */
 form{
 	padding: 0.5rem;
-	max-width:500px;
+	max-width:600px;
     min-width: 300px;
 }
 
