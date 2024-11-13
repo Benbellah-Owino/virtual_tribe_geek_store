@@ -1,7 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 // section:      -- imports
-use axum::body::{to_bytes, Body, Bytes};
+use axum::body::{to_bytes, Body};
 use axum::extract::{Multipart, Path as AxumPath, Request, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -16,11 +16,11 @@ use crate::creator::controllers::delete_creator;
 use crate::creator::CreatorForLoginSuccess;
 use crate::dev_initial::db::Db;
 use crate::file_upload::optimization::image_resizer::resize_image;
-use crate::file_upload::small_file::{self, extract_image, MultField};
+use crate::file_upload::small_file::{self, extract_image};
 use crate::file_upload::storage::{save_to_disk, store};
 use crate::middleware::auth::cookies::{gen_auth_cookie, gen_refresh_cookie, verify_user};
 
-use super::controllers::{get_avatar_url, get_details, login, register, update_details};
+use super::controllers::{get_details, login, register, update_details};
 use super::{CreatorForCreate, CreatorForLogin, CreatorForUpdateClient};
 
 // endsection:   -- imports

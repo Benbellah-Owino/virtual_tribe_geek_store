@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use surrealdb::sql::{Array, Thing};
+use surrealdb::sql::Thing;
 
 use crate::helpers::db::thing_from_string;
 

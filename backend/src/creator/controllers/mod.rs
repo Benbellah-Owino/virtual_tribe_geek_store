@@ -3,7 +3,7 @@ use serde_json::json;
 use surrealdb::{engine::remote::ws::Client, Surreal};
 
 use crate::{
-    creator::{Creator, CreatorError, CreatorForLoginSuccess},
+    creator::{CreatorError, CreatorForLoginSuccess},
     middleware::auth::jwt::Claims,
     AvatarUrl,
 };

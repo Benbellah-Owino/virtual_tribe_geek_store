@@ -2,7 +2,6 @@ use serde_json::json;
 // section:     -- imports
 use surrealdb::{
     engine::remote::ws::Client,
-    sql::{Id, Thing},
     Surreal,
 };
 use tracing::debug;

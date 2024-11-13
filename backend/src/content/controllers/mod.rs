@@ -1,4 +1,4 @@
-use surrealdb::{engine::remote::ws::Client, sql::Thing, Surreal};
+use surrealdb::{engine::remote::ws::Client, Surreal};
 use tracing::debug;
 
 use crate::DbId;

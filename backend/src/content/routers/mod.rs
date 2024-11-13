@@ -1,7 +1,7 @@
 use axum::{
     extract::State,
     response::IntoResponse,
-    routing::{get, post},
+    routing::get,
     Json, Router,
 };
 use http::StatusCode;
