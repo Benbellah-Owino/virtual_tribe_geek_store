@@ -12,14 +12,13 @@
 //             count = count + mbs;
 
 //             println!(
-//                 "received {}b ({}mb) , total is {}mb", 
+//                 "received {}b ({}mb) , total is {}mb",
 //                 chunk.len(),
 //                 mbs,
 //                 count
 //             );
-            
+
 //             let _ = append_to_disk((&dest, chunk));
 //         }
 //         println!("File \"{}.{}\" sized {}mbs is saved to disk", name, content_type,count);
 //     }
-

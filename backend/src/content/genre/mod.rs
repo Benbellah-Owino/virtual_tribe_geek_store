@@ -3,39 +3,36 @@ use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 // endregion:   --- Imports
 
-
 // region:      --- SubModules
-pub mod routers;
 mod controllers;
+pub mod routers;
 // endregion:   --- SubModules
 
 // region:      --- Types
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Genre{
+pub struct Genre {
     id: Thing,
     name: String,
-    description: String
+    description: String,
 }
 
-
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct GenreForCreate{
+pub struct GenreForCreate {
     name: String,
-    description: String
+    description: String,
 }
 
 #[derive(Debug, Serialize)]
-pub enum GenreError{
+pub enum GenreError {
     FailedToCreate,
-    DbError(surrealdb::Error)
+    DbError(surrealdb::Error),
 }
 
-impl From<surrealdb::Error> for GenreError{
+impl From<surrealdb::Error> for GenreError {
     fn from(value: surrealdb::Error) -> Self {
         GenreError::DbError(value)
     }
 }
-
 
 // endregion:   --- Types
 

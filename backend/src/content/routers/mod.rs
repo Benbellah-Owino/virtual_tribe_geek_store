@@ -1,18 +1,26 @@
-use axum::{extract::State, response::IntoResponse, routing::{get, post}, Json, Router};
+use axum::{
+    extract::State,
+    response::IntoResponse,
+    routing::{get, post},
+    Json, Router,
+};
 use http::StatusCode;
 use serde_json::json;
 use tracing::{debug, info};
 
 use crate::{content::ContentForCreateServer, dev_initial::db::Db};
 
-use super::{controllers::{get_all, store}, genre::routers::genre_router};
+use super::{
+    controllers::{get_all, store},
+    genre::routers::genre_router,
+};
 use crate::content::ContentForCreateClient;
 
 // region:      --- Router
 pub fn content_router() -> Router<Db> {
     return Router::new()
-                .nest("/genre", genre_router())
-                .route("/",get(list).post(create));
+        .nest("/genre", genre_router())
+        .route("/", get(list).post(create));
 }
 // endregion:   --- Router
 
@@ -41,7 +49,10 @@ pub fn content_router() -> Router<Db> {
 /// </ul>
 
 #[axum_macros::debug_handler]
-async fn create(State(db): State<Db>, Json(payload): Json<ContentForCreateClient>) -> impl IntoResponse {
+async fn create(
+    State(db): State<Db>,
+    Json(payload): Json<ContentForCreateClient>,
+) -> impl IntoResponse {
     let db = db.unwrap();
     dbg!(&payload);
     let content: ContentForCreateServer = payload.into();

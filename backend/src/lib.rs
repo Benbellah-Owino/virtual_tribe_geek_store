@@ -5,12 +5,12 @@ pub mod content;
 pub mod creator;
 pub mod ctx;
 pub mod dev_initial;
+pub mod file_upload;
+pub mod helpers;
 pub mod middleware;
 pub mod studio;
 pub mod user;
 pub mod vrt_lib;
-pub mod file_upload;
-pub mod helpers;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DbId {
@@ -19,5 +19,5 @@ pub struct DbId {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AvatarUrl {
-    pub avatar: Option<String>
+    pub avatar: Option<String>,
 }

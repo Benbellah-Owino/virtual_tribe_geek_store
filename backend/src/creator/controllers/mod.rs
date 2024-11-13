@@ -4,11 +4,13 @@ use surrealdb::{engine::remote::ws::Client, Surreal};
 
 use crate::{
     creator::{Creator, CreatorError, CreatorForLoginSuccess},
-    middleware::auth::jwt::Claims, AvatarUrl,
+    middleware::auth::jwt::Claims,
+    AvatarUrl,
 };
 
 use super::{
-    CreatorDetails, CreatorForCreate, CreatorForLogin, CreatorForUpdateClient, CreatorForUpdateDb, Socials
+    CreatorDetails, CreatorForCreate, CreatorForLogin, CreatorForUpdateClient, CreatorForUpdateDb,
+    Socials,
 };
 use chrono::Utc;
 use tracing::{debug, error, info};
@@ -192,7 +194,8 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<CreatorDeta
         "creator::details()"
     );
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
-    let creator: Result<Option<CreatorDetails>, surrealdb::Error> = db.select(("creator", id)).await;
+    let creator: Result<Option<CreatorDetails>, surrealdb::Error> =
+        db.select(("creator", id)).await;
 
     match creator {
         Ok(c) => {
@@ -252,7 +255,7 @@ pub async fn update_details(
                 let socials_db = c.socials; // Get the socials object from db
                 let value = payload.value.clone();
                 let value: Vec<&str> = value.split(";").collect();
-                println!("{:?}",&value);
+                println!("{:?}", &value);
                 let mut socials: Socials;
                 if let Some(s) = socials_db {
                     socials = s;
@@ -291,22 +294,25 @@ pub async fn update_details(
         "password" => {
             // Password is also special
             println!("IS IT THE BRAIDS") //TODO: Implement this
-        },
-    
+        }
+
         &_ => return Err(CreatorError::DetailsUpdateError),
     }
 
     return if let None = query {
         Err(CreatorError::DetailsUpdateError)
     } else if let Some(c) = query {
-        println!("{:?}", c );
+        println!("{:?}", c);
         Ok(c)
     } else {
         Err(CreatorError::DetailsUpdateError)
     };
 }
 
-pub async fn delete_creator(db: &Surreal<Client>, id: String) -> Result<CreatorDetails, CreatorError> {
+pub async fn delete_creator(
+    db: &Surreal<Client>,
+    id: String,
+) -> Result<CreatorDetails, CreatorError> {
     println!(
         "\n\n{:<12}=====================================================================\n\n",
         "creator::details()"

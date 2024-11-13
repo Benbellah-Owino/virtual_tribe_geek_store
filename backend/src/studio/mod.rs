@@ -13,7 +13,6 @@ pub struct Studio {
     pub description: Option<String>, //More fields cam be addede
 }
 
-
 impl Studio {
     fn from(value: &Studio) -> Self {
         let val = value.description.to_owned();
@@ -105,24 +104,23 @@ mod tests {
     use super::*;
 
     pub struct TestErr;
-async fn creator_setup(db: &Surreal<Client>) -> ItemId{
-    let creator_for_create = CreatorForCreate{ 
-        username: "TestUser".to_string(), 
-        email: "UTestUser@test.com".to_string(),
-        role: "Writer".to_string(),
-        password: "Password".to_string() };
-    
-    
-    let created: Result<Vec<ItemId>, surrealdb::Error> =
-        db.create("creator").content(creator_for_create).await;
-    
-    if let Ok(c) = created{
-        return c[0].clone()
-    }else{
-        panic!("Failed to create creator");
-    }
+    async fn creator_setup(db: &Surreal<Client>) -> ItemId {
+        let creator_for_create = CreatorForCreate {
+            username: "TestUser".to_string(),
+            email: "UTestUser@test.com".to_string(),
+            role: "Writer".to_string(),
+            password: "Password".to_string(),
+        };
 
-}
+        let created: Result<Vec<ItemId>, surrealdb::Error> =
+            db.create("creator").content(creator_for_create).await;
+
+        if let Ok(c) = created {
+            return c[0].clone();
+        } else {
+            panic!("Failed to create creator");
+        }
+    }
     #[serial]
     #[tokio::test]
     async fn studio_create() {
@@ -164,12 +162,8 @@ async fn creator_setup(db: &Surreal<Client>) -> ItemId{
             email: "test_studio2@gmail.com".to_owned(),
         };
 
-        let studio = create(&db, new_studio)
-            .await
-            .unwrap();
-        let studio2 = create(&db, new_studio2)
-            .await
-            .unwrap();
+        let studio = create(&db, new_studio).await.unwrap();
+        let studio2 = create(&db, new_studio2).await.unwrap();
 
         let _delete: Result<Vec<Studio>, surrealdb::Error> = db.delete("studio").await;
         assert_eq!(2 as usize, studio.len());
@@ -190,8 +184,6 @@ async fn creator_setup(db: &Surreal<Client>) -> ItemId{
             email: "test_studio@gmail.com".to_owned(),
         };
         let studio = create(&db, new_studio.clone()).await.unwrap();
-
-
 
         let _delete: Result<Vec<Studio>, surrealdb::Error> = db.delete("studio").await;
         assert_eq!(studio[0].name, new_studio.name);

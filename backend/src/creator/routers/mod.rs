@@ -408,7 +408,7 @@ pub async fn get_image(
 ) -> impl IntoResponse {
     //TODO: Change to path
 
-    println!("{:?}",path);
+    println!("{:?}", path);
     let path = path.to_string();
     match tokio::fs::read(path.clone()).await {
         Ok(d) => {

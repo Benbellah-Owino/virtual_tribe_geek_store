@@ -135,7 +135,7 @@ pub async fn get_one(State(db): State<Db>, Path(studio_id): Path<String>) -> imp
     println!("{studio_id}");
 
     let studios = get_details(&db, studio_id).await;
-    
+
     println!("{:?}", studios);
     match studios {
         Ok(s) => return (StatusCode::OK, Json(json!({"payload": s}))),
@@ -148,7 +148,6 @@ pub async fn get_one(State(db): State<Db>, Path(studio_id): Path<String>) -> imp
         }
     }
 }
-
 
 pub async fn check_owner(
     creator: &String,
@@ -167,9 +166,9 @@ pub async fn check_owner(
             if let Ok(s) = studio {
                 let s = Studio::from(&s[0]);
                 //TODO: FIX THIS
-                let creator: Vec<String> = creator.split(':').map(|s|s.to_string()).collect();
+                let creator: Vec<String> = creator.split(':').map(|s| s.to_string()).collect();
 
-                if &s.owner.id.to_string() == &creator[1] && &s.owner.tb == &creator[0]{
+                if &s.owner.id.to_string() == &creator[1] && &s.owner.tb == &creator[0] {
                     Ok(s)
                 } else {
                     Err(StudioError::OwnerMismatch)

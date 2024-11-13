@@ -222,24 +222,22 @@ mod tests {
             value: String::from("testcreatorupdated@gmail.com"),
         };
 
-        match update_details(&db, logged_creator.id, creator_for_update).await{
+        match update_details(&db, logged_creator.id, creator_for_update).await {
             Ok(updated_creator) => {
-
-                    println!("{:?}", updated_creator);
-                    assert_eq!(
+                println!("{:?}", updated_creator);
+                assert_eq!(
                     String::from("testcreatorupdated@gmail.com"),
                     updated_creator.email
                 );
-            },
+            }
             Err(e) => {
                 eprintln!("{:?}", e);
                 panic!("Update Error");
-            },
+            }
         }
 
         let _delete: Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
     }
-
 
     #[serial]
     #[tokio::test]
@@ -263,16 +261,16 @@ mod tests {
         };
 
         let logged_creator = login(&db, creator_for_login).await;
-        if let Ok(c) = logged_creator{
+        if let Ok(c) = logged_creator {
             println!("{:?}", c);
             let creator = get_details(&db, c.id).await.unwrap();
 
-            let _delete: Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
+            let _delete: Result<Vec<CreatorForCreate>, surrealdb::Error> =
+                db.delete("creator").await;
 
             assert_eq!(String::from("testcreator@gmail.com"), creator.email);
             assert_eq!(String::from("TestCreator"), creator.username);
         };
-
     }
 
     #[serial]

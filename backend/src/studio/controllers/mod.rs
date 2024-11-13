@@ -33,8 +33,6 @@ pub async fn create(
     let creator = thing_from_string(owner);
     println!("CREATOR: {creator}");
 
-
-
     let st: StudioForCreateForward = StudioForCreateForward {
         name: studio.name.clone(),
         owner: creator,
@@ -71,7 +69,7 @@ pub async fn get_all(db: &Surreal<Client>) -> Result<Vec<Studio>, StudioError> {
     match studios {
         Ok(s) => {
             debug!("{:?}", s);
-    println!("TAG2");
+            println!("TAG2");
             return Ok(s);
         }
         Err(e) => {
@@ -94,8 +92,7 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<Studio, Stu
     );
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
     println!("{id}");
-    let studios: Result<Option<Studio>, surrealdb::Error> =
-        db.select(("studio", id)).await;
+    let studios: Result<Option<Studio>, surrealdb::Error> = db.select(("studio", id)).await;
 
     println!("{:?}", studios);
     match studios {

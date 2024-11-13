@@ -15,14 +15,16 @@ use tower_cookies::CookieManagerLayer;
 // use surrealdb::opt::auth::Root;
 // use surrealdb::sql::Thing;
 // use surrealdb::Surreal;
-use tracing::{info, Level};
-use tracing_subscriber::FmtSubscriber;
 use http::Method;
 use tower_http::cors::CorsLayer;
+use tracing::{info, Level};
+use tracing_subscriber::FmtSubscriber;
 #[tokio::main]
 async fn main() -> surrealdb::Result<()> {
     // \\#region Setup
-    let subscriber = FmtSubscriber::builder().with_max_level(Level::DEBUG).finish();
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::DEBUG)
+        .finish();
 
     tracing::subscriber::set_global_default(subscriber).expect("Failed tracing");
 
@@ -39,15 +41,13 @@ async fn main() -> surrealdb::Result<()> {
     // Metrics
     let (prometheus_layer, metric_handle) = PrometheusMetricLayer::pair();
     // routers
-    let origins = [
-        "http://localhost:5173".parse().unwrap()
-    ];
+    let origins = ["http://localhost:5173".parse().unwrap()];
 
     let cors = CorsLayer::new()
-                .allow_headers([CONTENT_TYPE])
-                .allow_credentials(true)
-                .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
-                .allow_origin(origins);
+        .allow_headers([CONTENT_TYPE])
+        .allow_credentials(true)
+        .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
+        .allow_origin(origins);
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, world" }))
