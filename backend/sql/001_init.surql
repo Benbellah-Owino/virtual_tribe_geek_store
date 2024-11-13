@@ -48,3 +48,84 @@ DEFINE FIELD verified ON TABLE user TYPE bool DEFAULT false PERMISSIONS FOR upda
 DEFINE FIELD refresh_token ON TABLE user TYPE option<string>;
 DEFINE FIELD login_attempts ON TABLE user TYPE number DEFAULT 0;
 -- End of creator table;
+
+
+-- region:      -- Genre table
+DEFINE TABLE IF NOT EXISTS genre SCHEMAFULL;
+DEFINE FIELD name ON TABLE genre TYPE string ASSERT string::len($value) <= 30;
+DEFINE FIELD description ON TABLE genre TYPE string ASSERT string::len($value) <= 1000;
+-- endregion:   -- Genre table
+
+DEFINE TABLE IF NOT EXISTS content SCHEMAFULL;
+DEFINE FIELD title ON TABLE content TYPE string;
+DEFINE FIELD rating ON TABLE content TYPE float DEFAULT 0.0f;
+DEFINE FIELD studio ON TABLE content TYPE record<studio>;
+DEFINE FIELD description ON TABLE content TYPE string ASSERT string::len($value) <= 1000 ;
+DEFINE FIELD audiences ON TABLE content TYPE string;
+DEFINE FIELD recom_price ON TABLE content TYPE float;
+DEFINE FIELD genre ON TABLE content TYPE array<record<genre>;
+
+
+-- region:      -- Comic table
+DEFINE TABLE IF NOT EXISTS comic SCHEMAFULL;
+DEFINE FIELD volumes ON TABLE comic TYPE number;
+DEFINE FIELD chapters ON TABLE comic TYPE number;
+DEFINE FIELD writer ON TABLE comic TYPE array<record<creator>>;
+DEFINE FIELD artist ON TABLE comic TYPE array<record<creator>>;
+DEFINE FIELD isbn ON TABLE comic TYPE option<string>;
+DEFINE FIELD category ON TABLE comic TYPE string;
+DEFINE FIELD created_at ON TABLE comic TYPE datetime DEFAULT time::now();
+DEFINE FIELD cover ON TABLE comic TYPE option<string>;
+
+-- Volume
+DEFINE TABLE IF NOT EXISTS volume SCHEMAFULL;
+DEFINE FIELD no_of_chapters ON TABLE volume TYPE number;
+DEFINE FIELD runlength ON TABLE volume TYPE object;
+DEFINE FIELD sypnosis ON TABLE volume TYPE string ASSERT string::len($value) <= 1000 ;
+DEFINE FIELD comic ON TABLE volume TYPE record<comic>;
+DEFINE FIELD cover ON TABLE volume TYPE option<string>;
+
+-- Chapter
+DEFINE TABLE IF NOT EXISTS chapter SCHEMAFULL;
+DEFINE FIELD relative_chapter ON TABLE chapter TYPE number;
+DEFINE FIELD absolute_chapter ON TABLE chapter TYPE number;
+DEFINE FIELD pages ON TABLE chapter TYPE number;
+DEFINE FIELD sypnosis ON TABLE chapter TYPE string ASSERT string::len($value) <= 350 ;
+DEFINE FIELD file ON TABLE chapter TYPE option<string>;
+DEFINE FIELD cover ON TABLE chapter TYPE option<string>;
+DEFINE FIELD volume ON TABLE chapter TYPE record<volume>;
+
+-- endregion:   -- Comic table
+
+
+-- region:      --- Video
+DEFINE TABLE IF NOT EXISTS video SCHEMAFULL;
+DEFINE FIELD seasons ON TABLE video TYPE number;
+DEFINE FIELD episodes ON TABLE video TYPE number;
+DEFINE FIELD writer ON TABLE video TYPE array<record<creator>>;
+DEFINE FIELD animators ON TABLE video TYPE array<record<creator>>;
+DEFINE FIELD avarage_run_length ON TABLE video TYPE float;
+DEFINE FIELD category ON TABLE video TYPE string;
+DEFINE FIELD created_at ON TABLE video TYPE datetime DEFAULT time::now();
+DEFINE FIELD cover ON TABLE video TYPE option<string>;
+DEFINE FIELD trailer ON TABLE video TYPE option<string>;
+DEFINE FIELD video_type ON TABLE video TYPE string; -- Animation OR Live Action
+
+-- Season
+DEFINE TABLE IF NOT EXISTS season SCHEMAFULL;
+DEFINE FIELD no_of_episodes ON TABLE season TYPE number;
+DEFINE FIELD runlength ON TABLE season TYPE object;
+DEFINE FIELD sypnosis ON TABLE season TYPE string ASSERT string::len($value) <= 1000 ;
+DEFINE FIELD video ON TABLE season TYPE record<video>;
+DEFINE FIELD cover ON TABLE season TYPE option<string>;
+
+--Episode
+DEFINE TABLE IF NOT EXISTS episode SCHEMAFULL;
+DEFINE FIELD relative_episode ON TABLE episode TYPE number;
+DEFINE FIELD absolute_episode ON TABLE episode TYPE number;
+DEFINE FIELD runlength ON TABLE episode TYPE object;
+DEFINE FIELD skiplength ON TABLE episode TYPE object;
+DEFINE FIELD sypnosis ON TABLE episode TYPE string ASSERT string::len($value) <= 350 ;
+DEFINE FIELD file ON TABLE episode TYPE option<string>;
+DEFINE FIELD cover ON TABLE episode TYPE option<string>;
+DEFINE FIELD season ON TABLE episode TYPE record<season>;

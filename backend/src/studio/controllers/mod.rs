@@ -7,6 +7,8 @@ use surrealdb::{
 };
 use tracing::debug;
 
+use crate::helpers::db::thing_from_string;
+
 use super::{
     Studio, StudioError, StudioForCreate, StudioForCreateForward, StudioForUpdate, StudioFull,
 };
@@ -28,11 +30,7 @@ pub async fn create(
     println!("{owner}");
     //Extracting the id string
 
-    let id_string: Vec<&str> = owner.split(':').collect();
-    let creator = Thing {
-        tb: "creator".to_string(),
-        id: Id::from(id_string[1].to_string()),
-    };
+    let creator = thing_from_string(owner);
     println!("CREATOR: {creator}");
 
 

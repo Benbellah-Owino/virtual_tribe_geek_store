@@ -10,7 +10,7 @@ pub mod studio;
 pub mod user;
 pub mod vrt_lib;
 pub mod file_upload;
-
+pub mod helpers;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DbId {

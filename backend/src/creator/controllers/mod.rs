@@ -99,7 +99,6 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
         "\n\n{:<12}=====================================================================\n\n",
         "creator::login()"
     );
-    dbg!(&creator);
     let ct = db.
         query("SELECT id,email, role, password, username, verified, login_attempts FROM creator WHERE email = $email")
         .bind(("email", &creator.email))
@@ -139,6 +138,7 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
 
                         let now = Utc::now().timestamp() as usize; // UTC time to the number of seconds since the UNIX epoch (January 1, 1970, 00:00:00 UTC).
                                                                    // TODO: Convert the id to string
+                        println!("{now}");
                         let ret_crt = Claims {
                             id,
                             email: String::from(&db_creator.email),
@@ -158,7 +158,7 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
                         return Ok(ret_crt); //return the Claim necessary for a cookie
                     } else {
                         print!("Wrong credentials");
-
+                        // TODO:-> Give appropriate message for wrong credentials
                         let query: Option<CreatorForLoginSuccess> = db
                             .update(("creator", &record_id))
                             .merge(json!({"login_attempts": &db_creator.login_attempts + 1}))

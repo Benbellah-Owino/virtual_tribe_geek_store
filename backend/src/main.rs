@@ -1,6 +1,7 @@
 #[allow(unused_imports)]
 use axum::{routing::get, Router};
 use axum_prometheus::PrometheusMetricLayer;
+use backend::content::routers::content_router;
 use backend::creator::routers::creator_router;
 use backend::studio::routers::studio_router;
 use backend::user::routers::user_router;
@@ -14,14 +15,14 @@ use tower_cookies::CookieManagerLayer;
 // use surrealdb::opt::auth::Root;
 // use surrealdb::sql::Thing;
 // use surrealdb::Surreal;
-use tracing::info;
+use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 use http::Method;
 use tower_http::cors::CorsLayer;
 #[tokio::main]
 async fn main() -> surrealdb::Result<()> {
     // \\#region Setup
-    let subscriber = FmtSubscriber::builder().finish();
+    let subscriber = FmtSubscriber::builder().with_max_level(Level::DEBUG).finish();
 
     tracing::subscriber::set_global_default(subscriber).expect("Failed tracing");
 
@@ -50,6 +51,7 @@ async fn main() -> surrealdb::Result<()> {
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, world" }))
+        .nest("/content", content_router())
         .nest("/studio", studio_router())
         .nest("/user", user_router())
         .nest("/creator", creator_router())
