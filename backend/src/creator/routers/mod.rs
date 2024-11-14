@@ -26,7 +26,7 @@ use super::{CreatorForCreate, CreatorForLogin, CreatorForUpdateClient};
 
 // section:      -- router
 pub fn creator_router() -> Router<Db> {
-    return Router::new()
+    Router::new()
         .route("/upload/:email", patch(avatar_upload))
         .route("/image/*path", get(get_image))
         .route(
@@ -37,7 +37,7 @@ pub fn creator_router() -> Router<Db> {
         )
         .layer(middleware::from_fn(verify_user))
         .route("/", post(register_handler))
-        .route("/login", post(login_handler));
+        .route("/login", post(login_handler))
 }
 
 // endsection:   -- router
@@ -73,10 +73,10 @@ async fn register_handler(
 
     match creator {
         Ok(_c) => {
-            return (StatusCode::CREATED).into_response();
+            (StatusCode::CREATED).into_response()
         }
         Err(_) => {
-            return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
+            (StatusCode::INTERNAL_SERVER_ERROR).into_response()
         }
     }
 }
@@ -122,24 +122,24 @@ async fn login_handler(
                     return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
                 }
             }
-            return (StatusCode::ACCEPTED, Json(json!({"creator":claims}))).into_response();
+            (StatusCode::ACCEPTED, Json(json!({"creator":claims}))).into_response()
         }
         Err(e) => match e {
             crate::creator::CreatorError::LoginError => {
-                return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
+                (StatusCode::INTERNAL_SERVER_ERROR).into_response()
             }
             crate::creator::CreatorError::WrongCredentialsError => {
-                return (StatusCode::UNAUTHORIZED).into_response();
+                (StatusCode::UNAUTHORIZED).into_response()
             }
             crate::creator::CreatorError::LoginAttemptsError => {
-                return (
+                (
                     StatusCode::FORBIDDEN,
                     Json(json!({"msg":"Too many login attempts"})),
                 )
-                    .into_response();
+                    .into_response()
             }
             _ => {
-                return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
+                (StatusCode::INTERNAL_SERVER_ERROR).into_response()
             }
         },
     }
@@ -167,21 +167,21 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
         let creator = get_details(&db, id.to_owned()).await;
         match creator {
             Ok(c) => {
-                return (StatusCode::OK, Json(json!({"creator": c})));
+                (StatusCode::OK, Json(json!({"creator": c})))
             }
             Err(_) => {
-                return (
+                (
                     StatusCode::NOT_FOUND,
                     Json(json!({"msg": "Creator not found"})),
-                );
+                )
             }
         }
     } else {
         println!("Error");
-        return (
+        (
             StatusCode::NOT_FOUND,
             Json(json!({"msg": "Creator not found"})),
-        );
+        )
     }
 }
 
@@ -269,21 +269,21 @@ pub async fn delete_handler(
         match creator {
             Ok(c) => {
                 cookies.remove(Cookie::from("auth_token"));
-                return (StatusCode::OK, Json(json!({"creator": c})));
+                (StatusCode::OK, Json(json!({"creator": c})))
             }
             Err(_) => {
-                return (
+                (
                     StatusCode::NOT_FOUND,
                     Json(json!({"msg": "Creator not found"})),
-                );
+                )
             }
         }
     } else {
         println!("Error");
-        return (
+        (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({"msg": "Creator not found"})),
-        );
+        )
     }
 }
 
@@ -370,10 +370,10 @@ async fn avatar_upload(
 
     match update_details(&db, id, payload).await {
         Ok(_) => {
-            return (StatusCode::OK, Json(json!({"msg": "File storage error"})));
+            (StatusCode::OK, Json(json!({"msg": "File storage error"})))
         }
         Err(_) => {
-            return (
+            (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({"msg": "Upload error"})),
             )

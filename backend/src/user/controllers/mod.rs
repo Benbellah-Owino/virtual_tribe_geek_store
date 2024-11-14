@@ -57,15 +57,15 @@ pub async fn register<'a>(
 
             println!("\n\n============================================================================================\n\n");
             if let Some(c) = c{
-                return Ok(c);
+                Ok(c)
             }else{
-                return Err(UserError::DetailsRetrievingError)
+                Err(UserError::DetailsRetrievingError)
             }
         }
         Err(_e) => {
             error!("        - User registration error");
             println!("\n\n============================================================================================\n\n\n");
-            return Err(UserError::RegistrationError);
+            Err(UserError::RegistrationError)
         }
     }
 }
@@ -117,7 +117,7 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
             match res {
                 //INNER MATCH ------------------------------------------------------------------
                 Ok(t) => {
-                    if t.len() <= 0 as usize {
+                    if t.len() <= 0_usize {
                         return Err(UserError::LoginError);
                     }
                     let db_user = &t[0];
@@ -128,7 +128,7 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
                     let tb = id.tb.to_string();
                     let id = format!("{tb}:{record_id}");
 
-                    if db_user.login_attempts >= 10 as u8 {
+                    if db_user.login_attempts >= 10_u8 {
                         //Check if user has exceded the required amount of logins
                         eprintln!("Too many attempts");
                         println!("\n\n============================================================================================\n\n\n");
@@ -157,7 +157,7 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
                             .unwrap(); // reset the number of login attempts
 
                         println!("\n\n============================================================================================\n\n\n");
-                        return Ok(ret_crt); //return the Claim necessary for a cookie
+                        Ok(ret_crt)//return the Claim necessary for a cookie
                     } else {
                         print!("Wrong credentials");
 
@@ -168,13 +168,13 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
                             .unwrap();
                         dbg!("Update failed", query);
                         println!("\n\n============================================================================================\n\n\n");
-                        return Err(UserError::WrongCredentialsError); //else
+                        Err(UserError::WrongCredentialsError)//else
                     }
                 }
                 Err(e) => {
                     debug!("{e}");
                     println!("\n\n============================================================================================\n\n\n");
-                    return Err(UserError::LoginError);
+                    Err(UserError::LoginError)
                 }
             } // INNER MATCH ---------------------------------------------------------------------------
         }
@@ -182,9 +182,9 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
             error!("User logged in error");
             dbg!(e);
             println!("\n\n============================================================================================\n\n\n");
-            return Err(UserError::LoginError);
+            Err(UserError::LoginError)
         }
-    };
+    }
 }
 
 /// Used to get Cretors details
@@ -201,9 +201,9 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<User, UserE
             dbg!(&c);
 
             if let Some(ct) = c {
-                return Ok(ct);
+                Ok(ct)
             } else {
-                return Err(UserError::DetailsRetrievingError);
+                Err(UserError::DetailsRetrievingError)
             }
         }
         Err(_) => Err(UserError::DetailsRetrievingError),
@@ -241,13 +241,13 @@ pub async fn update_details(
         &_ => return Err(UserError::DetailsUpdateError),
     }
 
-    return if let None = query {
+    if query.is_none() {
         Err(UserError::DetailsUpdateError)
     } else if let Some(c) = query {
         Ok(c)
     } else {
         Err(UserError::DetailsUpdateError)
-    };
+    }
 }
 
 pub async fn delete_user(db: &Surreal<Client>, id: String) -> Result<User, UserError> {
@@ -262,13 +262,13 @@ pub async fn delete_user(db: &Surreal<Client>, id: String) -> Result<User, UserE
     match deleted_user {
         Ok(dc) => {
             if let Some(c) = dc {
-                return Ok(c);
+                Ok(c)
             } else {
-                return Err(UserError::RegistrationError);
+                Err(UserError::RegistrationError)
             }
         }
-        Err(_) => return Err(UserError::RegistrationError),
-    };
+        Err(_) => Err(UserError::RegistrationError),
+    }
 }
 //async fn get_details() -> Result<Vec<UserForCreate>, UserError>{}
 

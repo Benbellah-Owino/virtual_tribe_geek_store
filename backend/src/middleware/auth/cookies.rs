@@ -50,7 +50,7 @@ pub fn gen_auth_cookie(claims: &Claims, cookies: &Cookies) -> Result<&'static st
     dotenv().ok();
 
     let mut c = claims.to_owned(); //Clone the claims struct
-    c.exp = c.exp + 10_800; //Change the expiry to 3 hours
+    c.exp += 10_800; //Change the expiry to 3 hours
     let secret = &env::var("AUTH_TOKEN").expect("Set auth_token"); //Get the auth token secret
     let token = gen_token(&c, secret); //Generate the auth token
     if let Ok(s) = token {
@@ -78,7 +78,7 @@ pub async fn gen_refresh_cookie(
         table: id[0],
         id: id[1],
     };
-    c.exp = c.exp + 604_800; //Change the expiry to 1 week
+    c.exp += 604_800; //Change the expiry to 1 week
     let secret = &env::var("REFRESH_TOKEN").expect("Set refresh_token_secret"); // Generate secret
     let token = gen_token(&c, secret); //Generate the token
     if let Ok(s) = token {
@@ -106,7 +106,7 @@ pub async fn verify_user(
         Ok(t) => {
             let token_split: Vec<&str> = t.split("=").collect();
             let secret = &env::var("AUTH_TOKEN").expect("Set auth_token"); // Generate secret
-            match decode_token(&token_split[1], secret) {
+            match decode_token(token_split[1], secret) {
                 Ok(c) => {
                     request.extensions_mut().insert(c.id.clone());
                     Ok(next.run(request).await)

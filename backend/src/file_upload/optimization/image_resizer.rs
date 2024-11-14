@@ -1,4 +1,3 @@
-use std::io::BufWriter;
 
 // use image::codecs::png::PngEncoder;
 // use image::{ImageEncoder, ImageReader};

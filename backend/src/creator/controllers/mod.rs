@@ -3,7 +3,7 @@ use serde_json::json;
 use surrealdb::{engine::remote::ws::Client, Surreal};
 
 use crate::{
-    creator::{self, CreatorError, CreatorForLoginSuccess},
+    creator::{CreatorError, CreatorForLoginSuccess},
     middleware::auth::jwt::Claims,
     AvatarUrl,
 };
@@ -62,15 +62,15 @@ pub async fn register<'a>(
 
             println!("\n\n============================================================================================\n\n");
             if let Some(g) = c {
-                return Ok(g);
+                Ok(g)
             } else {
-                return Err(CreatorError::DetailsRetrievingError);
+                Err(CreatorError::DetailsRetrievingError)
             }
         }
         Err(_e) => {
             error!("        - Creator registration error");
             println!("\n\n============================================================================================\n\n\n");
-            return Err(CreatorError::RegistrationError);
+            Err(CreatorError::RegistrationError)
         }
     }
 }
@@ -121,7 +121,7 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
             match res {
                 //INNER MATCH ------------------------------------------------------------------
                 Ok(t) => {
-                    if t.len() <= 0 as usize {
+                    if t.len() <= 0_usize {
                         return Err(CreatorError::LoginError);
                     }
                     let db_creator = &t[0];
@@ -132,7 +132,7 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
                     let tb = id.tb.to_string();
                     let id = format!("{tb}:{record_id}");
 
-                    if db_creator.login_attempts >= 10 as u8 {
+                    if db_creator.login_attempts >= 10_u8 {
                         //Check if user has exceded the required amount of logins
                         eprintln!("Too many attempts");
                         println!("\n\n============================================================================================\n\n\n");
@@ -147,8 +147,8 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
                         println!("{now}");
                         let ret_crt = Claims {
                             id,
-                            email: String::from(db_creator.email.clone()),
-                            username: String::from(db_creator.username.clone()),
+                            email: db_creator.email.clone(),
+                            username: db_creator.username.clone(),
                             acc_type: String::from("creator"),
                             verified: db_creator.verified,
                             exp: now,
@@ -161,7 +161,7 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
                             .unwrap(); // reset the number of login attempts
 
                         println!("\n\n============================================================================================\n\n\n");
-                        return Ok(ret_crt); //return the Claim necessary for a cookie
+                        Ok(ret_crt)//return the Claim necessary for a cookie
                     } else {
                         print!("Wrong credentials");
                         // TODO:-> Give appropriate message for wrong credentials
@@ -172,13 +172,13 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
                             .unwrap();
                         dbg!("Update failed", query);
                         println!("\n\n============================================================================================\n\n\n");
-                        return Err(CreatorError::WrongCredentialsError); //else
+                        Err(CreatorError::WrongCredentialsError)//else
                     }
                 }
                 Err(e) => {
                     debug!("{e}");
                     println!("\n\n============================================================================================\n\n\n");
-                    return Err(CreatorError::LoginError);
+                    Err(CreatorError::LoginError)
                 }
             } // INNER MATCH ---------------------------------------------------------------------------
         }
@@ -186,9 +186,9 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
             error!("Creator logged in error");
             dbg!(e);
             println!("\n\n============================================================================================\n\n\n");
-            return Err(CreatorError::LoginError);
+            Err(CreatorError::LoginError)
         }
-    };
+    }
 }
 
 /// Used to get Cretors details
@@ -205,14 +205,17 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<CreatorDeta
         Ok(c) => {
             // dbg!(&c);
             if let Some(ct) = c {
-                return Ok(ct);
+                Ok(ct)
             } else {
-                return Err(CreatorError::DetailsRetrievingError);
+                Err(CreatorError::DetailsRetrievingError)
             }
         }
         Err(_) => Err(CreatorError::DetailsRetrievingError),
     }
 }
+
+
+#[allow(dead_code)]
 pub async fn get_avatar_url(db: &Surreal<Client>, id: String) -> Result<AvatarUrl, CreatorError> {
     println!(
         "\n\n{:<12}=====================================================================\n\n",
@@ -225,9 +228,9 @@ pub async fn get_avatar_url(db: &Surreal<Client>, id: String) -> Result<AvatarUr
         Ok(c) => {
             // dbg!(&c);
             if let Some(ct) = c {
-                return Ok(ct);
+                Ok(ct)
             } else {
-                return Err(CreatorError::DetailsRetrievingError);
+                Err(CreatorError::DetailsRetrievingError)
             }
         }
         Err(_) => Err(CreatorError::DetailsRetrievingError),
@@ -303,14 +306,14 @@ pub async fn update_details(
         &_ => return Err(CreatorError::DetailsUpdateError),
     }
 
-    return if let None = query {
+    if query.is_none() {
         Err(CreatorError::DetailsUpdateError)
     } else if let Some(c) = query {
         println!("{:?}", c);
         Ok(c)
     } else {
         Err(CreatorError::DetailsUpdateError)
-    };
+    }
 }
 
 pub async fn delete_creator(
@@ -329,13 +332,13 @@ pub async fn delete_creator(
     match deleted_creator {
         Ok(dc) => {
             if let Some(c) = dc {
-                return Ok(c);
+                Ok(c)
             } else {
-                return Err(CreatorError::RegistrationError);
+                Err(CreatorError::RegistrationError)
             }
         }
-        Err(_) => return Err(CreatorError::RegistrationError),
-    };
+        Err(_) => Err(CreatorError::RegistrationError),
+    }
 }
 //async fn get_details() -> Result<Vec<CreatorForCreate>, CreatorError>{}
 

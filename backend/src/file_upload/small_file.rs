@@ -17,7 +17,7 @@ pub enum Error {
 }
 
 impl From<MultipartError> for Error {
-    fn from(error: MultipartError) -> Self {
+    fn from(_error: MultipartError) -> Self {
         Error::TooBig
     }
 }
@@ -45,10 +45,10 @@ impl MultField {
         let mut count = 0 as f32;
         let pow = usize::pow(2, 20) as f32;
         println!("{pow}");
-        while let Some(chunk) = field.chunk().await.map_err(|e| e)? {
+        while let Some(chunk) = field.chunk().await? {
             let len = chunk.len() as f32;
             let mbs = len / pow;
-            count = count + mbs;
+            count += mbs;
 
             println!(
                 "received {}b ({}mb) , total is {}mb",
@@ -87,7 +87,7 @@ impl MultField {
         while let Some(chunk) = field.chunk().await.unwrap() {
             let len = chunk.len() as f32;
             let mbs = len / pow;
-            count = count + mbs;
+            count += mbs;
 
             println!(
                 "received {}b ({}mb) , total is {}mb",
@@ -96,7 +96,7 @@ impl MultField {
                 count
             );
 
-            let _ = append_to_disk((&dest, chunk));
+            append_to_disk((&dest, chunk));
         }
         println!(
             "File \"{}.{}\" sized {}mbs is saved to disk",

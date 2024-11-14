@@ -24,7 +24,7 @@ struct OwnerStudio {
 }
 //TODO: Finishs
 pub fn studio_router() -> Router<Db> {
-    return Router::new()
+    Router::new()
         .route(
             "/:studio_id",
             get(get_one).patch(update_handler).delete(delete_handler),
@@ -33,7 +33,7 @@ pub fn studio_router() -> Router<Db> {
         .layer(middleware::from_fn(
             crate::middleware::auth::cookies::verify_user,
         ))
-        .route("/", get(get_all_handler));
+        .route("/", get(get_all_handler))
 }
 // section:      -- handlers
 
@@ -85,10 +85,10 @@ pub async fn create_handler(State(db): State<Db>, req: Request) -> impl IntoResp
         }
     }
 
-    return (
+    (
         StatusCode::INTERNAL_SERVER_ERROR,
         Json(json!({"msg": "Error creating studio"})),
-    );
+    )
 }
 
 /// <h1> Handles retrieval of studios </h1>
@@ -108,13 +108,13 @@ pub async fn get_all_handler(State(db): State<Db>, req: Request) -> impl IntoRes
     let studios = get_all(&db).await;
 
     match studios {
-        Ok(s) => return (StatusCode::OK, Json(json!({"payload": s}))),
+        Ok(s) => (StatusCode::OK, Json(json!({"payload": s}))),
         Err(e) => {
             debug!("{:?}", e);
-            return (
+            (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({"msg": "Error getting studios"})),
-            );
+            )
         }
     }
 }
@@ -138,13 +138,13 @@ pub async fn get_one(State(db): State<Db>, Path(studio_id): Path<String>) -> imp
 
     println!("{:?}", studios);
     match studios {
-        Ok(s) => return (StatusCode::OK, Json(json!({"payload": s}))),
+        Ok(s) => (StatusCode::OK, Json(json!({"payload": s}))),
         Err(e) => {
             debug!("{:?}", e);
-            return (
+            (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({"msg": "Error getting studio"})),
-            );
+            )
         }
     }
 }
@@ -256,10 +256,10 @@ pub async fn update_handler(
         } //Setting the owner to be the creator making th POST request. Creator must be logged in to do so
     }
 
-    return (
+    (
         StatusCode::CONTINUE,
         Json(json!({"msg": "Error updating studio"})),
-    );
+    )
 }
 
 /// <h1> Handles updating of studio </h1>
@@ -317,10 +317,10 @@ pub async fn delete_handler(
         } //Setting the owner to be the creator making th POST request. Creator must be logged in to do so
     }
 
-    return (
+    (
         StatusCode::CONTINUE,
         Json(json!({"msg": "Error updating studio"})),
-    );
+    )
 }
 
 // endsection:   -- handlers

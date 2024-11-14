@@ -12,9 +12,9 @@ pub async fn store(
     let content_db: Option<DbId> = db.create("content").content(content).await?;
     eprintln!("{:?} created", content_db);
     if let Some(c) =  content_db{
-        return Ok(c);
+        Ok(c)
     }else{
-        return  Err(ContentError::RetrievalError);
+        Err(ContentError::RetrievalError)
     }
 
 }
@@ -22,5 +22,5 @@ pub async fn store(
 pub async fn get_all(db: &Surreal<Client>) -> Result<Vec<Content>, ContentError> {
     let content_list: Vec<Content> = db.select("content").await?;
     debug!("{:?}", content_list);
-    return Ok(content_list);
+    Ok(content_list)
 }

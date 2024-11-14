@@ -18,7 +18,7 @@ use super::{UserForCreate, UserForLogin, UserForUpdateClient};
 
 // section:      -- router
 pub fn user_router() -> Router<Db> {
-    return Router::new()
+    Router::new()
         .route(
             "/",
             get(details_handler)
@@ -27,7 +27,7 @@ pub fn user_router() -> Router<Db> {
         )
         .layer(middleware::from_fn(verify_user))
         .route("/", post(register_handler))
-        .route("/login", get(login_handler));
+        .route("/login", get(login_handler))
 }
 
 // endsection:   -- router
@@ -57,10 +57,10 @@ async fn register_handler(
 
     match user {
         Ok(_c) => {
-            return (StatusCode::CREATED).into_response();
+            (StatusCode::CREATED).into_response()
         }
         Err(_) => {
-            return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
+            (StatusCode::INTERNAL_SERVER_ERROR).into_response()
         }
     }
 }
@@ -101,24 +101,24 @@ async fn login_handler(
                     return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
                 }
             }
-            return (StatusCode::ACCEPTED, Json(json!({"ser":claims}))).into_response();
+            (StatusCode::ACCEPTED, Json(json!({"ser":claims}))).into_response()
         }
         Err(e) => match e {
             crate::user::UserError::LoginError => {
-                return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
+                (StatusCode::INTERNAL_SERVER_ERROR).into_response()
             }
             crate::user::UserError::WrongCredentialsError => {
-                return (StatusCode::UNAUTHORIZED).into_response();
+                (StatusCode::UNAUTHORIZED).into_response()
             }
             crate::user::UserError::LoginAttemptsError => {
-                return (
+                (
                     StatusCode::FORBIDDEN,
                     Json(json!({"msg":"Too many login attempts"})),
                 )
-                    .into_response();
+                    .into_response()
             }
             _ => {
-                return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
+                (StatusCode::INTERNAL_SERVER_ERROR).into_response()
             }
         },
     }
@@ -139,21 +139,21 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
         let user = get_details(&db, id.to_owned()).await;
         match user {
             Ok(c) => {
-                return (StatusCode::FOUND, Json(json!({"User": c})));
+                (StatusCode::FOUND, Json(json!({"User": c})))
             }
             Err(_) => {
-                return (
+                (
                     StatusCode::NOT_FOUND,
                     Json(json!({"msg": "User not found"})),
-                );
+                )
             }
         }
     } else {
         println!("Error");
-        return (
+        (
             StatusCode::NOT_FOUND,
             Json(json!({"msg": "User not found"})),
-        );
+        )
     }
 }
 
@@ -228,21 +228,21 @@ pub async fn delete_handler(
         match user {
             Ok(c) => {
                 cookies.remove(Cookie::from("auth_token"));
-                return (StatusCode::OK, Json(json!({"User": c})));
+                (StatusCode::OK, Json(json!({"User": c})))
             }
             Err(_) => {
-                return (
+                (
                     StatusCode::NOT_FOUND,
                     Json(json!({"msg": "User not found"})),
-                );
+                )
             }
         }
     } else {
         println!("Error");
-        return (
+        (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({"msg": "User not found"})),
-        );
+        )
     }
 }
 

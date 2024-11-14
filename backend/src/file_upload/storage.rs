@@ -26,7 +26,7 @@ pub async fn store(
         let file_path = gen_file_name(p, &name[..], &file.content_type).unwrap();
         return Some((file_path, dest, file.data));
     }
-    return None;
+    None
 }
 
 pub fn gen_file_name(
@@ -39,12 +39,12 @@ pub fn gen_file_name(
     destination.push('.');
     let content_type: Vec<&str> = content_type.split('/').collect();
 
-    destination.push_str(&content_type[1]);
+    destination.push_str(content_type[1]);
     let path = Path::new(&destination).to_path_buf();
     println!("{:#?}", path);
 
     println!("Stored...");
-    return Ok(path);
+    Ok(path)
 }
 
 //TODO: Implement a way to save to disk irregadles of disk content
@@ -55,8 +55,7 @@ pub async fn save_to_disk(to_write: (&PathBuf, String, Bytes)) -> Result<(), Err
             Ok(_) => println!("path created"),
             Err(_) => return Err(Error::FileCreationError),
         }
-    } else {
-    }
+    } 
 
     match OpenOptions::new().create(true).write(true).open(to_write.0) {
         Ok(mut f) => {

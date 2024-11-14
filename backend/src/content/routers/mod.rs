@@ -18,9 +18,9 @@ use crate::content::ContentForCreateClient;
 
 // region:      --- Router
 pub fn content_router() -> Router<Db> {
-    return Router::new()
+    Router::new()
         .nest("/genre", genre_router())
-        .route("/", get(list).post(create));
+        .route("/", get(list).post(create))
 }
 // endregion:   --- Router
 
@@ -82,7 +82,7 @@ async fn list(State(db): State<Db>) -> impl IntoResponse {
     match content_list {
         Ok(c) => {
             debug!("{:?}", c);
-            if c.len() > 0 {
+            if !c.is_empty() {
                 (
                     StatusCode::OK,
                     Json(json!({
@@ -101,11 +101,14 @@ async fn list(State(db): State<Db>) -> impl IntoResponse {
     }
 }
 
-async fn show(State(db): State<Db>) -> impl IntoResponse {}
+#[allow(dead_code)]
+async fn show(State(_db): State<Db>) -> impl IntoResponse {}
 
-async fn edit(State(db): State<Db>) -> impl IntoResponse {}
+#[allow(dead_code)]
+async fn edit(State(_db): State<Db>) -> impl IntoResponse {}
 
-async fn delete_content(State(db): State<Db>) -> impl IntoResponse {}
+#[allow(dead_code)]
+async fn delete_content(State(_db): State<Db>) -> impl IntoResponse {}
 // endregion:   --- Handlers
 
 // region:      ---

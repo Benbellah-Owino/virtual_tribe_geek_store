@@ -18,7 +18,7 @@ use super::{
 
 // region:      --- RouterFunction
 pub fn genre_router() -> Router<Db> {
-    return Router::new().route("/", get(list_handler).post(create_handler));
+    Router::new().route("/", get(list_handler).post(create_handler))
 }
 // endregion:   --- RouterFunction
 

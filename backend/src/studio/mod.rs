@@ -116,7 +116,7 @@ mod tests {
             db.create("creator").content(creator_for_create).await;
 
         if let Ok(c) = created {
-            return c.unwrap();
+            c.unwrap()
         } else {
             panic!("Failed to create creator");
         }

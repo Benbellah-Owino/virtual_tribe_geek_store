@@ -54,7 +54,7 @@ impl From<ContentForCreateClient> for ContentForCreateServer {
         let genre = content
             .genre
             .into_iter()
-            .map(|x| thing_from_string(x))
+            .map(thing_from_string)
             .collect();
         ContentForCreateServer {
             studio: thing_from_string(content.studio),

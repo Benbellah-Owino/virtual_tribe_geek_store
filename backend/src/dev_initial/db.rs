@@ -59,10 +59,10 @@ pub async fn init_queries(db: &Surreal<Client>) -> surrealdb::Result<()> {
             println!("{:?}", t_vec);
             info!("Running queries");
             for i in t_vec {
-                if i.contains("--") || i == "" {
+                if i.contains("--") || i.is_empty() {
                     continue;
                 } else {
-                    let q = format!("{i}");
+                    let q = i.to_string();
                     println!("\n\n------------------------------");
                     println!("Query :-> {count} \n {q}");
                     let query = db.query(&q).await;

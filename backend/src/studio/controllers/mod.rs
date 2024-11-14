@@ -44,14 +44,14 @@ pub async fn create(
     match new_studio {
         Ok(s) => {
             if let Some(g) = s {
-                return Ok(g);
+                Ok(g)
             } else {
-                return Err(StudioError::StudioRetrievingError);
+                Err(StudioError::StudioRetrievingError)
             }
         }
         Err(e) => {
             dbg!(&e);
-            return Err(StudioError::CreateStudioError);
+            Err(StudioError::CreateStudioError)
         }
     }
 }
@@ -72,11 +72,11 @@ pub async fn get_all(db: &Surreal<Client>) -> Result<Vec<Studio>, StudioError> {
         Ok(s) => {
             debug!("{:?}", s);
             println!("TAG2");
-            return Ok(s);
+            Ok(s)
         }
         Err(e) => {
             debug!("{:?}", e);
-            return Err(StudioError::StudioRetrievingError);
+            Err(StudioError::StudioRetrievingError)
         }
     }
 }
@@ -102,14 +102,14 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<Studio, Stu
             if let Some(s) = s {
                 //An extra let to ensure studio is returned
                 debug!("{:?}", s);
-                return Ok(s);
+                Ok(s)
             } else {
-                return Err(StudioError::StudioRetrievingError);
+                Err(StudioError::StudioRetrievingError)
             }
         }
         Err(e) => {
             debug!("{:?}", e);
-            return Err(StudioError::StudioRetrievingError);
+            Err(StudioError::StudioRetrievingError)
         }
     }
 }
@@ -122,7 +122,8 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<Studio, Stu
 ///
 /// }
 /// ```
-pub async fn get_all_creators(db: &Surreal<Client>) {
+#[allow(dead_code)]
+pub async fn get_all_creators(_db: &Surreal<Client>) {
     todo!()
 }
 
@@ -154,14 +155,14 @@ pub async fn update(
             if let Some(s) = s {
                 //An extra let to ensure studio is returned
                 debug!("{:?}", s);
-                return Ok(s);
+                Ok(s)
             } else {
-                return Err(StudioError::StudioRetrievingError);
+                Err(StudioError::StudioRetrievingError)
             }
         }
         Err(e) => {
             debug!("{:?}", e);
-            return Err(StudioError::StudioRetrievingError);
+            Err(StudioError::StudioRetrievingError)
         }
     }
 }
@@ -185,14 +186,14 @@ pub async fn delete_studio(db: &Surreal<Client>, id: String) -> Result<Studio, S
             if let Some(s) = s {
                 //An extra let to ensure studio is returne
                 debug!("{:?}", s);
-                return Ok(s);
+                Ok(s)
             } else {
-                return Err(StudioError::StudioRetrievingError);
+                Err(StudioError::StudioRetrievingError)
             }
         }
         Err(e) => {
             debug!("{:?}", e);
-            return Err(StudioError::StudioRetrievingError);
+            Err(StudioError::StudioRetrievingError)
         }
     }
 }

@@ -63,12 +63,12 @@ pub struct CreatorForCreate {
 }
 impl CreatorForCreate {
     pub fn new(username: &str, email: &str, role: &str, password: &str) -> CreatorForCreate {
-        return CreatorForCreate {
+        CreatorForCreate {
             username: String::from(username),
             email: String::from(email),
             role: String::from(role),
             password: String::from(password),
-        };
+        }
     }
 }
 

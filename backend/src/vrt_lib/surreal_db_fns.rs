@@ -1,8 +1,6 @@
 use crate::studio::Studio;
 use crate::studio::StudioError;
 use surrealdb::engine::remote::ws::Client;
-use surrealdb::sql::Id;
-use surrealdb::sql::Thing;
 use surrealdb::Surreal;
 pub enum Err {
     WrongFormat,

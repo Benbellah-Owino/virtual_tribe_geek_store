@@ -36,11 +36,11 @@ impl UserForCreate {
         for i in role {
             roles.push(String::from(i));
         }
-        return UserForCreate {
+        UserForCreate {
             username: String::from(username),
             email: String::from(email),
             password: String::from(password),
-        };
+        }
     }
 }
 
