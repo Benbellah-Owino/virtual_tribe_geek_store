@@ -44,20 +44,23 @@ use tracing::{debug, error, info};
 pub async fn register<'a>(
     db: &Surreal<Client>,
     user: UserForCreate,
-) -> Result<Vec<UserForCreate>, UserError> {
+) -> Result<UserForCreate, UserError> {
     println!(
         "\n\n{:<12} ====================================================================\n\n",
         "User::register()"
     );
-    let created: Result<Vec<UserForCreate>, surrealdb::Error> =
-        db.create("user").content(user).await;
+    let created: Result<Option<UserForCreate>, surrealdb::Error> = db.create("user").content(user).await;
 
     match created {
         Ok(c) => {
             debug!("{:<12} - registered new User", "FOR-DEV-ONLY");
 
             println!("\n\n============================================================================================\n\n");
-            return Ok(c);
+            if let Some(c) = c{
+                return Ok(c);
+            }else{
+                return Err(UserError::DetailsRetrievingError)
+            }
         }
         Err(_e) => {
             error!("        - User registration error");
@@ -100,7 +103,7 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
     dbg!(&user);
     let ct = db.
         query("SELECT id,email, role, password, username, verified, login_attempts FROM user WHERE email = $email")
-        .bind(("email", &user.email))
+        .bind(("email", user.email.clone()))
         .await;
 
     match ct {

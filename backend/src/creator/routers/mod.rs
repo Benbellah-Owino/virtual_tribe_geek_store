@@ -15,7 +15,6 @@ use tower_cookies::{Cookie, Cookies};
 use crate::creator::controllers::delete_creator;
 use crate::creator::CreatorForLoginSuccess;
 use crate::dev_initial::db::Db;
-use crate::file_upload::optimization::image_resizer::resize_image;
 use crate::file_upload::small_file::{self, extract_image};
 use crate::file_upload::storage::{save_to_disk, store};
 use crate::middleware::auth::cookies::{gen_auth_cookie, gen_refresh_cookie, verify_user};
@@ -368,10 +367,6 @@ async fn avatar_upload(
         value: value.to_string(),
     };
     println!("{:?}", &path);
-    match resize_image(String::from(path.to_str().unwrap()), 480, 360) {
-        Ok(_) => println!("images resized"),
-        Err(_) => eprintln!("errpr resizing image"),
-    }
 
     match update_details(&db, id, payload).await {
         Ok(_) => {

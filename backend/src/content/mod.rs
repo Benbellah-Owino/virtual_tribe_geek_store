@@ -176,6 +176,7 @@ pub struct Episode {
 #[derive(Debug, Serialize)]
 pub enum ContentError {
     FailedToCreate,
+    RetrievalError,
     DbError(surrealdb::Error),
 }
 

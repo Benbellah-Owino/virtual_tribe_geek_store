@@ -9,9 +9,14 @@ pub async fn store(
     content: ContentForCreateServer,
     db: &Surreal<Client>,
 ) -> Result<DbId, ContentError> {
-    let content_db: Vec<DbId> = db.create("content").content(content).await?;
+    let content_db: Option<DbId> = db.create("content").content(content).await?;
     eprintln!("{:?} created", content_db);
-    return Ok(content_db[0].clone());
+    if let Some(c) =  content_db{
+        return Ok(c);
+    }else{
+        return  Err(ContentError::RetrievalError);
+    }
+
 }
 
 pub async fn get_all(db: &Surreal<Client>) -> Result<Vec<Content>, ContentError> {

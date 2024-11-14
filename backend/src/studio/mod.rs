@@ -112,11 +112,11 @@ mod tests {
             password: "Password".to_string(),
         };
 
-        let created: Result<Vec<ItemId>, surrealdb::Error> =
+        let created: Result<Option<ItemId>, surrealdb::Error> =
             db.create("creator").content(creator_for_create).await;
 
         if let Ok(c) = created {
-            return c[0].clone();
+            return c.unwrap();
         } else {
             panic!("Failed to create creator");
         }
@@ -135,9 +135,7 @@ mod tests {
             email: "test_studio@gmail.com".to_owned(),
         };
 
-        let studio = create(&db, new_studio).await.unwrap();
-        let st = &studio[0];
-
+        let st = create(&db, new_studio).await.unwrap();
         let _delete: Result<Vec<Studio>, surrealdb::Error> = db.delete("studio").await;
         assert_eq!("test_studio".to_string(), st.name);
         assert_eq!("test_studio@gmail.com".to_string(), st.email);
@@ -162,11 +160,13 @@ mod tests {
             email: "test_studio2@gmail.com".to_owned(),
         };
 
+        let n_st = new_studio.clone();
+
         let studio = create(&db, new_studio).await.unwrap();
         let studio2 = create(&db, new_studio2).await.unwrap();
 
         let _delete: Result<Vec<Studio>, surrealdb::Error> = db.delete("studio").await;
-        assert_eq!(2 as usize, studio.len());
+        assert_eq!(n_st.name, studio.name);
     }
 
     #[serial]
@@ -186,7 +186,7 @@ mod tests {
         let studio = create(&db, new_studio.clone()).await.unwrap();
 
         let _delete: Result<Vec<Studio>, surrealdb::Error> = db.delete("studio").await;
-        assert_eq!(studio[0].name, new_studio.name);
+        assert_eq!(studio.name, new_studio.name);
     }
 
     // #[serial]

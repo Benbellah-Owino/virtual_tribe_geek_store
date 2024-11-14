@@ -72,7 +72,7 @@ impl CreatorForCreate {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CreatorForLogin {
     pub email: String,
     pub password: String,
@@ -106,7 +106,7 @@ pub struct CreatorForUpdateDb {
 // endection:   -- structs
 
 // section:     -- error
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 pub enum CreatorError {
     RegistrationError,
 
@@ -119,13 +119,24 @@ pub enum CreatorError {
     DetailsRetrievingError,
     DetailsUpdateError,
 
+
     //Updating Error
     UpdatingError,
     WrongFieldError,
 
     //Deleting Error
     DeletingError,
+    //DB ERROR
+    DbError(surrealdb::Error)
 }
+
+
+impl From<surrealdb::Error> for CreatorError {
+    fn from(value: surrealdb::Error) -> Self {
+        CreatorError::DbError(value)
+    }
+}
+
 // endsection:   -- error
 
 // section:     -- tests
@@ -153,7 +164,6 @@ mod tests {
             password: String::from("password"),
         };
         let t = register(&db, creater).await.unwrap();
-        let t = &t[0];
         let _delete: Result<Vec<CreatorForCreate>, surrealdb::Error> = db.delete("creator").await;
 
         assert_eq!(String::from("TestCreator"), t.username);

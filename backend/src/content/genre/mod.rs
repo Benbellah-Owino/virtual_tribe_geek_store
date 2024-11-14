@@ -25,6 +25,7 @@ pub struct GenreForCreate {
 #[derive(Debug, Serialize)]
 pub enum GenreError {
     FailedToCreate,
+    RetrievalError,
     DbError(surrealdb::Error),
 }
 

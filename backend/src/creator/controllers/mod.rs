@@ -3,7 +3,7 @@ use serde_json::json;
 use surrealdb::{engine::remote::ws::Client, Surreal};
 
 use crate::{
-    creator::{CreatorError, CreatorForLoginSuccess},
+    creator::{self, CreatorError, CreatorForLoginSuccess},
     middleware::auth::jwt::Claims,
     AvatarUrl,
 };
@@ -48,12 +48,12 @@ use tracing::{debug, error, info};
 pub async fn register<'a>(
     db: &Surreal<Client>,
     creator: CreatorForCreate,
-) -> Result<Vec<CreatorForCreate>, CreatorError> {
+) -> Result<CreatorForCreate, CreatorError> {
     println!(
         "\n\n{:<12} ====================================================================\n\n",
         "creator::register()"
     );
-    let created: Result<Vec<CreatorForCreate>, surrealdb::Error> =
+    let created: Result<Option<CreatorForCreate>, surrealdb::Error> =
         db.create("creator").content(creator).await;
 
     match created {
@@ -61,7 +61,11 @@ pub async fn register<'a>(
             debug!("{:<12} - registered new creator", "FOR-DEV-ONLY");
 
             println!("\n\n============================================================================================\n\n");
-            return Ok(c);
+            if let Some(g) = c {
+                return Ok(g);
+            } else {
+                return Err(CreatorError::DetailsRetrievingError);
+            }
         }
         Err(_e) => {
             error!("        - Creator registration error");
@@ -103,7 +107,7 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
     );
     let ct = db.
         query("SELECT id,email, role, password, username, verified, login_attempts FROM creator WHERE email = $email")
-        .bind(("email", &creator.email))
+        .bind(("email", creator.email.clone()))
         .await;
 
     match ct {
@@ -143,8 +147,8 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
                         println!("{now}");
                         let ret_crt = Claims {
                             id,
-                            email: String::from(&db_creator.email),
-                            username: String::from(&db_creator.username),
+                            email: String::from(db_creator.email.clone()),
+                            username: String::from(db_creator.username.clone()),
                             acc_type: String::from("creator"),
                             verified: db_creator.verified,
                             exp: now,

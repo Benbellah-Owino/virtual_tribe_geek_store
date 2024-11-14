@@ -7,16 +7,6 @@ use surrealdb::Surreal;
 pub enum Err {
     WrongFormat,
 }
-pub fn str_to_thing(str_id: String) -> Result<Thing, Err> {
-    if !str_id.contains(":") {
-        return Err(Err::WrongFormat);
-    }
-    let id_string: Vec<String> = str_id.split(':').map(|s| s.to_string()).collect();
-    return Ok(Thing {
-        tb: id_string[0].to_owned(),
-        id: Id::from(id_string[1].to_owned()),
-    });
-}
 
 pub async fn check_owner_2(
     creator: &String,

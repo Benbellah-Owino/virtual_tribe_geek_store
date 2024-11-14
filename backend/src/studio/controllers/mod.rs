@@ -23,7 +23,7 @@ use super::{
 pub async fn create(
     db: &Surreal<Client>,
     studio: StudioForCreate,
-) -> Result<Vec<StudioFull>, StudioError> {
+) -> Result<StudioFull, StudioError> {
     let owner = studio.owner.clone();
 
     println!("{owner}");
@@ -38,13 +38,16 @@ pub async fn create(
         email: studio.email.clone(),
     };
 
-    let new_studio: Result<Vec<StudioFull>, surrealdb::Error> =
+    let new_studio: Result<Option<StudioFull>, surrealdb::Error> =
         db.create("studio").content(st).await;
     println!("{:?}", new_studio);
     match new_studio {
         Ok(s) => {
-            dbg!(&s);
-            return Ok(s);
+            if let Some(g) = s {
+                return Ok(g);
+            } else {
+                return Err(StudioError::StudioRetrievingError);
+            }
         }
         Err(e) => {
             dbg!(&e);

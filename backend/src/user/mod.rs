@@ -121,7 +121,6 @@ mod tests {
             password: String::from("password"),
         };
         let t = register(&db, creater).await.unwrap();
-        let t = &t[0];
         let _delete: Result<Vec<UserForCreate>, surrealdb::Error> = db.delete("user").await;
 
         assert_eq!(String::from("Testuser"), t.username);

@@ -74,9 +74,9 @@ pub async fn create_handler(State(db): State<Db>, req: Request) -> impl IntoResp
         match studio {
             //Useful for ensuring the operation was succesfull
             Ok(s) => {
-                eprintln!("created {:?}", &s[0]);
+                eprintln!("created {:?}", &s);
                 info!("tag5");
-                return (StatusCode::OK, Json(json!({"payload": s[0]})));
+                return (StatusCode::OK, Json(json!({"payload": s})));
             }
             Err(e) => {
                 info!("tag6");
@@ -156,20 +156,26 @@ pub async fn check_owner(
 ) -> Result<Studio, StudioError> {
     let query = db
         .query("SELECT * FROM studio WHERE id = $id")
-        .bind(("id", studio))
+        .bind(("id", studio.clone())) // Clone studio here to avoid temporary borrow
         .await;
 
     match query {
         Ok(mut res) => {
             dbg!(&res);
             let studio: Result<Vec<Studio>, surrealdb::Error> = res.take(0);
+            
             if let Ok(s) = studio {
-                let s = Studio::from(&s[0]);
-                //TODO: FIX THIS
-                let creator: Vec<String> = creator.split(':').map(|s| s.to_string()).collect();
+                if s.is_empty() {
+                    return Err(StudioError::StudioRetrievingError);
+                }
 
-                if &s.owner.id.to_string() == &creator[1] && &s.owner.tb == &creator[0] {
-                    Ok(s)
+                // Move the first element to force full ownership
+                let owned_studio = s.into_iter().next().unwrap(); 
+
+                let creator_parts: Vec<String> = creator.split(':').map(|s| s.to_string()).collect();
+                
+                if owned_studio.owner.id.to_string() == creator_parts[1] && owned_studio.owner.tb == creator_parts[0] {
+                    Ok(owned_studio)
                 } else {
                     Err(StudioError::OwnerMismatch)
                 }
@@ -180,6 +186,7 @@ pub async fn check_owner(
         Err(_) => Err(StudioError::StudioRetrievingError),
     }
 }
+
 
 /// <h1> Handles updating of studio </h1>
 /// <h2> <b>Endpoint:  <strong>[POST]</strong>  /studio/ </b> </h2>
