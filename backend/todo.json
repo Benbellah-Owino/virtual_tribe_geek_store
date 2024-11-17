@@ -1,0 +1,11 @@
+{
+    "instructions": "Write your todos and amrk 1 if done and 0 if not",
+    "modules":[
+        {
+            "name": "studio",
+            "todos":[
+                {"Implement the studio/creator relationship":0}
+            ]
+        }
+    ]
+}
