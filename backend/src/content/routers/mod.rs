@@ -1,5 +1,5 @@
 use axum::{
-    extract::State,
+    extract::{Path, State},
     response::IntoResponse,
     routing::get,
     Json, Router,
@@ -11,7 +11,7 @@ use tracing::{debug, info};
 use crate::{content::ContentForCreateServer, dev_initial::db::Db};
 
 use super::{
-    controllers::{get_all, store},
+    controllers::{get_all, list_by_studio, store},
     genre::routers::genre_router,
 };
 use crate::content::ContentForCreateClient;
@@ -20,6 +20,7 @@ use crate::content::ContentForCreateClient;
 pub fn content_router() -> Router<Db> {
     Router::new()
         .nest("/genre", genre_router())
+        .route("/:studio", get(list_studio_handler))
         .route("/", get(list).post(create))
 }
 // endregion:   --- Router
@@ -109,6 +110,23 @@ async fn edit(State(_db): State<Db>) -> impl IntoResponse {}
 
 #[allow(dead_code)]
 async fn delete_content(State(_db): State<Db>) -> impl IntoResponse {}
+
+
+#[axum_macros::debug_handler]
+pub async fn list_studio_handler(State(db): State<Db>, Path(studio): Path<String>) -> impl IntoResponse {
+    let db = db.unwrap();
+    
+    // let studio: Vec<&str> = id.split(':').collect();
+    let content_list = list_by_studio(&db, studio).await;
+
+    match content_list {
+        Ok(c) => (StatusCode::OK, Json(json!({"content_list": c}))).into_response(),
+        Err(e) => {
+            dbg!(e);
+            (StatusCode::INTERNAL_SERVER_ERROR).into_response()
+        }
+    }
+}
 // endregion:   --- Handlers
 
 // region:      ---

@@ -116,12 +116,12 @@
 		}
 	}
 
-	async function upload_avatar(e:any) {
+	async function upload_avatar(e: any) {
 		const fileInput: any = document.getElementById('avatar');
 		if (fileInput == null) return;
 
 		const file = fileInput.files[0];
-		console.log(file)
+		console.log(file);
 		if (!file) {
 			alert('Please select a file to upload.');
 			return;
@@ -131,11 +131,10 @@
 		formData.append('file', file);
 		console.log(formData.values);
 
-
 		let response = await fetch(`http://localhost:7878/creator/upload/${creator.email}`, {
 			method: 'PATCH',
 			credentials: 'include',
-			body: formData,
+			body: formData
 		});
 
 		if (response.status == 201) {
@@ -161,7 +160,9 @@
 		onsubmit={upload_avatar}
 	>
 		<img
-			src={creator.avatar ? `http://localhost:7878/creator/image/${creator.avatar}` : stockProfilePic}
+			src={creator.avatar
+				? `http://localhost:7878/creator/image/${creator.avatar}`
+				: stockProfilePic}
 			alt="Profile picture of {creator.username}"
 			width="128px"
 			height="128px"

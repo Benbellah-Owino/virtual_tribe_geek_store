@@ -24,3 +24,13 @@ pub async fn get_all(db: &Surreal<Client>) -> Result<Vec<Content>, ContentError>
     debug!("{:?}", content_list);
     Ok(content_list)
 }
+
+pub async fn list_by_studio(db: &Surreal<Client>, id: String) -> Result<Vec<Content>, ContentError>{
+    let query = format!("SELECT * FROM content WHERE studio = {id};");
+    let mut res = db.query(query).await?;
+
+    let content_list: Vec<Content> = res.take(0)?;
+    debug!("{:?}", content_list);
+    Ok(content_list)
+
+}
