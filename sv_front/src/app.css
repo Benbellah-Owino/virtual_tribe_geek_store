@@ -75,6 +75,9 @@ body {
 	transition: all ease-in-out 0.3s;
 }
 
+.gray_bg_hover {
+	transition: all ease-in-out 0.3s;
+}
 .main_bg_hover:hover {
 	background-color: var(--primary);
 }
@@ -86,6 +89,9 @@ body {
 .tertiary_bg_hover:hover {
 	background-color: var(--tertiary);
 }
+.tertiary_bg_hover:hover {
+	background-color: var(--color2);
+}
 /* endregion:   --- Hover backgrounds*/
 
 
@@ -94,6 +100,9 @@ body {
 	color: var(--text_color)
 }
 
+.primary_txt {
+	color: var(--primary)
+}
 .secondary_txt {
 	color: var(--secondary);
 }
@@ -201,6 +210,61 @@ body {
 
 /* endregion:   --- Border hover */
 
+/* region:      --- borderb */
+.primary_borderb {
+	border-bottom: 1px solid var(--primary)
+}
+
+.secondary_borderb {
+	border-bottom: 1px solid var(--secondary)
+}
+
+.tertiary_borderb {
+	border-bottom: 1px solid var(--tertiary)
+}
+
+.borderb1 {
+	border-bottom: 1px solid var(--color1)
+}
+.spinner_borderb {
+	border-bottom: 4px solid var(--tertiary)
+}
+/* endregion:   --- borderb */
+
+
+/* region:      --- borderb hover */
+.main_borderb_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.secondary_borderb_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.tertiary_borderb_hover {
+	transition: all ease-in-out 0.3s;
+}
+
+.borderb1_hover {
+	transition: all ease-in-out 0.3s;
+}
+.main_borderb_hover:hover {
+	border-bottom: 1px solid var(--primary)
+}
+
+.secondary_borderb_hover:hover {
+	border-bottom: 1px solid var(--secondary)
+}
+
+.tertiary_borderb_hover:hover {
+	border-bottom: 1px solid var(--tertiary)
+}
+
+.borderb1_hover:hover {
+	border-bottom: 1px solid var(--color1)
+}
+
+/* endregion:   --- Border hover */
 
 /* region:      --- Shadow */
 .main_shadow {

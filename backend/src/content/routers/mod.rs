@@ -1,14 +1,14 @@
+use std::path::{self, Path};
+
 use axum::{
-    extract::{Path, State},
-    response::IntoResponse,
-    routing::get,
-    Json, Router,
+    body::Body, extract::{Multipart, Path as AxumPath, State}, response::{IntoResponse, Response}, routing::get, Json, Router
 };
-use http::StatusCode;
+use http::{header, StatusCode};
 use serde_json::json;
+use surrealdb::sql::Thing;
 use tracing::{debug, info};
 
-use crate::{content::ContentForCreateServer, dev_initial::db::Db};
+use crate::{content::{controllers::update_details, ContentForCreateServer, ContentForUpdate}, dev_initial::db::Db, file_upload::{small_file::{self, extract_image}, storage::{self, save_to_disk}}};
 
 use super::{
     controllers::{get_all, list_by_studio, store},
@@ -113,7 +113,7 @@ async fn delete_content(State(_db): State<Db>) -> impl IntoResponse {}
 
 
 #[axum_macros::debug_handler]
-pub async fn list_studio_handler(State(db): State<Db>, Path(studio): Path<String>) -> impl IntoResponse {
+pub async fn list_studio_handler(State(db): State<Db>, AxumPath(studio): AxumPath<String>) -> impl IntoResponse {
     let db = db.unwrap();
     
     // let studio: Vec<&str> = id.split(':').collect();
@@ -125,6 +125,139 @@ pub async fn list_studio_handler(State(db): State<Db>, Path(studio): Path<String
             dbg!(e);
             (StatusCode::INTERNAL_SERVER_ERROR).into_response()
         }
+    }
+}
+
+
+#[axum::debug_handler]
+async fn avatar_upload(
+    State(db): State<Db>,
+    AxumPath(id): AxumPath<String>,
+    multipart: Multipart,
+) -> impl IntoResponse {
+    let db = db.unwrap();
+    let id: Option<Thing> = db.select(("table",id)).await.unwrap();
+
+    let mut content_id = String::new();
+    let id = match id {
+        Some(c) => {
+            //content_id = c.id.id.clone().to_string();
+            content_id = c.id.to_string();
+            format!("{}:{}", c.tb, c.id)
+        }
+        None => "none".to_string(),
+    };
+    // Attempt to extract the image file from multipart
+    let file = match extract_image(multipart).await {
+        Ok(file) => file,
+        Err(e) => {
+            println!("File extraction failed.");
+            match e {
+                small_file::Error::TooBig => {
+                    return (
+                        StatusCode::BAD_REQUEST,
+                        Json(json!({"msg": "Image is too big, use a smaller image"})),
+                    )
+                }
+                _ => {
+                    return (
+                        StatusCode::BAD_REQUEST,
+                        Json(json!({"msg": "Update Failed"})),
+                    )
+                }
+            }
+        }
+    };
+
+    // Store the file in the specified directory
+
+    let file = match storage::store(
+        Some(format!("media\\content\\{}", content_id)),
+        format!("{}cover", content_id),
+        file,
+    )
+    .await
+    {
+        Some(f) => f,
+        None => {
+            println!("File storage failed.");
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"msg": "File storage error"})),
+            );
+        }
+    };
+
+    // Check if we have the ID in request extensions
+    // Proceed with saving to disk and updating details
+    let file = (&file.0.clone(), file.1, file.2);
+    let path = file.0.clone();
+    let _ = save_to_disk(file).await;
+    let value = path.to_str().unwrap();
+
+    let payload = ContentForUpdate {
+        field: "avatar".to_string(),
+        value: value.to_string(),
+    };
+    
+    println!("{:?}", &path);
+
+    match update_details(&db, id, payload).await {
+        Ok(_) => (StatusCode::OK, Json(json!({"msg": "File uploaded"}))),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({"msg": "Upload error"})),
+        ),
+    }
+}
+
+/// <h1> Handles getting details of content </h1>
+/// <h2> <b>Endpoint: /content </b> </h2>
+///
+/// <h3> No request body</h3>
+///
+/// <p>
+///     Empty parameters <br>
+///     Need auth token <br>
+/// </p>
+/// <br><hr>
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 302</li>
+///     <li> <b>Err</b> : 404</li>
+/// </ul>
+pub async fn get_image(
+    // State(db): State<Db>,
+    AxumPath(path): AxumPath<String>,
+    // req: Request,
+) -> impl IntoResponse {
+    //TODO: Change to path
+
+    println!("{:?}", path);
+    let path = path.to_string();
+    match tokio::fs::read(path.clone()).await {
+        Ok(d) => {
+            let content_type = match Path::new(&path).extension().and_then(|ext| ext.to_str()) {
+                Some("png") => "image/png",
+                Some("jpg") | Some("jpeg") => "image/jpeg",
+                Some("gif") => "image/gif",
+                Some("bmp") => "image/bmp",
+                Some("webp") => "image/webp",
+                _ => {
+                    return (
+                        StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                        "Unsupported image format",
+                    )
+                        .into_response()
+                }
+            };
+            Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, content_type)
+                .body(Body::from(d))
+                .unwrap()
+        }
+        Err(_) => todo!(),
     }
 }
 // endregion:   --- Handlers

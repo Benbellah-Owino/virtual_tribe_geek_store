@@ -134,11 +134,11 @@ pub async fn get_one(State(db): State<Db>, Path(studio_id): Path<String>) -> imp
     let db = db.unwrap();
     println!("{studio_id}");
 
-    let studios = get_details(&db, studio_id).await;
+    let studio = get_details(&db, studio_id).await;
 
-    println!("{:?}", studios);
-    match studios {
-        Ok(s) => (StatusCode::OK, Json(json!({"payload": s}))),
+    println!("{:?}", studio);
+    match studio {
+        Ok(s) => (StatusCode::OK, Json(json!({"studio": s}))),
         Err(e) => {
             debug!("{:?}", e);
             (

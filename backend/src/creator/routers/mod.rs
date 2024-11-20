@@ -19,7 +19,7 @@ use crate::file_upload::small_file::{self, extract_image};
 use crate::file_upload::storage::{save_to_disk, store};
 use crate::middleware::auth::cookies::{gen_auth_cookie, gen_refresh_cookie, verify_user};
 
-use super::controllers::{get_details, login, register, update_details};
+use super::controllers::{get_details, get_studios, login, register, update_details};
 use super::{CreatorForCreate, CreatorForLogin, CreatorForUpdateClient};
 
 // endsection:   -- imports
@@ -36,6 +36,7 @@ pub fn creator_router() -> Router<Db> {
                 .delete(delete_handler),
         )
         .layer(middleware::from_fn(verify_user))
+        .route("/studio/:id", get(list_studios_handler))
         .route("/", post(register_handler))
         .route("/login", post(login_handler))
 }
@@ -72,12 +73,8 @@ async fn register_handler(
     let creator = register(&db, payload).await;
 
     match creator {
-        Ok(_c) => {
-            (StatusCode::CREATED).into_response()
-        }
-        Err(_) => {
-            (StatusCode::INTERNAL_SERVER_ERROR).into_response()
-        }
+        Ok(_c) => (StatusCode::CREATED).into_response(),
+        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
     }
 }
 
@@ -131,16 +128,12 @@ async fn login_handler(
             crate::creator::CreatorError::WrongCredentialsError => {
                 (StatusCode::UNAUTHORIZED).into_response()
             }
-            crate::creator::CreatorError::LoginAttemptsError => {
-                (
-                    StatusCode::FORBIDDEN,
-                    Json(json!({"msg":"Too many login attempts"})),
-                )
-                    .into_response()
-            }
-            _ => {
-                (StatusCode::INTERNAL_SERVER_ERROR).into_response()
-            }
+            crate::creator::CreatorError::LoginAttemptsError => (
+                StatusCode::FORBIDDEN,
+                Json(json!({"msg":"Too many login attempts"})),
+            )
+                .into_response(),
+            _ => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
         },
     }
 }
@@ -166,15 +159,11 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
         let db = db.unwrap();
         let creator = get_details(&db, id.to_owned()).await;
         match creator {
-            Ok(c) => {
-                (StatusCode::OK, Json(json!({"creator": c})))
-            }
-            Err(_) => {
-                (
-                    StatusCode::NOT_FOUND,
-                    Json(json!({"msg": "Creator not found"})),
-                )
-            }
+            Ok(c) => (StatusCode::OK, Json(json!({"creator": c}))),
+            Err(_) => (
+                StatusCode::NOT_FOUND,
+                Json(json!({"msg": "Creator not found"})),
+            ),
         }
     } else {
         println!("Error");
@@ -271,12 +260,10 @@ pub async fn delete_handler(
                 cookies.remove(Cookie::from("auth_token"));
                 (StatusCode::OK, Json(json!({"creator": c})))
             }
-            Err(_) => {
-                (
-                    StatusCode::NOT_FOUND,
-                    Json(json!({"msg": "Creator not found"})),
-                )
-            }
+            Err(_) => (
+                StatusCode::NOT_FOUND,
+                Json(json!({"msg": "Creator not found"})),
+            ),
         }
     } else {
         println!("Error");
@@ -369,15 +356,11 @@ async fn avatar_upload(
     println!("{:?}", &path);
 
     match update_details(&db, id, payload).await {
-        Ok(_) => {
-            (StatusCode::OK, Json(json!({"msg": "File storage error"})))
-        }
-        Err(_) => {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"msg": "Upload error"})),
-            )
-        }
+        Ok(_) => (StatusCode::OK, Json(json!({"msg": "File uploaded"}))),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({"msg": "Upload error"})),
+        ),
     }
 }
 
@@ -430,6 +413,37 @@ pub async fn get_image(
         Err(_) => todo!(),
     }
 }
-// Fallthrough for any unexpected errors
 
+/// <h1> Handles getting details of Creator </h1>
+/// <h2> <b>Endpoint: /creator </b> </h2>
+///
+/// <h3> No request body</h3>
+///
+/// <p>
+///     Empty parameters <br>
+///     Need auth token <br>
+/// </p>
+/// <br><hr>
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 302</li>
+///     <li> <b>Err</b> : 404</li>
+/// </ul>
+pub async fn list_studios_handler(State(db): State<Db>, AxumPath(id): AxumPath<String>, req: Request) -> impl IntoResponse {
+    //TODO: Check if the creator exists
+    let mut id = id;
+    if id == "owner"{
+        if let Some(i) = req.extensions().get::<String>() {
+            id = i.to_string();
+        }
+    }
+    let db = db.unwrap();
+    let studios = get_studios(&db, id).await;
+    dbg!(&studios);
+    if let Ok(s) = studios {
+        (StatusCode::OK, Json(json!({"studios": s}))).into_response()
+    } else {
+        (StatusCode::NOT_FOUND).into_response()
+    }
+}
 // endsection:   -- handlers

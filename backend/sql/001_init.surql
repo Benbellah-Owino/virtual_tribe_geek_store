@@ -64,6 +64,7 @@ DEFINE FIELD description ON TABLE content TYPE string ASSERT string::len($value)
 DEFINE FIELD audiences ON TABLE content TYPE string;
 DEFINE FIELD recom_price ON TABLE content TYPE float;
 DEFINE FIELD genre ON TABLE content TYPE array<record<genre>;
+DEFINE FIELD cover ON TABLE content TYPE option<string>;
 
 
 -- region:      -- Comic table

@@ -27,6 +27,7 @@ pub struct Content {
     pub audiences: String,
     pub recom_price: f32,
     pub genre: Vec<Thing>,
+    pub cover: Option<String>
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -66,6 +67,12 @@ impl From<ContentForCreateClient> for ContentForCreateServer {
         }
     }
 }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ContentForUpdate {
+    field: String,
+    value: String
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Comic {
     pub id: Thing,
@@ -177,6 +184,7 @@ pub struct Episode {
 pub enum ContentError {
     FailedToCreate,
     RetrievalError,
+    DetailsUpdateError,
     DbError(surrealdb::Error),
 }
 

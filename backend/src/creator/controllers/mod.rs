@@ -3,9 +3,7 @@ use serde_json::json;
 use surrealdb::{engine::remote::ws::Client, Surreal};
 
 use crate::{
-    creator::{CreatorError, CreatorForLoginSuccess},
-    middleware::auth::jwt::Claims,
-    AvatarUrl,
+    creator::{CreatorError, CreatorForLoginSuccess}, middleware::auth::jwt::Claims, studio::StudioFull, AvatarUrl
 };
 
 use super::{
@@ -342,6 +340,13 @@ pub async fn delete_creator(
 }
 //async fn get_details() -> Result<Vec<CreatorForCreate>, CreatorError>{}
 
+pub async fn get_studios(db: &Surreal<Client>, id: String) -> Result<Vec<StudioFull>, CreatorError>{
+    let query = format!("SELECT * FROM studio WHERE owner = {id};");
+    debug!("{query}");
+    let studios: Vec<StudioFull> = db.query(query).await?.take(0)?;
+    
+    Ok(studios)
+}
 // endsection:   -- controllers
 
 // section:     -- imports

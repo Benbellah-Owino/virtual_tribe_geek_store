@@ -1,21 +1,36 @@
+
 <script lang="ts">
 	import { page } from '$app/stores';
-	import Banner from '$lib/components/studio/std/comps/Banner.svelte';
 	import { PageError } from '$lib/types/error';
 	import { Result } from '$lib/types/result';
 	import { updatePageState, type PageState } from '$lib/types/state/page_state';
-	import type { Studio } from '$lib/types/studio';
+	import type { Content } from '$lib/types/content';
 	import { onMount } from 'svelte';
+	import Banner from '$lib/components/studio/std/comps/Banner.svelte';
 
-	let studio_id = $page.params.id;
+	let content_id = $page.params.id;
 
-	let studio: Studio = $state({
-		id: { tb: '', id: { String: '' } },
-		name: '',
-		owner: { tb: '', id: { String: '' } },
-		email: '',
-		description: ''
+	let content: Content = $state({
+		id: {
+			id: {
+				String: ''
+			},
+			tb: ''
+		},
+		rating: 0,
+		title: '',
+		studio: {
+			id: {
+				String: ''
+			},
+			tb: ''
+		},
+		description: '',
+		audiences: '',
+		recom_price: 0,
+		genre: []
 	});
+
 
 	let pageState: PageState = $state({
 		inner_state: Result.Ok,
@@ -24,7 +39,7 @@
 		message: ''
 	});
 	onMount(async () => {
-		let response = await fetch(`http://localhost:7878/studio/${studio_id}`, {
+		let response = await fetch(`http://localhost:7878/content/${content_id}`, {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
@@ -35,9 +50,9 @@
 		if (response.ok == true) {
 			//UNIMPLEMENTED
 			let res = await response.json();
-			let db_studio = res.studio;
-			console.log(db_studio);
-			studio = db_studio;
+			let db_content = res.content;
+			console.log(db_content);
+			content = db_content;
 			pageState.loading = false;
 		} else if (response.ok == false) {
 			if (response.status == 401) {
@@ -49,29 +64,29 @@
 					'You are not authorized! Redirecting you to login page...'
 				);
 				setTimeout(() => {
-					window.open('studio/login', '_self');
+					window.open('content/login', '_self');
 				}, 5000);
 			}
 		}
 	});
+    // TODO: Finish this page
 </script>
-
 <main class="page">
 	{#if pageState.loading}
-		<center>Loading studio...</center>
+		<center>Loading content...</center>
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok}
-		<center> studio</center>
-		<center><Banner text={studio.name} /></center>
+		<center> content</center>
+		<center><Banner text={content.name} /></center>
 		<ul class="secondary_border mt-8 flex h-fit w-full flex-col items-start justify-center p-4">
-			<li class="tertiary_txt"><b class="main_txt">Name: &nbsp </b>{studio.name}</li>
-			<li class="tertiary_txt"><b class="main_txt">Email: &nbsp</b>{studio.email}</li>
+			<li class="tertiary_txt"><b class="main_txt">Name: &nbsp </b>{content.name}</li>
+			<li class="tertiary_txt"><b class="main_txt">Email: &nbsp</b>{content.email}</li>
 			<li class="tertiary_txt w-10/12 border border-gray-500">
 				<h3 class="main_txt underline">Description</h3>
-				<p class="text-sm">{studio.description}</p>
+				<p class="text-sm">{content.description}</p>
 			</li>
 		</ul>
 
-        <a href="/studio/{studio_id}/content" class="">Click here to view this studios content</a>
+        <a href="/content/{content_id}/content" class="">Click here to view this contents content</a>
 	{:else if pageState.inner_state == Result.Err}
 		<h3 class="error">{pageState.message}</h3>
 	{/if}

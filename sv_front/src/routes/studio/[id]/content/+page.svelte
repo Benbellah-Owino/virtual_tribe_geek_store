@@ -1,12 +1,15 @@
 <script lang="ts">
+	import { page } from "$app/stores";
 	import type { Content } from "$lib/types/content";
 	import { onMount } from "svelte";
 
     let contents: Content[] = $state([]);
 
+	let studio_id = $page.params.id;
 
+	console.log(studio_id)
 	onMount(async () => {
-		let response = await fetch(`http://localhost:7878/content/studio:2xq3qx3qhay7ada22wna`, {
+		let response = await fetch(`http://localhost:7878/content/${studio_id}`, {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
@@ -30,6 +33,6 @@
             <h1>{content.title}</h1>
         {/each}
 
-        <a href="/content/create/studio:2xq3qx3qhay7ada22wna" class="main_border rounded">Add content</a>
+        <a href="/content/create/{studio_id}" class="main_border rounded">Add content</a>
     </section>
 </main>

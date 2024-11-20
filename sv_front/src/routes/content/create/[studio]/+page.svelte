@@ -44,8 +44,9 @@
 
 	async function submit(e: Event) {
 		e.preventDefault();
-		console.log('submit');
-
+		if(typeof(content_form.recom_price) == "string"){
+			content_form.recom_price = parseFloat(content_form.recom_price)
+		}
 		for (const key in content_form) {
 			if (content_form[key] == '') {
 				updateFormState(
@@ -62,6 +63,7 @@
 		}
 
 		console.log($state.snapshot(content_form));
+
 
 		try {
 			console.log('submitting...');
@@ -142,19 +144,23 @@
 			<div class="form_div">
 				<!-- TODO: ITs supposed to be an array -->
 				<label for="genres">genre</label>
-				{#each genres as genre}
-					<div class="check_div flex_row">
-						<p>{genre.name}</p> 
-						<input
-							type="checkbox"
-							class="m-0"
-							name="genres"
-							bind:group={content_form.genre}
-							value={`${genre.id.table}:${genre.id.id.String}`}
-						/>
-					</div>
-				{/each}
-				{#if formState.inner_state == Result.Err && formState.target == 'genres'}
+					{#if genres.length == 0}
+					No genre available
+				{:else}
+					{#each genres as genre}
+						<div class="check_div flex_row">
+							<p>{genre.name}</p> 
+							<input
+								type="checkbox"
+								class="m-0"
+								name="genres"
+								bind:group={content_form.genre}
+								value={`${genre.id.tb}:${genre.id.id.String}`}
+							/>
+						</div>
+					{/each}
+				{/if}
+				{#if formState.inner_state == Result.Err && formState.target == 'genre'}
 					<p class="error text-red-500">{formState.message}</p>
 				{/if}
 			</div>
@@ -162,7 +168,7 @@
 			<div class="form_div">
 				<label for="recom_price">recom_price</label>
 				<input
-					type="number"
+					type="text"
 					name="recom_price"
 					id="recom_price"
 					bind:value={content_form.recom_price}

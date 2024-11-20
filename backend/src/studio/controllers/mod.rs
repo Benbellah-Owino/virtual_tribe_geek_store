@@ -36,6 +36,7 @@ pub async fn create(
         name: studio.name.clone(),
         owner: creator,
         email: studio.email.clone(),
+        description: studio.description
     };
 
     let new_studio: Result<Option<StudioFull>, surrealdb::Error> =
@@ -93,7 +94,7 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<Studio, Stu
         "studio::get_details()"
     );
     let id: &str = id.split(":").collect::<Vec<&str>>()[1];
-    println!("{id}");
+    debug!("{id}");
     let studios: Result<Option<Studio>, surrealdb::Error> = db.select(("studio", id)).await;
 
     println!("{:?}", studios);

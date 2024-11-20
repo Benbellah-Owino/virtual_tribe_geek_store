@@ -6,14 +6,15 @@ export interface ContentForCreate{
     studio: string,
     description: string,
     audiences: string,
-    recom_price: number,
+    recom_price: number | string,
     genre: string[],
 }
 
 
-export interface Content extends ContentForCreate{
+export interface Content extends Omit<ContentForCreate, "studio">{
     [key:string]: string | string[]|  number | SurrealId;
     id: SurrealId,
+    studio: SurrealId,
     rating: number
 }
 
