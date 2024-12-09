@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
-use crate::helpers::db::thing_from_string;
+use crate::{helpers::db::thing_from_string, studio::Studio};
 
 mod controllers;
 pub mod routers;
@@ -22,7 +22,7 @@ pub struct Content {
     pub id: Thing,
     pub title: String,
     pub rating: f32,
-    pub studio: Thing,
+    pub studio: Studio,
     pub description: String,
     pub audiences: String,
     pub recom_price: f32,

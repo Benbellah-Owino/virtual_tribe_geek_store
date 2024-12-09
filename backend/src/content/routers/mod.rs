@@ -23,6 +23,7 @@ pub fn content_router() -> Router<Db> {
         .route("/studio/:studio", get(list_studio_handler))
         .route("/cover/:path", get(get_image))
         .route("/cover/upload/:id", post(cover_upload))
+        .route("/image/*path", get(get_image))
         .route("/:content", get(show))
         .layer(DefaultBodyLimit::disable())
         .route("/", get(list).post(create))

@@ -25,7 +25,7 @@ pub async fn get_content(db: &Surreal<Client>, id: String) -> Result<Content, Co
     //let id: &str = id.split(":").collect::<Vec<&str>>()[1];
     //let content: Option<Content> = db.select(("content", id)).await?; 
     debug!("Getting content from db");
-    let query = format!("SELECT * FROM content WHERE id = {id} FETCH genre");
+    let query = format!("SELECT * FROM content WHERE id = {id} FETCH genre, studio");
     debug!("{query}");
     let mut res = db.query(&query).await?;
 

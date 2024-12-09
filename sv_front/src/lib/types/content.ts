@@ -1,7 +1,8 @@
 import type { SurrealId } from "./server";
+import type { Studio } from "./studio";
 
 export interface ContentForCreate{
-    [key:string]: string | string[]|  number | SurrealId |Genre[];
+    [key:string]: string | string[]|  number | SurrealId |Genre[] |Studio| null;
     title: string,
     studio: string,
     description: string,
@@ -12,9 +13,9 @@ export interface ContentForCreate{
 
 
 export interface Content extends Omit<ContentForCreate, "studio"|"genre">{
-    [key:string]: string | string[]|  number | SurrealId | Genre[];
+    [key:string]: string | string[]|  number | SurrealId | Genre[]| Studio |null;
     id: SurrealId,
-    studio: SurrealId,
+    studio: Studio|null,
     rating: number,
     genre: Genre[]
 }
