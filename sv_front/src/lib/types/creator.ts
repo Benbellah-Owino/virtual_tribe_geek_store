@@ -7,7 +7,7 @@ export interface Creator extends User{
 
 export type Socials = {
     [key: string] : string| null,
-    twitter: string|null,
+    twitter_x: string|null,
     instagram: string|null,
     facebook: string|null
 }

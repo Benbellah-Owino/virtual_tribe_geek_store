@@ -248,8 +248,8 @@ pub async fn update_details(
     //TODO: test if it accepts different types o
     // Items to update username, password, socials, description,
     let mut query: Option<CreatorForUpdateDb> = None;
+    dbg!("Payload: {}", &payload);
     let field = payload.field.clone();
-
     match field.as_str() {
         // Matching the field to restrict it to the user updatable  items named above
         "socials" => {

@@ -19,7 +19,7 @@
 	let creator: Creator = $state(  {
 		role: '',
 		socials: {
-			twitter: null,
+			twitter_x: null,
 			instagram: null,
 			facebook: null
 		},
@@ -102,8 +102,8 @@
 				{#if creator.socials.instagram}
 					<li><a href={creator.socials.instagram} target="_blank" class="txt1_hover">Instagram</a></li>
 				{/if}
-				{#if creator.socials.twitter}
-					<li><a href={creator.socials.twitter} target="_blank" class="txt1_hover">Twitter / X</a></li>
+				{#if creator.socials.twitter_x}
+					<li><a href={creator.socials.twitter_x} target="_blank" class="txt1_hover">twitter_x / X</a></li>
 				{/if}
 
             {:else}

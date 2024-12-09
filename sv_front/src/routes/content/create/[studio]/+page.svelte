@@ -5,6 +5,8 @@
 	import { Result } from '$lib/types/result';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { suridToString, type SurrealId } from '$lib/types/server';
+
 
 	let genres: Genre[] = $state([]);
 
@@ -42,6 +44,7 @@
 
 	let audiences = $state(['G', 'PG', 'PG-13', 'R', 'AO']);
 
+
 	async function submit(e: Event) {
 		e.preventDefault();
 		if(typeof(content_form.recom_price) == "string"){
@@ -78,10 +81,11 @@
 			if (response.status == 201) {
 				console.log('OK');
 				//UNIMPLEMENTED
-				setTimeout(() => {
-					updateFormState(formState, Result.Ok, null, 'Registration success', 'form', true);
-					console.log($state.snapshot(formState));
-				}, 3000);
+				updateFormState(formState, Result.Ok, null, 'Created, Uploading avatar....', 'form', true);
+				console.log($state.snapshot(formState));
+				let res = await response.json()
+				console.log(res)
+				upload_cover(res.content.id);
 			} else if (response.status == 500) {
 				console.log('SERVER ERROR');
 				updateFormState(
@@ -107,11 +111,65 @@
 		}
 		console.log('hey');
 	}
+
+
+	async function upload_cover(id: SurrealId) {
+		console.log(id)
+		const fileInput: any = document.getElementById('cover');
+		if (fileInput == null) return;
+
+		const file = fileInput.files[0];
+		console.log(file);
+		if (!file) {
+			alert('Please select a file to upload.');
+			return;
+		}
+
+		let formData = new FormData();
+		formData.append('file', file);
+		console.log(formData.values);
+
+		let response = await fetch(`http://localhost:7878/content/cover/upload/${suridToString(id)}`, {
+			method: 'POST',
+			credentials: 'include',
+			body: formData
+		});
+
+		if (response.ok == true) {
+			console.log(await response.json())
+			setTimeout(()=>{
+				updateFormState(formState, Result.Ok, null, 'Uploading success!', 'form', true);
+			}, 3000)
+			open(`/studio/${$page.params.studio}/content`)
+		} else if (response.ok == false) {
+			updateFormState(
+				formState,
+				Result.Err,
+				FormError.UpdateFailed,
+				'avatar',
+				'Update Failed',
+				false
+			);
+		}
+	}
+
+	function pf(e: Event){
+		e.preventDefault()
+	}
 </script>
 
 <main class="page main_bg flex_col mt-5 h-full w-full">
 	<h1 class="mb-7 text-center text-3xl font-extrabold">CONTENT CREATION PAGE</h1>
 	<center>
+	<form
+		enctype="multipart/form-data"
+		class=" flex_col secondary_border mb-9 w-full rounded-md"
+		onsubmit={pf}
+	>
+		<input type="file" name="cover" id="cover" /><br />
+
+	</form>
+
 		<form class="form alt_bg rounded-lg p-3 md:w-96" onsubmit={submit}>
 			<h3 class="float-left mb-4 text-3xl font-extrabold">CREATE CONTENT</h3>
 			<br />

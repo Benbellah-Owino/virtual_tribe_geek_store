@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import type { PageState } from '$lib/types/state/page_state';
 	import stockProfilePic from '$lib/assets/stock_pp.png';
+	import type { UserTypeDef } from '$lib/types/user';
 	let pageState: PageState = $state({
 		inner_state: Result.Ok,
 		error: null,
@@ -17,7 +18,7 @@
 	let creator: Creator = $state({
 		role: '',
 		socials: {
-			twitter: null,
+			twitter_x: null,
 			instagram: null,
 			facebook: null
 		},
@@ -52,7 +53,7 @@
 
 			console.log(res.creator);
 			if (res.creator.socials == null) {
-				res.creator.socials = { facebook: '', twitter: '', instagram: '' };
+				res.creator.socials = { facebook: '', twitter_x: '', instagram: '' };
 			}
 			let db_creator = res.creator;
 
@@ -65,6 +66,7 @@
 	});
 	let errors: FieldError[] = $state([]);
 	async function register(e: Event) {
+		let counter = 0;
 		for (const key in creator) {
 			// if (creator[key] == '') {
 			// 	updateFormState(formState, Result.Err, FormError.PasswordsDontMatch, 'Missing Field', key, false);
@@ -72,47 +74,48 @@
 			// 	return;
 			// }
 			if (creator[key] != creator2[key]) {
+				console.log(`Updating ${key}`);
 				let field = key;
 				let value = creator[key];
 
 				if (key == 'socials') {
-					console.log('social');
 					for (const sk in creator.socials) {
 						if (creator.socials[sk] == null) {
 							continue;
 						}
-						if (creator.socials[sk] != creator2[sk]) {
+						if (creator.socials[sk] !== creator2[sk]) {
 							field = `socials`;
 							value = `${sk};${creator.socials[sk]}`;
+							send_to_db(field, value, key);
+							console.log(`Updating ${sk}: ${value}`);
 						}
-						console.log(`{\n${field}: ${value}\n}`);
 					}
 				}
-				let response = await fetch(`http://localhost:7878/creator`, {
-					method: 'PATCH',
-					credentials: 'include',
-
-					body: JSON.stringify({ field, value }),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-
-				if (response.status == 201) {
-					console.log(creator[key] + ' updated');
-				} else if (response.status == 500) {
-					console.error(creator[key] + ' update error');
-					updateFormState(
-						formState,
-						Result.Err,
-						FormError.UpdateFailed,
-						key,
-						'Update Failed',
-						false
-					);
-					errors.push({ field: key, message: 'Update Failed' });
-				}
+				send_to_db(field, value, key);
+				console.log(`{\n${field}: ${value}\n}`);
+				console.log('ran counter ' + counter + ' times');
+				counter++;
 			}
+		}
+	}
+
+	async function send_to_db(field: string, value: UserTypeDef, key: string) {
+		let response = await fetch(`http://localhost:7878/creator`, {
+			method: 'PATCH',
+			credentials: 'include',
+
+			body: JSON.stringify({ field, value }),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		if (response.status == 201) {
+			console.log(creator[key] + ' updated');
+		} else if (response.status == 500) {
+			console.error(creator[key] + ' update error');
+			updateFormState(formState, Result.Err, FormError.UpdateFailed, key, 'Update Failed', false);
+			errors.push({ field: key, message: 'Update Failed' });
 		}
 	}
 
@@ -214,8 +217,8 @@
 					/>
 				</div>
 				<div class="form_div">
-					<label for="twitter">Twitter/X</label>
-					<input type="text" name="twitter" id="twitter" bind:value={creator.socials.twitter} />
+					<label for="twitter_x">twitter_x/X</label>
+					<input type="text" name="twitter_x" id="twitter_x" bind:value={creator.socials.twitter_x} />
 				</div>
 			</article>
 			<br />

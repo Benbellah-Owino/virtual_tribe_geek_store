@@ -22,3 +22,5 @@ export interface UserForLogin{
     email: string,
     password: string,
 }
+
+export type UserTypeDef =  string | string[]|null| Socials | Date;

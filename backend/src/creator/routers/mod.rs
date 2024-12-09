@@ -206,6 +206,7 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
         let body_bytes: axum::body::Bytes = to_bytes(req.into_body(), 2480).await.unwrap();
         let payload: CreatorForUpdateClient = serde_json::from_slice(&body_bytes).unwrap();
 
+        dbg!(&payload);
         let db = db.unwrap(); //select db
         let creator = update_details(&db, id.to_owned(), payload).await;
 

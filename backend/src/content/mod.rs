@@ -26,7 +26,7 @@ pub struct Content {
     pub description: String,
     pub audiences: String,
     pub recom_price: f32,
-    pub genre: Vec<Thing>,
+    pub genre: Vec<Genre>,
     pub cover: Option<String>
 }
 
@@ -182,6 +182,7 @@ pub struct Episode {
 // section error
 #[derive(Debug, Serialize)]
 pub enum ContentError {
+    NotFound,
     FailedToCreate,
     RetrievalError,
     DetailsUpdateError,

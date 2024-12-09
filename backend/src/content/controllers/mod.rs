@@ -20,6 +20,28 @@ pub async fn store(
 
 }
 
+
+pub async fn get_content(db: &Surreal<Client>, id: String) -> Result<Content, ContentError>{
+    //let id: &str = id.split(":").collect::<Vec<&str>>()[1];
+    //let content: Option<Content> = db.select(("content", id)).await?; 
+    debug!("Getting content from db");
+    let query = format!("SELECT * FROM content WHERE id = {id} FETCH genre");
+    debug!("{query}");
+    let mut res = db.query(&query).await?;
+
+    let content: Option<Content> = res.take(0)?;
+    
+    eprintln!("Content {:?}", &content);
+    eprintln!("Retrieved");
+    if let Some(c) = content{
+        dbg!(&c);
+        return Ok(c);
+    }else{
+        return Err(ContentError::NotFound);
+    }
+}
+
+
 pub async fn get_all(db: &Surreal<Client>) -> Result<Vec<Content>, ContentError> {
     let content_list: Vec<Content> = db.select("content").await?;
     debug!("{:?}", content_list);
@@ -36,24 +58,21 @@ pub async fn list_by_studio(db: &Surreal<Client>, id: String) -> Result<Vec<Cont
 }
 
 
-pub async fn update_details(db: &Surreal<Client>,id:String, payload: ContentForUpdate) -> Result<Content, ContentError>{
-    let id: &str = id.split(":").collect::<Vec<&str>>()[1];
+pub async fn update_details(db: &Surreal<Client>,id:&str, payload: ContentForUpdate) -> Result<Content, ContentError>{
+    debug!("id->  {id}");
     //TODO: test if it accepts different types o
     // Items to update username, password, socials, description,
     let mut res: Option<Content> = None;
+    debug!("{:#?}",&payload);
     let field = payload.field.clone();
 
     match field.as_str() {
-        "title" | "description" | "avatar" => {
+        "title" | "description" | "cover" => {
             res = db
-                .update(("creator", id))
+                .update(("content", id))
                 .merge(json!({&payload.field: &payload.value}))
                 .await
                 .unwrap(); // reset the number of login attempts
-        }
-        "password" => {
-            // Password is also special
-            println!("IS IT THE BRAIDS") //TODO: Implement this
         }
 
         &_ => return Err(ContentError::FailedToCreate), //Change to update error
@@ -62,7 +81,7 @@ pub async fn update_details(db: &Surreal<Client>,id:String, payload: ContentForU
     if res.is_none() {
         Err(ContentError::DetailsUpdateError)
     } else if let Some(c) = res {
-        println!("{:?}", c);
+        debug!("{:?}", c);
         Ok(c)
     } else {
         Err(ContentError::DetailsUpdateError)
