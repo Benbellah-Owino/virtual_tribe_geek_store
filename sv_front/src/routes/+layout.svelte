@@ -1,6 +1,7 @@
 <script lang="ts">
-	import '../app.css';
+	import HorNav from '$lib/components/studio/cards/navbars/HorNav.svelte';
+import '../app.css';
 	let { children } = $props();
 </script>
-
+<HorNav/>
 {@render children()}
