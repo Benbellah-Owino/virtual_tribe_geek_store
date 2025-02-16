@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
-use crate::{helpers::db::thing_from_string, studio::Studio};
+use crate::{helpers::db::thing_from_string, studio::{Studio, StudioFull}};
 
 mod controllers;
 pub mod routers;
@@ -10,19 +10,31 @@ pub mod comic;
 pub mod genre;
 pub mod video;
 
+
+
+// region:      --- Types
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Genre {
     pub id: Thing,
     pub name: String,
     pub description: String,
 }
-// region:      --- Types
+
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ContentList {
+    pub id: Thing,
+    pub title: String,
+    pub rating: f32,
+    pub recom_price: f32,
+
+}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Content {
     pub id: Thing,
     pub title: String,
     pub rating: f32,
-    pub studio: Studio,
+    pub studio: StudioFull,
     pub description: String,
     pub audiences: String,
     pub recom_price: f32,

@@ -1,22 +1,21 @@
 #[allow(unused_imports)]
+use axum::middleware;
 use axum::{routing::get, Router};
 use axum_prometheus::PrometheusMetricLayer;
 use backend::content::routers::content_router;
 use backend::creator::routers::creator_router;
 use backend::studio::routers::studio_router;
 use backend::user::routers::user_router;
-
+use backend::middleware::dev::log_request;
 use backend::dev_initial::db::{connect_db, init_queries};
 
 use http::header::CONTENT_TYPE;
 #[allow(unused_imports)]
 use surrealdb::engine::remote::ws::Ws;
 use tower_cookies::CookieManagerLayer;
-// use surrealdb::opt::auth::Root;
-// use surrealdb::sql::Thing;
-// use surrealdb::Surreal;
 use http::Method;
 use tower_http::cors::CorsLayer;
+use tower::ServiceBuilder;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 #[tokio::main]
@@ -56,6 +55,7 @@ async fn main() -> surrealdb::Result<()> {
         .nest("/user", user_router())
         .nest("/creator", creator_router())
         .layer(CookieManagerLayer::new())
+        .layer(ServiceBuilder::new().layer(middleware::from_fn(log_request)))
         .route("/metrics", get(|| async move { metric_handle.render() }))
         .layer(prometheus_layer)
         .layer(cors)

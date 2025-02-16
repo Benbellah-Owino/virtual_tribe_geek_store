@@ -6,7 +6,7 @@ use axum::{
 use http::{header, StatusCode};
 use serde_json::json;
 use surrealdb::sql::Thing;
-use tracing::{debug, info};
+use tracing::{debug, info, trace};
 
 use crate::{content::{controllers::update_details, ContentForCreateServer, ContentForUpdate}, dev_initial::db::Db, file_upload::{small_file::{self, extract_image}, storage::{self, save_to_disk}}, DbId};
 
@@ -141,7 +141,7 @@ pub async fn list_studio_handler(State(db): State<Db>, AxumPath(studio): AxumPat
     match content_list {
         Ok(c) => (StatusCode::OK, Json(json!({"content_list": c}))).into_response(),
         Err(e) => {
-            dbg!(e);
+            debug!("{:#?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR).into_response()
         }
     }

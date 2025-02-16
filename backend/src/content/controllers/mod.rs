@@ -4,7 +4,7 @@ use tracing::debug;
 
 use crate::DbId;
 
-use super::{Content, ContentError, ContentForCreateServer, ContentForUpdate};
+use super::{Content, ContentError, ContentForCreateServer, ContentForUpdate, ContentList};
 
 pub async fn store(
     content: ContentForCreateServer,
@@ -48,12 +48,13 @@ pub async fn get_all(db: &Surreal<Client>) -> Result<Vec<Content>, ContentError>
     Ok(content_list)
 }
 
-pub async fn list_by_studio(db: &Surreal<Client>, id: String) -> Result<Vec<Content>, ContentError>{
-    let query = format!("SELECT * FROM content WHERE studio = {id};");
+pub async fn list_by_studio(db: &Surreal<Client>, id: String) -> Result<Vec<ContentList>, ContentError>{
+    let query = format!("SELECT * FROM content WHERE studio = {id} FETCH genre;");
     let mut res = db.query(query).await?;
-
-    let content_list: Vec<Content> = res.take(0)?;
-    debug!("{:?}", content_list);
+    dbg!(&res);
+    debug!("Goten content list");
+    let content_list: Vec<ContentList> = res.take(0)?;
+    eprintln!("{:?}", content_list);
     Ok(content_list)
 }
 
@@ -68,6 +69,7 @@ pub async fn update_details(db: &Surreal<Client>,id:&str, payload: ContentForUpd
 
     match field.as_str() {
         "title" | "description" | "cover" => {
+            eprintln!("{id}");
             res = db
                 .update(("content", id))
                 .merge(json!({&payload.field: &payload.value}))
