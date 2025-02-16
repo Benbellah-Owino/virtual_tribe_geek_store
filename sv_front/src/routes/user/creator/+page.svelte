@@ -110,5 +110,8 @@
                 No social media links were provided
 			{/if}
 		</ul>
+		<a class="  primary_txt_hover secondary_bg_hover p-1 mt-4 border border-yellow-300 rounded-xl text-center font-semibold "
+			href="/user/creator/studios"
+			>View Studios</a>
 	{/if}
 </main>

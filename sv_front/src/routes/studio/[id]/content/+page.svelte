@@ -9,6 +9,7 @@
 	let studio_id = $page.params.id;
 
 	console.log(studio_id)
+	
 	onMount(async () => {
 		let response = await fetch(`http://localhost:7878/content/studio/${studio_id}`, {
 			method: 'GET',
@@ -24,16 +25,43 @@
             contents = res.content_list
 
 		} else if (response.ok == false) {
+			console.error("Content not found");
 		}
 	});
 </script>
 
 <main class="page">
+
+	<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Studio Content list</h1>
     <section class="content_list" id="content_list">
-        {#each contents as content }
-            <a href="/content/{surrealIdToString(content.id)}">{content.title}</a>
-        {/each}
-		<hr>
-        <a href="/content/create/{studio_id}" class="main_border rounded">Add content</a>
+		<table class=" table_border tbl_txt w-11/12 m-auto p-0 table-auto border-separate border-spacing-0 rounded">
+			<thead>
+				<tr class="text-center">
+					<th>Title</th>
+					<th>Recommended price</th>
+					<th>Rating</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{#each contents as content }
+					<tr class="p-1">
+						<td class=" p-2 text-left">{content.title}</td>
+						<td class=" p-2 text-left">ksh {content.recom_price}</td>
+						<td class=" p-2 text-left">{content.rating}</td>
+						<td class="p-2 text-center">
+            				<a class="primary_txt secondary_bg tertiary_bg_hover p-1 m-auto w-14 border border-yellow-300 rounded-xl text-center text-sm font-bold"
+							target="_blank" href="/content/{surrealIdToString(content.id)}">view</a><br>
+						</td>
+
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+		<div class="back_btn p-3 w-full flex_center mt-5">
+			<a class="  primary_txt_hover secondary_bg_hover p-1  border border-yellow-300 rounded-xl text-center font-semibold "
+			href="/content/create/{studio_id}"
+			>Add Content</a>
+		</div>
     </section>
 </main>

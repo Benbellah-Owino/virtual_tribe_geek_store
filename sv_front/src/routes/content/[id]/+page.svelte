@@ -100,6 +100,11 @@
 			</li>
 		</ul>
 
+		<div class="back_btn p-3 w-full flex_center">
+			<a class="  primary_txt_hover secondary_bg_hover p-1 w-14 border border-yellow-300 rounded-xl text-center font-semibold "
+			href="/studio/{content.studio?.id.tb}:{content.studio?.id.id.String}/content" 
+			>back</a>
+		</div>
 		<!-- <a href="/content/{content_id}/content" class="">Click here to view this contents content</a> -->
 	{:else if pageState.inner_state == Result.Err}
 		<h3 class="error">{pageState.message}</h3>
