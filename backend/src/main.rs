@@ -4,6 +4,7 @@ use axum::{routing::get, Router};
 use axum_prometheus::PrometheusMetricLayer;
 use backend::content::routers::content_router;
 use backend::creator::routers::creator_router;
+use backend::middleware::auth::cookies::list_cookies;
 use backend::studio::routers::studio_router;
 use backend::user::routers::user_router;
 use backend::middleware::dev::log_request;
@@ -50,6 +51,7 @@ async fn main() -> surrealdb::Result<()> {
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, world" }))
+        .layer(ServiceBuilder::new().layer(middleware::from_fn(list_cookies)))
         .nest("/content", content_router())
         .nest("/studio", studio_router())
         .nest("/user", user_router())

@@ -110,6 +110,7 @@ async fn login_handler(
         Ok(claims) => {
             match gen_auth_cookie(&claims, &cookies) {
                 // Generating the auth token and saving it as a cookie then handling the error
+                //TODO: Check if many people log in at the same time,does it affect genaration of auth cookie
                 Ok(_) => {
                     if let Ok(_refresh_token) = gen_refresh_cookie(&claims, &db).await {
                         //Generate refresh token and save it to db
