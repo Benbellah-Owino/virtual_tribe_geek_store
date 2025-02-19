@@ -1,11 +1,6 @@
-export async function load(){
-    document.cookie = 'auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+import { redirect } from "@sveltejs/kit"
 
-    await fetch(`http://localhost:7878/logout`, {
-			method: 'POST',
-			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
+export async function load(){
+    document.cookie = 'auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 UTC;'
+	redirect(301,'/user/creator/login')
 }
