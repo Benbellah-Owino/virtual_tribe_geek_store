@@ -4,7 +4,7 @@ use axum::{extract::Request, response::Response};
 use dotenv::dotenv;
 use serde::Deserialize;
 use serde_json::json;
-use tracing_subscriber::field::debug;
+//use tracing_subscriber::field::debug;
 use std::env;
 use surrealdb::{engine::remote::ws::Client, sql::Thing, Surreal};
 use tower_cookies::{Cookie, Cookies};

@@ -76,7 +76,7 @@ pub async fn create_handler(State(db): State<Db>, req: Request) -> impl IntoResp
             Ok(s) => {
                 eprintln!("created {:?}", &s);
                 info!("tag5");
-                return (StatusCode::OK, Json(json!({"payload": s})));
+                return (StatusCode::CREATED, Json(json!({"payload": s})));
             }
             Err(e) => {
                 info!("tag6");

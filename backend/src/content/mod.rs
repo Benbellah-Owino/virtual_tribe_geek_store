@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
-use crate::{helpers::db::thing_from_string, studio::{Studio, StudioFull}};
+use crate::{helpers::db::thing_from_string, studio::StudioFull};
 
 mod controllers;
 pub mod routers;
