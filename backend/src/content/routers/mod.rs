@@ -11,14 +11,14 @@ use tracing::{debug, info, trace};
 use crate::{content::{controllers::update_details, ContentForCreateServer, ContentForUpdate}, dev_initial::db::Db, file_upload::{small_file::{self, extract_image}, storage::{self, save_to_disk}}, DbId};
 
 use super::{
-    controllers::{get_all, get_content, list_by_studio, store},
-    genre::routers::genre_router, ContentError,
+    comic::routers::comic_router, controllers::{get_all, get_content, list_by_studio, store}, genre::routers::genre_router, ContentError
 };
 use crate::content::ContentForCreateClient;
 
 // region:      --- Router
 pub fn content_router() -> Router<Db> {
     Router::new()
+        .nest("/comic", comic_router())
         .nest("/genre", genre_router())
         .route("/studio/:studio", get(list_studio_handler))
         .route("/cover/:path", get(get_image))

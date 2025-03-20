@@ -73,13 +73,11 @@ DEFINE FIELD cover ON TABLE content TYPE option<string>;
 
 -- region:      -- Comic table
 DEFINE TABLE IF NOT EXISTS comic SCHEMAFULL;
-DEFINE FIELD volumes ON TABLE comic TYPE number;
-DEFINE FIELD chapters ON TABLE comic TYPE number;
+DEFINE FIELD volumes ON TABLE comic TYPE number DEFAULT 0;
+DEFINE FIELD chapters ON TABLE comic TYPE number DEFAULT 0;
 DEFINE FIELD writer ON TABLE comic TYPE array<string>;
 DEFINE FIELD artist ON TABLE comic TYPE array<string>;
 DEFINE FIELD creator ON TABLE comic TYPE array<record<creator>>;
-DEFINE FIELD isbn ON TABLE comic TYPE option<string>;
-DEFINE FIELD category ON TABLE comic TYPE string;
 DEFINE FIELD created_at ON TABLE comic TYPE datetime DEFAULT time::now();
 DEFINE FIELD cover ON TABLE comic TYPE option<string>;
 

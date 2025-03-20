@@ -90,25 +90,18 @@ pub struct Comic {
     pub id: Thing,
     pub volumes: u16,
     pub chapters: u16,
-    pub writer: Vec<Thing>,
-    pub artist: Vec<Thing>,
-    pub isbn: Option<String>,
-    pub category: String,
+    pub writer: Vec<String>,
+    pub artist: Vec<String>,
+    pub creator: Vec<Thing>,
     pub created_at: String,
     pub cover: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ComicForCreate {
-    pub id: Thing,
-    pub volumes: u16,
-    pub chapters: u16,
     pub writer: Vec<String>,
     pub artist: Vec<String>,
     pub creator: Vec<Thing>,
-    pub isbn: Option<String>,
-    pub category: String,
-    pub created_at: String,
     pub cover: Option<String>,
 }
 
