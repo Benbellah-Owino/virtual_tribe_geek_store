@@ -4,7 +4,7 @@ use tracing::debug;
 
 use crate::DbId;
 
-use super::{Content, ContentError, ContentForCreateServer, ContentForUpdate, ContentList, ContentUpdated};
+use super::{Content, ContentError, ContentForCreateServer, ContentForUpdate, ContentList};
 
 pub async fn store(
     content: ContentForCreateServer,

@@ -5,7 +5,7 @@ use axum::{
         Path as AxumPath
     },
     response::IntoResponse, routing::Router, Json,
-    routing::{get, post, delete}
+    routing::get
 };
 use http::StatusCode;
 use serde_json::json;

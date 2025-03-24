@@ -1,14 +1,13 @@
-use std::path::{self, Path};
+use std::path::{Path};
 
 use axum::{
     body::Body, extract::{DefaultBodyLimit, Multipart, Path as AxumPath, State}, response::{IntoResponse, Response}, routing::{get, post}, Json, Router
 };
 use http::{header, StatusCode};
 use serde_json::json;
-use surrealdb::sql::Thing;
-use tracing::{debug, info, trace};
+use tracing::{debug, info};
 
-use crate::{content::{controllers::update_details, ContentForCreateServer, ContentForUpdate}, dev_initial::db::Db, file_upload::{small_file::{self, extract_image}, storage::{self, save_to_disk}}, DbId};
+use crate::{content::{controllers::update_details, ContentForCreateServer, ContentForUpdate}, dev_initial::db::Db, file_upload::{small_file::{self, extract_image}, storage::{self, save_to_disk}}};
 
 use super::{
     comic::routers::comic_router, controllers::{get_all, get_content, list_by_studio, store}, genre::routers::genre_router, ContentError
