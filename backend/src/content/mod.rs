@@ -43,6 +43,18 @@ pub struct Content {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ContentUpdated {
+    //TODO Find a way to return genre
+    pub id: Thing,
+    pub title: String,
+    pub rating: f32,
+    pub studio: StudioFull,
+    pub description: String,
+    pub audiences: String,
+    pub recom_price: f32,
+    pub cover: Option<String>
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ContentForCreateClient {
     pub title: String,
     pub studio: String,
