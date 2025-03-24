@@ -50,9 +50,19 @@ let pageState: PageState = $state({
         <center>Loading studios...</center>
     {:else if pageState.loading == false && pageState.inner_state == Result.Ok}
         <section class="studios flex_col w-full h-fit mt-2 ">
-            {#each studios as studio }
-                <StudioListCard {studio}/>
-            {/each}
+			{#if studios.length > 0}	
+				{#each studios as studio }
+					<StudioListCard {studio}/>
+				{/each}
+			{:else}
+				<h3 class="font-bold text-4xl">No studios found</h3>
+				
+				<div class="back_btn p-3 w-full flex_center mt-5">
+					<a class="  primary_txt_hover secondary_bg_hover p-1  border border-yellow-300 rounded-xl text-center font-semibold "
+				href="/studio/create"
+				>Add Studio</a>
+		</div>
+			{/if}
         </section>
     {:else if pageState.inner_state == Result.Err}
         <h3 class="error">{pageState.message}</h3>

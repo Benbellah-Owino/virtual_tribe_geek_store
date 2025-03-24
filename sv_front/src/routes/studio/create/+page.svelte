@@ -55,6 +55,8 @@
 					updateFormState(formState, Result.Ok, null, 'Registration success', 'form', true);
 					console.log($state.snapshot(formState));
 				}, 3000);
+				console.log('created')
+				window.open('/user/creator/studios','_self');
 			} else if (response.status == 500) {
 				updateFormState(
 					formState,

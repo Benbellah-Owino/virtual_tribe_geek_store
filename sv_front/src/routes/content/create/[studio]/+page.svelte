@@ -142,6 +142,7 @@
 			}, 3000)
 			open(`/studio/${$page.params.studio}/content`)
 		} else if (response.ok == false) {
+			console.log('Cover update failed');
 			updateFormState(
 				formState,
 				Result.Err,
@@ -150,6 +151,10 @@
 				'Update Failed',
 				false
 			);
+		}else{
+			console.log('Cover update failed');
+			console.log(response.ok);
+			console.log(response.status);
 		}
 	}
 

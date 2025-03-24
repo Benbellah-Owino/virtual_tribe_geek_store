@@ -54,10 +54,9 @@ DEFINE FIELD login_attempts ON TABLE user TYPE number DEFAULT 0;
 DEFINE TABLE IF NOT EXISTS genre SCHEMAFULL;
 DEFINE FIELD name ON TABLE genre TYPE string ASSERT string::len($value) <= 30;
 DEFINE FIELD description ON TABLE genre TYPE string ASSERT string::len($value) <= 1000;
-INSERT INTO genre(name, description) VALUES ('Fantasy', 'a genre of speculative fiction which involves themes of the supernatural, magic, and imaginary worlds and creatures.');
-
-INSERT INTO genre(name, description) VALUES ('Sci-Fi', 'A genre that explores the future through the lens of science and technology');
-INSERT INTO genre(name, description) VALUES ('Superheroe', 'A subgenre of speculative fiction that features costumed crime fighters with extraordinary powers.');
+INSERT INTO genre(name, description) VALUES ("Fantasy", "A genre of speculative fiction which involves themes of the supernatural, magic, and imaginary worlds and creatures.");
+INSERT INTO genre(name, description) VALUES ("Sci-Fi", "A genre that explores the future through the lens of science and technology");
+INSERT INTO genre(name, description) VALUES ("Superheroe", "A subgenre of speculative fiction that features costumed crime fighters with extraordinary powers.");
 -- endregion:   -- Genre table
 
 DEFINE TABLE IF NOT EXISTS content SCHEMAFULL;
