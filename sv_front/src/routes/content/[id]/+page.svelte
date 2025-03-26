@@ -48,6 +48,7 @@
 			console.log($state.snapshot(content));
 			pageState.loading = false;
 		} else if (response.ok == false) {
+			console.error("failed")
 			if (response.status == 401) {
 				updatePageState(
 					pageState,
@@ -59,6 +60,14 @@
 				setTimeout(() => {
 					window.open('content/login', '_self');
 				}, 5000);
+			}else if (response.status == 404) {
+				updatePageState(
+					pageState,
+					Result.Err,
+					PageError.Unauthorized,
+					false,
+					"The requested content doesn't exist"
+				);
 			}
 		}
 	});
@@ -99,7 +108,15 @@
 				<p class="text-sm">{content.description}</p>
 			</li>
 		</ul>
+		
+		<!-- TODO Add authoirization logic to this component -->
 
+		<div class="back_btn p-3 w-full flex_center">
+			<a class="  primary_txt_hover secondary_bg_hover p-1 w-auto border border-yellow-300 rounded-xl text-center font-semibold "
+			href="/content/comics/create/{content_id}/" 
+			>Attach comic</a>
+		</div>
+		<!--  -->
 		<div class="back_btn p-3 w-full flex_center">
 			<a class="  primary_txt_hover secondary_bg_hover p-1 w-14 border border-yellow-300 rounded-xl text-center font-semibold "
 			href="/studio/{content.studio?.id.tb}:{content.studio?.id.id.String}/content" 
