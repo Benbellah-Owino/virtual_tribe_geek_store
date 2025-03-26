@@ -193,6 +193,12 @@ body {
 .table_border_b {
 	border-bottom: 0.5px solid var(--secondary)
 }
+
+.secondary_border_tlr {
+	border-top: 1px solid var(--secondary);
+	border-left: 1px solid var(--secondary);
+	border-right: 1px solid var(--secondary);
+}
 /* endregion:   --- Border */
 
 

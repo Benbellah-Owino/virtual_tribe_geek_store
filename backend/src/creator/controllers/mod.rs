@@ -3,7 +3,7 @@ use serde_json::json;
 use surrealdb::{engine::remote::ws::Client, Surreal};
 
 use crate::{
-    creator::{CreatorError, CreatorForLoginSuccess},
+    creator::{CreatorDetailsList, CreatorError, CreatorForLoginSuccess},
     middleware::auth::jwt::Claims,
     studio::StudioFull,
     AvatarUrl,
@@ -215,12 +215,12 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<CreatorDeta
     }
 }
 ///
-pub async fn index(db: &Surreal<Client>) -> Result<Vec<CreatorDetails>, CreatorError> {
+pub async fn index(db: &Surreal<Client>) -> Result<Vec<CreatorDetailsList>, CreatorError> {
     println!(
         "\n\n{:<12}=====================================================================\n\n",
         "creator::index()"
     );
-    let creator: Result<Vec<CreatorDetails>, surrealdb::Error> = db.select(("creator")).await;
+    let creator: Result<Vec<CreatorDetailsList>, surrealdb::Error> = db.select("creator").await;
 
     match creator {
         Ok(c) => {

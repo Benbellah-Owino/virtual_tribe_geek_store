@@ -4,6 +4,41 @@
 	import { Result } from '$lib/types/result';
 	import type { ComicForCreate } from '$lib/types/content';
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { surrealIdToString } from '$lib/helper_functions.ts/converters';
+	import type { SurrealId } from '$lib/types/server';
+
+	let creators: any[];
+	let proc_c = $state('');
+	let found_creators: string;
+	('');
+	let comic_creators: string[];
+	let search_c: any[] = $state([]);
+
+	$effect(() => {
+		if (proc_c == '') {
+			search_c = [];
+		}
+	});
+
+	onMount(async () => {
+		let response = await fetch(`http://localhost:7878/creator/list`, {
+			method: 'GET',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		if (response.ok == true) {
+			let res = await response.json();
+			creators = res.creators;
+		
+
+			console.log(creators);
+		} else if (response.ok == false) {
+		}
+	});
 
 	let formState: FormState = $state({
 		inner_state: Result.Ok,
@@ -23,7 +58,7 @@
 	async function submit(e: Event) {
 		e.preventDefault();
 		console.log('submit');
-		console.log($state.snapshot(comic_form))
+		console.log($state.snapshot(comic_form));
 	}
 
 	// async function submit(e: Event) {
@@ -128,6 +163,40 @@
 				{/if}
 			</div>
 
+			<div class="form_div">
+				<label for="email">Creators</label>
+				<input type="text" name="creators" id="creators" bind:value={comic_form.creator} />
+				<input
+					type="search"
+					name="creator_search"
+					id="creator_search"
+					oninput={(e) => {
+						search_c = [];
+						proc_c = e.target.value;
+						search_c = creators.filter((c: { username: string }) => {
+							return c.username.includes(proc_c);
+						});
+
+						console.log($state.snapshot(search_c));
+					}}
+				/>
+				<!-- TODO: Create tags with creators names to give user ability to delete creators -->
+				<div class="found_creators flex_col secondary_borderb m-auto">
+					{#each search_c as s (s.username)}
+						<button class="secondary_border_tlr main_bg_hover w-40 p-1 rounded-sm" id={s}>{s.username}</button>
+					{/each}
+				</div>
+				<!-- <button
+					class="primary_btn"
+					onclick={(e) => {
+						e.preventDefault;
+						console.log($state.snapshot(search_c));
+					}}>click</button
+				> -->
+				{#if formState.inner_state == Result.Err && formState.target == 'artists'}
+					<p class="error text-red-500">{formState.message}</p>
+				{/if}
+			</div>
 			<button type="submit" class="btn primary_btn w-11/12">submit</button>
 			<br /><br />
 		</form>

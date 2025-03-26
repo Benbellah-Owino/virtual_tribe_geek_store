@@ -196,7 +196,7 @@ pub async fn get_creators(State(db): State<Db>) -> impl IntoResponse {
         //TODO: Paginate the results
         let creator = index(&db).await;
         match creator {
-            Ok(c) => (StatusCode::OK, Json(json!({"creator": c}))),
+            Ok(c) => (StatusCode::OK, Json(json!({"creators": c}))),
             Err(_) => (
                 StatusCode::NOT_FOUND,
                 Json(json!({"msg": "Creator not found"})),
