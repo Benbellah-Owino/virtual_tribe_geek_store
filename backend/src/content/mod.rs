@@ -107,6 +107,7 @@ pub struct Comic {
     pub creator: Vec<Thing>,
     pub created_at: String,
     pub cover: Option<String>,
+    pub content: Thing
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -114,7 +115,7 @@ pub struct ComicForCreate {
     pub writer: Vec<String>,
     pub artist: Vec<String>,
     pub creator: Vec<Thing>,
-    pub cover: Option<String>,
+    pub content: Thing
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
