@@ -3,7 +3,10 @@ use serde_json::json;
 use surrealdb::{engine::remote::ws::Client, Surreal};
 
 use crate::{
-    creator::{CreatorError, CreatorForLoginSuccess}, middleware::auth::jwt::Claims, studio::StudioFull, AvatarUrl
+    creator::{CreatorError, CreatorForLoginSuccess},
+    middleware::auth::jwt::Claims,
+    studio::StudioFull,
+    AvatarUrl,
 };
 
 use super::{
@@ -159,7 +162,7 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
                             .unwrap(); // reset the number of login attempts
 
                         println!("\n\n============================================================================================\n\n\n");
-                        Ok(ret_crt)//return the Claim necessary for a cookie
+                        Ok(ret_crt) //return the Claim necessary for a cookie
                     } else {
                         print!("Wrong credentials");
                         // TODO:-> Give appropriate message for wrong credentials
@@ -170,7 +173,7 @@ pub async fn login(db: &Surreal<Client>, creator: CreatorForLogin) -> Result<Cla
                             .unwrap();
                         dbg!("Update failed", query);
                         println!("\n\n============================================================================================\n\n\n");
-                        Err(CreatorError::WrongCredentialsError)//else
+                        Err(CreatorError::WrongCredentialsError) //else
                     }
                 }
                 Err(e) => {
@@ -211,7 +214,25 @@ pub async fn get_details(db: &Surreal<Client>, id: String) -> Result<CreatorDeta
         Err(_) => Err(CreatorError::DetailsRetrievingError),
     }
 }
+///
+pub async fn index(db: &Surreal<Client>) -> Result<Vec<CreatorDetails>, CreatorError> {
+    println!(
+        "\n\n{:<12}=====================================================================\n\n",
+        "creator::index()"
+    );
+    let creator: Result<Vec<CreatorDetails>, surrealdb::Error> = db.select(("creator")).await;
 
+    match creator {
+        Ok(c) => {
+            // dbg!(&c);
+            Ok(c)
+        }
+        Err(e) => {
+            dbg!(e);
+            Err(CreatorError::DetailsRetrievingError)
+        }
+    }
+}
 
 #[allow(dead_code)]
 pub async fn get_avatar_url(db: &Surreal<Client>, id: String) -> Result<AvatarUrl, CreatorError> {
@@ -340,11 +361,14 @@ pub async fn delete_creator(
 }
 //async fn get_details() -> Result<Vec<CreatorForCreate>, CreatorError>{}
 
-pub async fn get_studios(db: &Surreal<Client>, id: String) -> Result<Vec<StudioFull>, CreatorError>{
+pub async fn get_studios(
+    db: &Surreal<Client>,
+    id: String,
+) -> Result<Vec<StudioFull>, CreatorError> {
     let query = format!("SELECT * FROM studio WHERE owner = {id};");
     debug!("{query}");
     let studios: Vec<StudioFull> = db.query(query).await?.take(0)?;
-    
+
     Ok(studios)
 }
 // endsection:   -- controllers

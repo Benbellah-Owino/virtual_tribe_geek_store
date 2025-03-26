@@ -19,7 +19,7 @@ use crate::file_upload::small_file::{self, extract_image};
 use crate::file_upload::storage::{save_to_disk, store};
 use crate::middleware::auth::cookies::{gen_auth_cookie, gen_refresh_cookie, verify_user};
 
-use super::controllers::{get_details, get_studios, login, register, update_details};
+use super::controllers::{get_details,index,  get_studios, login, register, update_details};
 use super::{CreatorForCreate, CreatorForLogin, CreatorForUpdateClient};
 
 // endsection:   -- imports
@@ -37,6 +37,7 @@ pub fn creator_router() -> Router<Db> {
         )
         .layer(middleware::from_fn(verify_user))
         .route("/studio/:id", get(list_studios_handler))
+        .route("/list", get(get_creators))
         .route("/", post(register_handler))
         .route("/login", post(login_handler))
 }
@@ -175,10 +176,35 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
     }
 }
 
-// #[axum_macros::debug_handler]
-// pub async fn details_update_handler(State(db): State<Db>, Json(payload):Json<Vec<CreatorForUpdate>>) -> impl IntoResponse{
-#[axum_macros::debug_handler]
-/// <h1> Handles updating details of Creators </h1>
+/// <h1> Handles getting details of all Creators </h1>
+/// <h2> <b>Endpoint: /creator </b> </h2>
+///
+/// <h3> No request body</h3>
+///
+/// <p>
+///     Empty parameters <br>
+///     Need auth token <br>
+/// </p>
+/// <br><hr>
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 302</li>
+///     <li> <b>Err</b> : 404</li>
+/// </ul>
+pub async fn get_creators(State(db): State<Db>) -> impl IntoResponse {
+        let db = db.unwrap();
+        //TODO: Paginate the results
+        let creator = index(&db).await;
+        match creator {
+            Ok(c) => (StatusCode::OK, Json(json!({"creator": c}))),
+            Err(_) => (
+                StatusCode::NOT_FOUND,
+                Json(json!({"msg": "Creator not found"})),
+            ),
+        }
+}
+
+    /// <h1> Handles updating details of Creators </h1>
 /// <h2> <b>Endpoint:  <strong>[PATHC]</strong>  /creator </b> </h2>
 ///
 /// <h3> Request body</h3>
