@@ -26,3 +26,12 @@ export interface Genre{
     name: string,
     description: string,
 }
+
+
+export interface ComicForCreate{
+    [key:string]: string | string[]|  number | SurrealId[] |null;
+    content: string,
+    writer: string[],    
+    artist: string[],
+    creator: SurrealId[],
+}
