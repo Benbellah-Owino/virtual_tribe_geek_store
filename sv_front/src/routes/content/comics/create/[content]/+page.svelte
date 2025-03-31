@@ -10,7 +10,7 @@
 
 	let creators: any[];
 	let proc_c = $state('');
-	let found_creators: string;
+	let found_creators: any[]= $state([{username: "dog_nigga"}, {username:"cubanlink"}]);
 	('');
 	let comic_creators: string[];
 	let search_c: any[] = $state([]);
@@ -132,7 +132,7 @@
 
 <main class="page main_bg flex_col mt-5 h-full w-full">
 	<h1 class="mb-7 text-center text-3xl font-extrabold">STUDIO CREATION PAGE</h1>
-	<center>
+	<center class="w-full">
 		<form
 			enctype="multipart/form-data"
 			class=" flex_col secondary_border mb-9 w-full rounded-md"
@@ -140,7 +140,7 @@
 		>
 			<input type="file" name="cover" id="cover" /><br />
 		</form>
-		<form class="form alt_bg rounded-lg p-3 md:w-96" onsubmit={submit}>
+		<form class="form alt_bg rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={submit}>
 			<h3 class="float-left mb-4 text-3xl font-extrabold">CREATE STUDIO</h3>
 			<br />
 			{#if formState.inner_state == Result.Ok && formState.target == 'form'}
@@ -164,15 +164,24 @@
 			</div>
 
 			<div class="form_div">
-				<label for="email">Creators</label>
-				<input type="text" name="creators" id="creators" bind:value={comic_form.creator} />
+				<label for="creators">Creators</label>
+				<div class="creators flex_row m-2" id="creators">
+					{#each found_creators as s (s.username)}
+						<div class="creator_tag main_bg_hover secondary_border mx-1 p-1 rounded-full cursor-pointer text-xs" id={s.username}>
+							{s.username}
+							<button onclick={()=> found_creators = found_creators.filter((c)=>{
+								return c.username != s.username
+							}) }>x</button>
+						</div>
+					{/each}
+				</div>
 				<input
 					type="search"
 					name="creator_search"
 					id="creator_search"
 					oninput={(e) => {
 						search_c = [];
-						proc_c = e.target.value;
+						proc_c =e.target?.value;
 						search_c = creators.filter((c: { username: string }) => {
 							return c.username.includes(proc_c);
 						});
@@ -181,9 +190,15 @@
 					}}
 				/>
 				<!-- TODO: Create tags with creators names to give user ability to delete creators -->
-				<div class="found_creators flex_col secondary_borderb m-auto">
+				<div class="found_creators flex_col secondary_borderb m-auto bg-black">
 					{#each search_c as s (s.username)}
-						<button class="secondary_border_tlr main_bg_hover w-40 p-1 rounded-sm" id={s}>{s.username}</button>
+						<button 
+						class="secondary_border_tlr main_bg_hover w-72 p-1 rounded-sm" id={s}
+						onclick={()=>{
+							if(!found_creators.some(c => c.username === s.username)){
+								found_creators.push(s)
+							}
+						}}>{s.username}</button>
 					{/each}
 				</div>
 				<!-- <button
