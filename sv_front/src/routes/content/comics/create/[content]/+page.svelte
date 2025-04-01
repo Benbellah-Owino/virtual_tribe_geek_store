@@ -7,7 +7,9 @@
 	import { onMount } from 'svelte';
 	import { surrealIdToString } from '$lib/helper_functions.ts/converters';
 	import type { SurrealId } from '$lib/types/server';
+	import { preventDefault } from 'svelte/legacy';
 
+	// Creators
 	let creators: any[];
 	let proc_c = $state('');
 	let found_creators: any[]= $state([{username: "dog_nigga"}, {username:"cubanlink"}]);
@@ -15,6 +17,15 @@
 	let comic_creators: string[];
 	let search_c: any[] = $state([]);
 
+	// Writers
+	let writers: {id: number, name:string}[] = $state([]);
+	let writerStr: string = $state("");
+	let writerId = 0;
+
+	// artists
+	let artists: {id: number, name:string}[] = $state([]);
+	let artistStr: string = $state("");
+	let artistId = 0;
 	$effect(() => {
 		if (proc_c == '') {
 			search_c = [];
@@ -35,7 +46,7 @@
 			creators = res.creators;
 		
 
-			console.log(creators);
+			// console.log(creators);
 		} else if (response.ok == false) {
 		}
 	});
@@ -57,8 +68,21 @@
 
 	async function submit(e: Event) {
 		e.preventDefault();
+		console.log('-----------------------------------------');
 		console.log('submit');
+		comic_form.writer = writers.map((m)=>{
+			return m.name
+		})
+		comic_form.artist = artists.map((m)=>{
+			return m.name
+		})
+		comic_form.creator = found_creators.map((m)=>{
+			return m.id
+		})
 		console.log($state.snapshot(comic_form));
+		console.log($state.snapshot(found_creators))
+		console.log('-----------------------------------------');
+		//TODO: Send to backend
 	}
 
 	// async function submit(e: Event) {
@@ -150,14 +174,55 @@
 			{/if}
 			<div class="form_div">
 				<label for="name">Writers</label>
-				<input type="text" name="writers" id="writers" bind:value={comic_form.writer} />
+				<div class="creators flex_row m-2" id="creators">
+					{#each writers as w(w.id)}
+						<div class="creator_tag secondary_bg_hover primary_txt_hover secondary_border mx-1 p-1 rounded-full cursor-pointer text-xs" id={`${w.id}_${w.name}`}>
+							{w.name}
+							<button onclick={()=> writers = writers.filter((wr)=>{
+								return wr.id != w.id
+							}) }>x</button>
+						</div>
+					{/each}
+				</div>
+				<input type="text" name="writers" id="writers" bind:value={writerStr} 
+				oninput={(e) => {
+					if(writerStr.charAt(writerStr.length - 1) ==','){
+						writers.push({id: writerId,name: writerStr.substring(0, writerStr.length - 1)});
+						writerStr = '';
+						writerId++;
+						console.log($state.snapshot(writers))
+						
+					}
+					// writers= writerStr.split(',');
+					// console.log($state.snapshot(writers))
+				}}/>
 				{#if formState.inner_state == Result.Err && formState.target == 'writers'}
 					<p class="error text-red-500">{formState.message}</p>
 				{/if}
 			</div>
 			<div class="form_div">
 				<label for="email">Artists</label>
-				<input type="text" name="artists" id="artists" bind:value={comic_form.artist} />
+				<div class="creators flex_row m-2" id="creators">
+					{#each artists as a(a.id)}
+						<div class="creator_tag secondary_bg_hover primary_txt_hover secondary_border mx-1 p-1 rounded-full cursor-pointer text-xs" id={`${a.id}_${a.name}`}>
+							{a.name}
+							<button onclick={()=> artists = artists.filter((ar)=>{
+								return ar.id != a.id
+							}) }>x</button>
+						</div>
+					{/each}
+				</div>
+				<input type="text" name="artists" id="artists" bind:value={artistStr} 
+				oninput={(e) => {
+					if(artistStr.charAt(artistStr.length - 1) ==','){
+						artists.push({id: artistId,name: artistStr.substring(0, artistStr.length - 1)});
+						artistStr = '';
+						artistId++;
+						console.log($state.snapshot(artists))
+						
+					}
+				}}
+				/>
 				{#if formState.inner_state == Result.Err && formState.target == 'artists'}
 					<p class="error text-red-500">{formState.message}</p>
 				{/if}
@@ -179,6 +244,7 @@
 					type="search"
 					name="creator_search"
 					id="creator_search"
+					placeholder="search for creators"
 					oninput={(e) => {
 						search_c = [];
 						proc_c =e.target?.value;
@@ -186,7 +252,7 @@
 							return c.username.includes(proc_c);
 						});
 
-						console.log($state.snapshot(search_c));
+						// console.log($state.snapshot(search_c));
 					}}
 				/>
 				<!-- TODO: Create tags with creators names to give user ability to delete creators -->
@@ -194,7 +260,8 @@
 					{#each search_c as s (s.username)}
 						<button 
 						class="secondary_border_tlr main_bg_hover w-72 p-1 rounded-sm" id={s}
-						onclick={()=>{
+						onclick={(e)=>{
+							e.preventDefault();
 							if(!found_creators.some(c => c.username === s.username)){
 								found_creators.push(s)
 							}
