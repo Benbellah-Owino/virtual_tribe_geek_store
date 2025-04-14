@@ -26,13 +26,12 @@ pub async fn get_content(db: &Surreal<Client>, id: String) -> Result<Content, Co
     //let content: Option<Content> = db.select(("content", id)).await?; 
     debug!("Getting content from db");
     let query = format!("SELECT * FROM content WHERE id = {id} FETCH genre, studio");
-    debug!("{query}");
     let mut res = db.query(&query).await?;
 
     let content: Option<Content> = res.take(0)?;
     
-    eprintln!("Content {:?}", &content);
-    eprintln!("Retrieved");
+    // eprintln!("Content {:?}", &content);
+    // eprintln!("Retrieved");
     if let Some(c) = content{
         dbg!(&c);
         return Ok(c);

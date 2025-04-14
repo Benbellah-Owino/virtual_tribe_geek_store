@@ -109,7 +109,7 @@ async fn list(State(db): State<Db>) -> impl IntoResponse {
 #[allow(dead_code)]
 async fn show(State(db): State<Db>, AxumPath(content): AxumPath<String>) -> impl IntoResponse {
     let db = db.unwrap();
-    debug!("Get Content {}", &content);
+    // debug!("Get Content {}", &content);
     match get_content(&db, content).await{
         Ok(c) => {
             (StatusCode::OK, Json(json!({"content": c}))).into_response()

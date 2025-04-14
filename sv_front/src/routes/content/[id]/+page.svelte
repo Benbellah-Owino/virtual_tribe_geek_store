@@ -32,6 +32,7 @@
 		message: ''
 	});
 	onMount(async () => {
+		// Get content
 		let response = await fetch(`http://localhost:7878/content/${content_id}`, {
 			method: 'GET',
 			credentials: 'include',
@@ -70,6 +71,47 @@
 				);
 			}
 		}
+
+		// GET COMIC DETAILS
+		let cont = content_id.split(':')
+		let response2 = await fetch(`http://localhost:7878/content/comic/index?content=${cont[1]}`, {
+			method: 'GET',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		if (response2.ok == true) {
+			//UNIMPLEMENTED
+			let res = await response2.json();
+			// console.log($state.snapshot(res));
+			console.log(res);
+			pageState.loading = false;
+		} else if (response2.ok == false) {
+			console.error("failed")
+			if (response.status == 401) {
+				updatePageState(
+					pageState,
+					Result.Err,
+					PageError.Unauthorized,
+					false,
+					'You are not authorized! Redirecting you to login page...'
+				);
+				setTimeout(() => {
+					window.open('content/login', '_self');
+				}, 5000);
+			}else if (response2.status == 404) {
+				updatePageState(
+					pageState,
+					Result.Err,
+					PageError.Unauthorized,
+					false,
+					"The requested content doesn't exist"
+				);
+			}
+		}
+
 	});
 	// TODO: Finish this page
 </script>
@@ -110,7 +152,8 @@
 		</ul>
 		
 		<!-- TODO Add authoirization logic to this component -->
-
+		
+		<!-- COMIC INFO -->
 		<div class="back_btn p-3 w-full flex_center">
 			<a class="  primary_txt_hover secondary_bg_hover p-1 w-auto border border-yellow-300 rounded-xl text-center font-semibold "
 			href="/content/comics/create/{content_id}/" 

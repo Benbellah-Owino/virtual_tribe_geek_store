@@ -1,22 +1,32 @@
 use crate::{content::ComicForCreate, dev_initial::db::Db};
 use axum::{
     extract::{
-        State,
-        Path as AxumPath
+        Path as AxumPath, Query, State
     },
-    response::IntoResponse, routing::Router, Json,
-    routing::get
+    response::IntoResponse, routing::{delete, get, Router}, Json
 };
 use http::StatusCode;
+use serde::Deserialize;
 use serde_json::json;
+use tracing::debug;
 
 use super::{controllers::{destroy, index, show, store}, ComicError};
 
 pub fn comic_router() -> Router<Db>{
     Router::new()
-        .route("/:comic", get(get_one). delete(delete_comic))
+        .route("/:comic" ,delete(delete_comic))
+        .route("/index", get(get_one))
         .route("/",get(list).post(create))
 }
+
+
+// region:      --- Query Structs
+#[derive(Deserialize,Clone, Debug)]
+pub struct GetComicQuery{
+    pub comic: Option<String>,
+    pub content: Option<String>
+}
+// endregion:   --- Query Structs
 
 
 // region:      --- Handlers
@@ -46,6 +56,9 @@ async fn create(
     Json(payload): Json<ComicForCreate>
 ) -> impl IntoResponse{
     let db = db.unwrap();
+    debug!("content/comic/create -> {:#?}", payload);
+    // eprintln!("");
+    dbg!(&payload);
     let comic = store(&db, payload).await;
     
     match comic{
@@ -115,12 +128,15 @@ async fn list(State(db): State<Db>)->impl IntoResponse{
 ///     <li> <b>Ok</b>  : 201</li>
 ///     <li> <b>Err</b> : 500</li>
 /// </ul>
+// async fn get_one(State(db): State<Db>, AxumPath(comic_id): AxumPath<String>)->impl IntoResponse{
 #[axum_macros::debug_handler]
-async fn get_one(State(db): State<Db>, AxumPath(comic_id): AxumPath<String>)->impl IntoResponse{
+async fn get_one(State(db): State<Db>,  Query(comic_query): Query<GetComicQuery>)->impl IntoResponse{
     let db = db.unwrap();
+    debug!("{:#?}", comic_query);
 
-    match show(&db, comic_id).await{
+    match show(&db, comic_query).await{
         Ok(c) =>{
+            debug!("{:#?}", c);
             (
                 StatusCode::OK,
                 Json(json!({"comic": c}))

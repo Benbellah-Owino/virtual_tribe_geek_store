@@ -5,26 +5,24 @@
 	import type { ComicForCreate } from '$lib/types/content';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import { surrealIdToString } from '$lib/helper_functions.ts/converters';
-	import type { SurrealId } from '$lib/types/server';
-	import { preventDefault } from 'svelte/legacy';
+	import { stringToSurrealId, surrealIdToString } from '$lib/helper_functions.ts/converters';
 
 	// Creators
 	let creators: any[];
 	let proc_c = $state('');
-	let found_creators: any[]= $state([{username: "dog_nigga"}, {username:"cubanlink"}]);
+	let found_creators: any[] = $state([]);
 	('');
 	let comic_creators: string[];
 	let search_c: any[] = $state([]);
 
 	// Writers
-	let writers: {id: number, name:string}[] = $state([]);
-	let writerStr: string = $state("");
+	let writers: { id: number; name: string }[] = $state([]);
+	let writerStr: string = $state('');
 	let writerId = 0;
 
 	// artists
-	let artists: {id: number, name:string}[] = $state([]);
-	let artistStr: string = $state("");
+	let artists: { id: number; name: string }[] = $state([]);
+	let artistStr: string = $state('');
 	let artistId = 0;
 	$effect(() => {
 		if (proc_c == '') {
@@ -44,7 +42,6 @@
 		if (response.ok == true) {
 			let res = await response.json();
 			creators = res.creators;
-		
 
 			// console.log(creators);
 		} else if (response.ok == false) {
@@ -70,19 +67,84 @@
 		e.preventDefault();
 		console.log('-----------------------------------------');
 		console.log('submit');
-		comic_form.writer = writers.map((m)=>{
-			return m.name
-		})
-		comic_form.artist = artists.map((m)=>{
-			return m.name
-		})
-		comic_form.creator = found_creators.map((m)=>{
-			return m.id
-		})
+		comic_form.writer = writers.map((m) => {
+			return m.name;
+		});
+		comic_form.artist = artists.map((m) => {
+			return m.name;
+		});
+		comic_form.creator = found_creators.map((m) => {
+			return m.id;
+		});
+		// comic_form.creator = comic_form.creator.map((c)=>{
+		// 	console.log($state.snapshot(c))
+		// 	if(typeof(c)== 'object'){
+		// 		console.info("converting")
+		// 		let cs = surrealIdToString(c);
+		// 		console.log(cs)
+		// 		return cs
+		// 	}else{
+		// 		return "ERROR"
+		// 	}
+		// })
+		if(typeof(comic_form.content)=='string'){
+			comic_form.content = stringToSurrealId(comic_form.content);
+		}
 		console.log($state.snapshot(comic_form));
-		console.log($state.snapshot(found_creators))
+		// console.log($state.snapshot(found_creators));
 		console.log('-----------------------------------------');
+
 		//TODO: Send to backend
+		try {
+			// TODO" Fix this route
+			let response = await fetch(`http://localhost:7878/content/comic`, {
+				method: 'POST',
+				credentials: 'include',
+				body: JSON.stringify(comic_form),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (response.status == 201) {
+				//UNIMPLEMENTED
+				setTimeout(() => {
+					updateFormState(formState, Result.Ok, null, 'Registration success', 'form', true);
+					console.log($state.snapshot(formState));
+				}, 3000);
+				console.log('created');
+				window.open(`/content/${$page.params.content}`, '_self');
+			} else if (response.status == 500) {
+				updateFormState(
+					formState,
+					Result.Err,
+					FormError.SubmissionFailed,
+					'Submission Failed',
+					'form',
+					false
+				);
+			}else if (response.ok == false) {
+				console.log(response.statusText)
+				updateFormState(
+					formState,
+					Result.Err,
+					FormError.SubmissionFailed,
+					'Submission Failed',
+					'form',
+					false
+				);
+			}
+
+		} catch (error) {
+			console.error(error);
+			updateFormState(
+				formState,
+				Result.Err,
+				FormError.SubmissionFailed,
+				'Submission Failed',
+				'form',
+				false
+			);
+		}
 	}
 
 	// async function submit(e: Event) {
@@ -175,27 +237,37 @@
 			<div class="form_div">
 				<label for="name">Writers</label>
 				<div class="creators flex_row m-2" id="creators">
-					{#each writers as w(w.id)}
-						<div class="creator_tag secondary_bg_hover primary_txt_hover secondary_border mx-1 p-1 rounded-full cursor-pointer text-xs" id={`${w.id}_${w.name}`}>
+					{#each writers as w (w.id)}
+						<div
+							class="creator_tag secondary_bg_hover primary_txt_hover secondary_border mx-1 cursor-pointer rounded-full p-1 text-xs"
+							id={`${w.id}_${w.name}`}
+						>
 							{w.name}
-							<button onclick={()=> writers = writers.filter((wr)=>{
-								return wr.id != w.id
-							}) }>x</button>
+							<button
+								onclick={() =>
+									(writers = writers.filter((wr) => {
+										return wr.id != w.id;
+									}))}>x</button
+							>
 						</div>
 					{/each}
 				</div>
-				<input type="text" name="writers" id="writers" bind:value={writerStr} 
-				oninput={(e) => {
-					if(writerStr.charAt(writerStr.length - 1) ==','){
-						writers.push({id: writerId,name: writerStr.substring(0, writerStr.length - 1)});
-						writerStr = '';
-						writerId++;
-						console.log($state.snapshot(writers))
-						
-					}
-					// writers= writerStr.split(',');
-					// console.log($state.snapshot(writers))
-				}}/>
+				<input
+					type="text"
+					name="writers"
+					id="writers"
+					bind:value={writerStr}
+					oninput={(e) => {
+						if (writerStr.charAt(writerStr.length - 1) == ',') {
+							writers.push({ id: writerId, name: writerStr.substring(0, writerStr.length - 1) });
+							writerStr = '';
+							writerId++;
+							console.log($state.snapshot(writers));
+						}
+						// writers= writerStr.split(',');
+						// console.log($state.snapshot(writers))
+					}}
+				/>
 				{#if formState.inner_state == Result.Err && formState.target == 'writers'}
 					<p class="error text-red-500">{formState.message}</p>
 				{/if}
@@ -203,25 +275,34 @@
 			<div class="form_div">
 				<label for="email">Artists</label>
 				<div class="creators flex_row m-2" id="creators">
-					{#each artists as a(a.id)}
-						<div class="creator_tag secondary_bg_hover primary_txt_hover secondary_border mx-1 p-1 rounded-full cursor-pointer text-xs" id={`${a.id}_${a.name}`}>
+					{#each artists as a (a.id)}
+						<div
+							class="creator_tag secondary_bg_hover primary_txt_hover secondary_border mx-1 cursor-pointer rounded-full p-1 text-xs"
+							id={`${a.id}_${a.name}`}
+						>
 							{a.name}
-							<button onclick={()=> artists = artists.filter((ar)=>{
-								return ar.id != a.id
-							}) }>x</button>
+							<button
+								onclick={() =>
+									(artists = artists.filter((ar) => {
+										return ar.id != a.id;
+									}))}>x</button
+							>
 						</div>
 					{/each}
 				</div>
-				<input type="text" name="artists" id="artists" bind:value={artistStr} 
-				oninput={(e) => {
-					if(artistStr.charAt(artistStr.length - 1) ==','){
-						artists.push({id: artistId,name: artistStr.substring(0, artistStr.length - 1)});
-						artistStr = '';
-						artistId++;
-						console.log($state.snapshot(artists))
-						
-					}
-				}}
+				<input
+					type="text"
+					name="artists"
+					id="artists"
+					bind:value={artistStr}
+					oninput={(e) => {
+						if (artistStr.charAt(artistStr.length - 1) == ',') {
+							artists.push({ id: artistId, name: artistStr.substring(0, artistStr.length - 1) });
+							artistStr = '';
+							artistId++;
+							console.log($state.snapshot(artists));
+						}
+					}}
 				/>
 				{#if formState.inner_state == Result.Err && formState.target == 'artists'}
 					<p class="error text-red-500">{formState.message}</p>
@@ -232,11 +313,17 @@
 				<label for="creators">Creators</label>
 				<div class="creators flex_row m-2" id="creators">
 					{#each found_creators as s (s.username)}
-						<div class="creator_tag main_bg_hover secondary_border mx-1 p-1 rounded-full cursor-pointer text-xs" id={s.username}>
+						<div
+							class="creator_tag main_bg_hover secondary_border mx-1 cursor-pointer rounded-full p-1 text-xs"
+							id={s.username}
+						>
 							{s.username}
-							<button onclick={()=> found_creators = found_creators.filter((c)=>{
-								return c.username != s.username
-							}) }>x</button>
+							<button
+								onclick={() =>
+									(found_creators = found_creators.filter((c) => {
+										return c.username != s.username;
+									}))}>x</button
+							>
 						</div>
 					{/each}
 				</div>
@@ -247,7 +334,7 @@
 					placeholder="search for creators"
 					oninput={(e) => {
 						search_c = [];
-						proc_c =e.target?.value;
+						proc_c = e.target?.value;
 						search_c = creators.filter((c: { username: string }) => {
 							return c.username.includes(proc_c);
 						});
@@ -258,14 +345,16 @@
 				<!-- TODO: Create tags with creators names to give user ability to delete creators -->
 				<div class="found_creators flex_col secondary_borderb m-auto bg-black">
 					{#each search_c as s (s.username)}
-						<button 
-						class="secondary_border_tlr main_bg_hover w-72 p-1 rounded-sm" id={s}
-						onclick={(e)=>{
-							e.preventDefault();
-							if(!found_creators.some(c => c.username === s.username)){
-								found_creators.push(s)
-							}
-						}}>{s.username}</button>
+						<button
+							class="secondary_border_tlr main_bg_hover w-72 rounded-sm p-1"
+							id={s}
+							onclick={(e) => {
+								e.preventDefault();
+								if (!found_creators.some((c) => c.username === s.username)) {
+									found_creators.push(s);
+								}
+							}}>{s.username}</button
+						>
 					{/each}
 				</div>
 				<!-- <button
