@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
-use crate::{helpers::db::thing_from_string, studio::StudioFull};
+use crate::{creator::Creator, helpers::db::thing_from_string, studio::StudioFull};
 
 mod controllers;
 pub mod routers;
@@ -104,7 +104,7 @@ pub struct Comic {
     pub chapters: u16,
     pub writer: Vec<String>,
     pub artist: Vec<String>,
-    pub creator: Vec<Thing>,
+    pub creator: Vec<Creator>,
     pub created_at: String,
     pub cover: Option<String>,
     pub content: Thing

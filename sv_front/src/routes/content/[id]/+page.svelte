@@ -31,6 +31,9 @@
 		loading: true,
 		message: ''
 	});
+
+	let comic: any|null = $state(null);
+
 	onMount(async () => {
 		// Get content
 		let response = await fetch(`http://localhost:7878/content/${content_id}`, {
@@ -49,7 +52,7 @@
 			console.log($state.snapshot(content));
 			pageState.loading = false;
 		} else if (response.ok == false) {
-			console.error("failed")
+			console.error('failed');
 			if (response.status == 401) {
 				updatePageState(
 					pageState,
@@ -61,7 +64,7 @@
 				setTimeout(() => {
 					window.open('content/login', '_self');
 				}, 5000);
-			}else if (response.status == 404) {
+			} else if (response.status == 404) {
 				updatePageState(
 					pageState,
 					Result.Err,
@@ -73,7 +76,7 @@
 		}
 
 		// GET COMIC DETAILS
-		let cont = content_id.split(':')
+		let cont = content_id.split(':');
 		let response2 = await fetch(`http://localhost:7878/content/comic/index?content=${cont[1]}`, {
 			method: 'GET',
 			credentials: 'include',
@@ -86,10 +89,11 @@
 			//UNIMPLEMENTED
 			let res = await response2.json();
 			// console.log($state.snapshot(res));
-			console.log(res);
+			comic = res.comic;
+			console.log($state.snapshot(comic));
 			pageState.loading = false;
 		} else if (response2.ok == false) {
-			console.error("failed")
+			console.error('failed');
 			if (response.status == 401) {
 				updatePageState(
 					pageState,
@@ -101,17 +105,17 @@
 				setTimeout(() => {
 					window.open('content/login', '_self');
 				}, 5000);
-			}else if (response2.status == 404) {
+			} else if (response2.status == 404) {
 				updatePageState(
 					pageState,
-					Result.Err,
-					PageError.Unauthorized,
+					Result.Ok,
+					PageError.NotFoundError,
 					false,
-					"The requested content doesn't exist"
+					"The requested comic doesn't exist"
 				);
+				console.log($state.snapshot(pageState));
 			}
 		}
-
 	});
 	// TODO: Finish this page
 </script>
@@ -140,7 +144,10 @@
 			<h3><b>Genres:</b></h3>
 			<div class="genres flex_row">
 				{#each content.genre as genre}
-					<span class="secondary_bg tertiary_bg_hover primary_txt tertiary_txt_hover tertiary_border border-2 m-1 p-1 rounded-full text-sm font-bold cursor-pointer">{genre.name}</span>
+					<span
+						class="secondary_bg tertiary_bg_hover primary_txt tertiary_txt_hover tertiary_border m-1 cursor-pointer rounded-full border-2 p-1 text-sm font-bold"
+						>{genre.name}</span
+					>
 				{/each}
 			</div>
 			<li class="tertiary_txt"><b class="main_txt">Studio: &nbsp </b>{content.studio?.name}</li>
@@ -150,20 +157,53 @@
 				<p class="text-sm">{content.description}</p>
 			</li>
 		</ul>
-		
+
 		<!-- TODO Add authoirization logic to this component -->
-		
+
 		<!-- COMIC INFO -->
-		<div class="back_btn p-3 w-full flex_center">
-			<a class="  primary_txt_hover secondary_bg_hover p-1 w-auto border border-yellow-300 rounded-xl text-center font-semibold "
-			href="/content/comics/create/{content_id}/" 
-			>Attach comic</a>
-		</div>
+		<section class="comic mt-5 p-2">
+			{#if comic}
+				<h4><b>Writers</b></h4>
+				<ul class="style pl-4">
+					{#each comic.writer as writer}
+						<li>{writer}</li>
+					{/each}
+				</ul>
+				<br>
+
+				<h4><b>Artists</b></h4>
+				<ul class="style pl-4">
+					{#each comic.artist as artist}
+						<li>{artist}</li>
+					{/each}
+				</ul>
+				<br>
+				
+				<h4><b>creators</b></h4>
+				<ul class="style pl-4">
+					{#each comic.creator as creator}
+						<li>{creator.username}</li>
+					{/each}
+				</ul>
+				<br>
+				<!-- TODO: Add routing to creator given an id in the URL. This is to make it enable
+					the usernames above to be links to creator page
+				-->
+			{:else}
+				<div class="back_btn flex_center w-full p-3">
+					<a
+						class="  primary_txt_hover secondary_bg_hover w-auto rounded-xl border border-yellow-300 p-1 text-center font-semibold"
+						href="/content/comics/create/{content_id}/">Attach comic</a
+					>
+				</div>
+			{/if}
+		</section>
 		<!--  -->
-		<div class="back_btn p-3 w-full flex_center">
-			<a class="  primary_txt_hover secondary_bg_hover p-1 w-14 border border-yellow-300 rounded-xl text-center font-semibold "
-			href="/studio/{content.studio?.id.tb}:{content.studio?.id.id.String}/content" 
-			>back</a>
+		<div class="back_btn flex_center w-full p-3">
+			<a
+				class="  primary_txt_hover secondary_bg_hover w-14 rounded-xl border border-yellow-300 p-1 text-center font-semibold"
+				href="/studio/{content.studio?.id.tb}:{content.studio?.id.id.String}/content">back</a
+			>
 		</div>
 		<!-- <a href="/content/{content_id}/content" class="">Click here to view this contents content</a> -->
 	{:else if pageState.inner_state == Result.Err}

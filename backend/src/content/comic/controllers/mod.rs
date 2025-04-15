@@ -35,7 +35,7 @@ pub async fn show(db: &Surreal<Client>, query: GetComicQuery) -> Result<Comic, C
         //let content: Option<content> = db.select((content_id[0], content_id[1])).await?;
         let id = format!("{}:{}", "content", content_id);
         let comic = db
-            .query(format!("SELECT * FROM comic WHERE content={id};"))
+            .query(format!("SELECT * FROM comic WHERE content = {id} FETCH creator;"))
             .await?
             .take(0);
         dbg!(&comic);
