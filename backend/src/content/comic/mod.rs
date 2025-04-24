@@ -3,6 +3,8 @@ use serde::Serialize;
 pub mod routers;
 pub mod controllers;
 
+pub mod volume;
+
 // region:      --- Structs
 // endregion:   --- Structs
 

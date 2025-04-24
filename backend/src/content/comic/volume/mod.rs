@@ -1,0 +1,52 @@
+use serde::{Deserialize, Serialize};
+use surrealdb::sql::Thing;
+
+pub mod routers;
+pub mod controllers;
+
+
+
+// region:      --- Structs
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Volume{
+    pub id: Thing,
+    pub no_of_chapters: i16, 
+    pub runlength: Thing,
+    pub sypnosis: Option<String>,
+    pub comic: Thing,
+    pub cover: Option<String>
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct VolumeForCreate{
+    pub no_of_chapters: i16, 
+    pub runlength: Thing,
+    pub sypnosis: String,
+    pub comic: Thing,
+    pub cover: Option<String>
+}
+
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Runlength{
+    pub start: Thing,
+    pub end: Thing,
+}
+// endregion:   --- Structs
+
+// region:      --- Error
+#[derive(Debug, Serialize)]
+pub enum VolumeError {
+    NotFound,
+    FailedToCreate,
+    RetrievalError,
+    DetailsUpdateError,
+    DbError(surrealdb::Error),
+}
+
+impl From<surrealdb::Error> for VolumeError {
+    fn from(value: surrealdb::Error) -> Self {
+        VolumeError::DbError(value)
+    }
+}
+// endregion:   --- Error
