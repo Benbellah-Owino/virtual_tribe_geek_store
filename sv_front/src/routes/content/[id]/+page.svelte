@@ -94,7 +94,7 @@
 			pageState.loading = false;
 		} else if (response2.ok == false) {
 			console.error('failed');
-			if (response.status == 401) {
+			if (response2.status == 401) {
 				updatePageState(
 					pageState,
 					Result.Err,
@@ -185,7 +185,16 @@
 						<li>{creator.username}</li>
 					{/each}
 				</ul>
+
+				<div class="back_btn flex_center w-full p-3">
+					<a
+						class="  primary_txt_hover secondary_bg_hover w-auto rounded-xl border border-yellow-300 p-1 text-center font-semibold"
+						href="/content/comics/{comic.id.id.String}/">View comic</a
+					>
+				</div>
+				
 				<br>
+				
 				<!-- TODO: Add routing to creator given an id in the URL. This is to make it enable
 					the usernames above to be links to creator page
 				-->

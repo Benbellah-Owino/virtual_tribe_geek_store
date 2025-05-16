@@ -104,7 +104,7 @@ pub struct Comic {
     pub chapters: u16,
     pub writer: Vec<String>,
     pub artist: Vec<String>,
-    pub creator: Vec<Creator>,
+    pub creator: Vec<Creator>,// Make it so that it fetches the creator details
     pub created_at: String,
     pub cover: Option<String>,
     pub content: Thing

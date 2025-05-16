@@ -20,13 +20,27 @@ pub async fn show(db: &Surreal<Client>, query: GetComicQuery) -> Result<Comic, C
     //TODO: Use a custom Select query to accomodate Joins
     if query.comic.is_some() {
         let comic_id = query.comic.unwrap();
-        let comic: Option<Comic> = db.select(("comic", comic_id)).await?;
-
-        if let Some(c) = comic {
-            dbg!(&c);
-            return Ok(c);
-        } else {
-            return Err(ComicError::NotFound);
+        dbg!(&comic_id);
+        //let comic: Result<Option<Comic>> = db.select(("comic", comic_id)).await;
+        
+        let comic = db
+            .query(format!("SELECT * FROM comic:{comic_id} FETCH creator;"))
+            .await?
+            .take(0);
+        dbg!(&comic);
+        match comic {
+            Ok(comic) => {
+                if let Some(c) = comic {
+                    dbg!(&c);
+                    return Ok(c);
+                } else {
+                    return Err(ComicError::NotFound);
+                }
+            }
+            Err(e) => {
+                dbg!(&e);
+                return Err(ComicError::DbError(e));
+            }
         }
     } else if query.content.is_some() {
         eprintln!("Content");

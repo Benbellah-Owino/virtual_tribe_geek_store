@@ -1,5 +1,5 @@
 use surrealdb::{engine::remote::ws::Client, Surreal};
-
+use tracing::debug;
 use crate::DbId;
 
 use super::{Volume, VolumeError, VolumeForCreate};
@@ -7,8 +7,11 @@ use super::{Volume, VolumeError, VolumeForCreate};
 
 // Shows list of volumes
 pub async fn index(db: &Surreal<Client>, comic: String) -> Result<Vec<Volume>, VolumeError>{
-    let mut volumes = db.query(format!("SELECT * FROM volume WHERE comic = comic:{comic}")).await?;
-    let volumes: Vec<Volume> = volumes.take(1)?;
+    debug!("{comic}");
+    let query = format!("SELECT * FROM volume WHERE comic = comic:{comic}");
+    debug!("QUERY -> {query}");
+    let mut volumes = db.query(query).await?;
+    let volumes: Vec<Volume> = volumes.take(0)?;
     dbg!(&volumes);
     return Ok(volumes)
 }
@@ -25,8 +28,6 @@ pub async fn show(db: &Surreal<Client>, id: String)-> Result<Volume, VolumeError
     }
 }
 
-// Show form to create a new volume
-pub async fn create(){}
 
 // Stores new volume data in db and relevant storage
 pub async fn store(db: &Surreal<Client>, volume_for_create: VolumeForCreate) -> Result<DbId, VolumeError>{

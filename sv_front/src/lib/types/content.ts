@@ -35,3 +35,10 @@ export interface ComicForCreate{
     artist: string[],
     creator: SurrealId[] | string[],
 }
+export interface VolumeForCreate{
+    [key:string]: string | SurrealId| null | number;
+    synopsis: string,
+    comic: SurrealId,
+    cover: null|string,
+    no_of_chapters: number
+}

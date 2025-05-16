@@ -11,19 +11,18 @@ pub mod controllers;
 pub struct Volume{
     pub id: Thing,
     pub no_of_chapters: i16, 
-    pub runlength: Thing,
-    pub sypnosis: Option<String>,
+    pub runlength: Option<Runlength>,
+    pub synopsis: Option<String>,
     pub comic: Thing,
     pub cover: Option<String>
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct VolumeForCreate{
-    pub no_of_chapters: i16, 
-    pub runlength: Thing,
-    pub sypnosis: String,
+    pub synopsis: String,
     pub comic: Thing,
-    pub cover: Option<String>
+    pub cover: Option<String>,
+    pub no_of_chapters: i16, 
 }
 
 

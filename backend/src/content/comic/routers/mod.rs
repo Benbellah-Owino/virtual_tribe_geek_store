@@ -10,10 +10,11 @@ use serde::Deserialize;
 use serde_json::json;
 use tracing::debug;
 
-use super::{controllers::{destroy, index, show, store}, ComicError};
+use super::{controllers::{destroy, index, show, store}, volume::routers::volume_router, ComicError};
 
 pub fn comic_router() -> Router<Db>{
     Router::new()
+        .nest("/volume",  volume_router())
         .route("/:comic" ,delete(delete_comic))
         .route("/index", get(get_one))
         .route("/",get(list).post(create))

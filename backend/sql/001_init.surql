@@ -83,9 +83,10 @@ DEFINE FIELD content ON TABLE comic TYPE record<content>;
 
 -- Volume
 DEFINE TABLE IF NOT EXISTS volume SCHEMAFULL;
-DEFINE FIELD no_of_chapters ON TABLE volume TYPE number;
-DEFINE FIELD runlength ON TABLE volume TYPE object;
-DEFINE FIELD sypnosis ON TABLE volume TYPE string ASSERT string::len($value) <= 1000 ;
+DEFINE FIELD vol_no ON TABLE volume TYPE number; -- Make it so that it is automatically calculated using array length +1
+DEFINE FIELD no_of_chapters ON TABLE volume TYPE number DEFAULT 0;
+DEFINE FIELD runlength ON TABLE volume TYPE option<object>;
+DEFINE FIELD synopsis ON TABLE volume TYPE string ASSERT string::len($value) <= 1000 ;
 DEFINE FIELD comic ON TABLE volume TYPE record<comic>;
 DEFINE FIELD cover ON TABLE volume TYPE option<string>;
 
