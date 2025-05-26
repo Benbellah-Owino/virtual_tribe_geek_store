@@ -25,13 +25,33 @@ pub struct VolumeForCreate{
     pub no_of_chapters: i16, 
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct VolumeForCreateCount{
+    pub synopsis: String,
+    pub comic: Thing,
+    pub cover: Option<String>,
+    pub no_of_chapters: i16, 
+    pub vol_no: u32
+}
 
+impl VolumeForCreateCount{
+    fn from_vol_create(vol: VolumeForCreate, count: u32) -> Self {
+        VolumeForCreateCount{
+            vol_no: count,
+            synopsis: vol.synopsis,
+            comic: vol.comic,
+            cover: vol.cover,
+            no_of_chapters: vol.no_of_chapters,
+        }
+    }
+}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Runlength{
     pub start: Thing,
     pub end: Thing,
 }
 // endregion:   --- Structs
+
 
 // region:      --- Error
 #[derive(Debug, Serialize)]

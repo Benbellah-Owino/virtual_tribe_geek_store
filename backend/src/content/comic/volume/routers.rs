@@ -71,7 +71,7 @@ async fn create(
 #[axum_macros::debug_handler]
 async fn list(State(db): State<Db>,AxumPath(comic): AxumPath<String>)->impl IntoResponse{
     let db = db.unwrap();
-
+    eprintln!("LIST VOLUMES");
     match index(&db, comic).await{
         Ok(v) => {
             if !v.is_empty(){
@@ -84,6 +84,7 @@ async fn list(State(db): State<Db>,AxumPath(comic): AxumPath<String>)->impl Into
             }
         }
         Err(e) => {
+            eprintln!("{:#?}",e);
             (StatusCode::INTERNAL_SERVER_ERROR).into_response()
         }
     }

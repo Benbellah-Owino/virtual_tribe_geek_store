@@ -101,7 +101,7 @@
 			//UNIMPLEMENTED
 			console.log(res_volumes);
 			let res = await res_volumes.json();
-			 console.log($state.snapshot(res));
+			console.log($state.snapshot(res));
 			volumes = res.volume_list;
 			console.log($state.snapshot(volumes));
 			pageState.loading = false;
@@ -196,7 +196,7 @@
 	{#if pageState.loading}
 		<center>Loading content...</center>
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == null}
-		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Comic list</h1>
+		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Volumes list</h1>
 		<section class="content_list flex_center" id="content_list">
 			{#each volumes as volume}
 				<p>volume</p>

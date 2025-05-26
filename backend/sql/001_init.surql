@@ -90,6 +90,13 @@ DEFINE FIELD synopsis ON TABLE volume TYPE string ASSERT string::len($value) <= 
 DEFINE FIELD comic ON TABLE volume TYPE record<comic>;
 DEFINE FIELD cover ON TABLE volume TYPE option<string>;
 
+DEFINE FUNCTION fn::calc_vol_no(){
+    RETURN (SELECT count() FROM volume)[0].count;
+}
+
+DEFINE EVENT set_vol_no ON volume WHEN $event = "CREATE" THEN (
+    UPDATE $this SET vol_no = fn::calc_vol_no();
+)
 -- Chapter
 DEFINE TABLE IF NOT EXISTS chapter SCHEMAFULL;
 DEFINE FIELD relative_chapter ON TABLE chapter TYPE number;
