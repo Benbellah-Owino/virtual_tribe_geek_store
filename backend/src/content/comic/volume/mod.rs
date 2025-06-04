@@ -14,7 +14,8 @@ pub struct Volume{
     pub runlength: Option<Runlength>,
     pub synopsis: Option<String>,
     pub comic: Thing,
-    pub cover: Option<String>
+    pub cover: Option<String>,
+    pub vol_no: u32
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

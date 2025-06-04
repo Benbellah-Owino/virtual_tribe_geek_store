@@ -16,7 +16,7 @@
 		loading: true,
 		message: ''
 	});
- 
+
 	let formState: FormState = $state({
 		inner_state: Result.Ok,
 		error: null,
@@ -24,31 +24,31 @@
 		target: '',
 		locked: false
 	});
-	
-    let comic_id = $page.params.id;
+
+	let comic_id = $page.params.id;
+	let form_on = $state(false);
 	// endsection:  --- State
 
 	// section:     --- Variables
 	let comic: any | null = $state(null);
 	let volumes: any[] = $state([]);
-	
-    let volume_form: VolumeForCreate = $state({
-        synopsis: "",
-        comic:  {
+
+	let volume_form: VolumeForCreate = $state({
+		synopsis: '',
+		comic: {
 			id: {
 				String: ''
 			},
 			tb: ''
 		},
-        cover: null,
-        no_of_chapters: 0 
-    })
+		cover: null,
+		no_of_chapters: 0
+	});
 
-    // endsection:  --- Variables
-
+	// endsection:  --- Variables
 
 	onMount(async () => {
-        volume_form.comic = stringToSurrealId(`comic:${comic_id}`)
+		volume_form.comic = stringToSurrealId(`comic:${comic_id}`);
 		let response = await fetch(`http://localhost:7878/content/comic/index?comic=${comic_id}`, {
 			method: 'GET',
 			credentials: 'include',
@@ -101,13 +101,13 @@
 			//UNIMPLEMENTED
 			console.log(res_volumes);
 			let res = await res_volumes.json();
-			console.log($state.snapshot(res));
 			volumes = res.volume_list;
+			volumes = volumes.sort((a,b) => a.vol_no - b.vol_no);
 			console.log($state.snapshot(volumes));
 			pageState.loading = false;
 		} else if (res_volumes.ok == false) {
 			console.error('failed');
-            console.log(res_volumes)
+			console.log(res_volumes);
 			if (res_volumes.status == 401) {
 				updatePageState(
 					pageState,
@@ -133,13 +133,11 @@
 		}
 	});
 
-
-    async function submit(e:Event){
+	async function submit(e: Event) {
 		e.preventDefault();
 
-
 		try {
-            console.log($state.snapshot(volume_form))
+			console.log($state.snapshot(volume_form));
 			// TODO" Fix this route
 			let response = await fetch(`http://localhost:7878/content/comic/volume`, {
 				method: 'POST',
@@ -156,7 +154,7 @@
 					console.log($state.snapshot(formState));
 				}, 3000);
 				console.log('created');
-				window.open(`/content/content/${comic_id}`, '_self');
+				window.open(`/content/comics/${comic_id}`, '_self');
 			} else if (response.status == 500) {
 				updateFormState(
 					formState,
@@ -166,8 +164,8 @@
 					'form',
 					false
 				);
-			}else if (response.ok == false) {
-				console.log(response.statusText)
+			} else if (response.ok == false) {
+				console.log(response.statusText);
 				updateFormState(
 					formState,
 					Result.Err,
@@ -177,7 +175,6 @@
 					false
 				);
 			}
-
 		} catch (error) {
 			console.error(error);
 			updateFormState(
@@ -189,7 +186,7 @@
 				false
 			);
 		}
-    }
+	}
 </script>
 
 <main>
@@ -197,36 +194,76 @@
 		<center>Loading content...</center>
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == null}
 		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Volumes list</h1>
-		<section class="content_list flex_center" id="content_list">
+		<ul class="content_list flex_col" id="content_list">
 			{#each volumes as volume}
-				<p>volume</p>
+				<li>volume {volume.vol_no}</li>
 			{/each}
-		</section>
+		</ul>
+		<br><br>
+		<center>
+			<button
+				class="btn primary_btn"
+				onclick={() => {
+					form_on = !form_on;
+					console.log($state.snapshot(form_on));
+				}}>Toggle Volume form</button
+			>
+		</center>
+		{#if form_on == true}
+			<center class="w-full">
+				<form class="form alt_bg mt-3 rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={submit}>
+					<h3 class="float-left mb-4 text-3xl font-extrabold">ADD VOLUME</h3>
+					<br />
+					{#if formState.inner_state == Result.Ok && formState.target == 'form'}
+						<center><p class="error main_txt text-lg font-semibold">{formState.message}</p></center>
+					{:else if formState.inner_state == Result.Err && formState.target == 'form'}
+						<center
+							><p class="error text-lg font-semibold text-red-400">{formState.message}</p></center
+						>
+					{/if}
+					<div class="form_div">
+						<label for="description">Synopsis</label>
+						<!--TODO: Add word limit to description field on server side -->
+						<textarea
+							name="description"
+							id="description"
+							class="w-11/12"
+							rows="10"
+							bind:value={volume_form.synopsis}
+						></textarea>
+					</div>
+					<button type="submit" class="btn primary_btn w-11/12">submit</button>
+					<!-- TODO: Next time number the volumes -->
+				</form>
+			</center>
+		{/if}
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == PageError.NotFoundError}
-        <center class="w-full">
-		<form class="form alt_bg rounded-lg p-3 md:w-96 mt-3 lg:w-5/6" onsubmit={submit}>
-			<h3 class="float-left mb-4 text-3xl font-extrabold">ADD VOLUME</h3>
-			<br />
-			{#if formState.inner_state == Result.Ok && formState.target == 'form'}
-				<center><p class="error main_txt text-lg font-semibold">{formState.message}</p></center>
-			{:else if formState.inner_state == Result.Err && formState.target == 'form'}
-				<center><p class="error text-lg font-semibold text-red-400">{formState.message}</p></center>
-			{/if}
-			<div class="form_div">
-				<label for="description">Synopsis</label>
-				<!--TODO: Add word limit to description field on server side -->
-				<textarea
-					name="description"
-					id="description"
-					class="w-11/12"
-					rows="10"
-					bind:value={volume_form.synopsis}
-				></textarea>
-			</div>
-			<button type="submit" class="btn primary_btn w-11/12">submit</button>
-            <!-- TODO: Next time number the volumes -->
-        </form>
-        </center>
+		<center class="w-full">
+			<form class="form alt_bg mt-3 rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={submit}>
+				<h3 class="float-left mb-4 text-3xl font-extrabold">ADD VOLUME</h3>
+				<br />
+				{#if formState.inner_state == Result.Ok && formState.target == 'form'}
+					<center><p class="error main_txt text-lg font-semibold">{formState.message}</p></center>
+				{:else if formState.inner_state == Result.Err && formState.target == 'form'}
+					<center
+						><p class="error text-lg font-semibold text-red-400">{formState.message}</p></center
+					>
+				{/if}
+				<div class="form_div">
+					<label for="description">Synopsis</label>
+					<!--TODO: Add word limit to description field on server side -->
+					<textarea
+						name="description"
+						id="description"
+						class="w-11/12"
+						rows="10"
+						bind:value={volume_form.synopsis}
+					></textarea>
+				</div>
+				<button type="submit" class="btn primary_btn w-11/12">submit</button>
+				<!-- TODO: Next time number the volumes -->
+			</form>
+		</center>
 	{:else}
 		<h3>Not found</h3>
 	{/if}

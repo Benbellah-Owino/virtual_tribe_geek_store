@@ -13,11 +13,13 @@ struct Count{
 // Shows list of volumes
 pub async fn index(db: &Surreal<Client>, comic: String) -> Result<Vec<Volume>, VolumeError>{
     debug!("{comic}");
-    let query = format!("SELECT * FROM volume WHERE comic = comic:{comic}");
+    let query = format!("SELECT * FROM volume WHERE comic = comic:{comic}"); // TODO: Order this list
     debug!("QUERY -> {query}");
     let mut volumes = db.query(query).await?;
-    let volumes: Vec<Volume> = volumes.take(0)?;
-    dbg!(&volumes);
+    let mut volumes: Vec<Volume> = volumes.take(0)?;
+    // volumes.sort_by(|a,b| 
+    //     b.vol_no.cmp(&a.vol_no)
+    // );
     return Ok(volumes)
 }
 
@@ -39,12 +41,19 @@ pub async fn store(db: &Surreal<Client>, mut volume_for_create: VolumeForCreate)
    /*  let mut count =  db.query("SELECT count() FROM volume").await.unwrap();
     let count: Option<i32> = count.take(0)? */;
     let mut count =  db.query("SELECT count() FROM volume").await.unwrap();
-    println!("{:#?}", count);
     let count:Vec<Count>  = count.take(0)?;
     println!("{:#?}", count);
-    let count = count[1].count + 1;
+    let mut count2:u32 =0; 
+    if count.len() > 0{
+        let ct = count.len() + 1;
+        eprintln!("{}",ct);
+        count2 =  count.len() as u32 + 1;
+    }else{
+        count2 = 1;
+    };
+    //let count = count[1].count + 1;
 
-    let vol = VolumeForCreateCount::from_vol_create(volume_for_create, count);
+    let vol = VolumeForCreateCount::from_vol_create(volume_for_create, count2);
     let volume: Option<DbId> = db.create("volume").content(vol).await?;
     eprintln!("Created {:#?}", volume);
 
