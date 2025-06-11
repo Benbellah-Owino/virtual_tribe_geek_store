@@ -196,7 +196,7 @@
 		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Volumes list</h1>
 		<ul class="content_list flex_col" id="content_list">
 			{#each volumes as volume}
-				<li><a href="/content/comics/{comic_id}/volume/{volume.id.id.String}">volume {volume.vol_no}</a></li>
+				<li>volume {volume.vol_no}</li>
 			{/each}
 		</ul>
 		<br><br>
