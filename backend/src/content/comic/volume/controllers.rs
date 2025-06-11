@@ -60,7 +60,7 @@ pub async fn store(db: &Surreal<Client>, mut volume_for_create: VolumeForCreate)
     if let Some(v) =  volume{
         Ok(v)
     }else{
-        Err(VolumeError::RetrievalError)
+        Err(VolumeError::FailedToCreate)
     }
 
 }
