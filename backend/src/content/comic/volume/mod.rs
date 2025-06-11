@@ -3,7 +3,7 @@ use surrealdb::sql::Thing;
 
 pub mod routers;
 pub mod controllers;
-
+pub mod chapter;
 
 
 // region:      --- Structs

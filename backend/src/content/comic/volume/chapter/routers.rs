@@ -1,18 +1,13 @@
-use axum::{
-    body::Body, extract::{DefaultBodyLimit, Multipart, Path as AxumPath, State}, response::{IntoResponse, Response}, routing::{get, post}, Json, Router
-};
-use serde::de::value;
-use serde_json::json;
+use axum::{extract::{Path as AxumPath, State}, response::IntoResponse, routing::{get, post}, Json, Router};
 use http::StatusCode;
-use crate::{content::comic::volume::chapter::routers::chapter_router, dev_initial::db::Db};
+use serde_json::json;
+use crate::{content::comic::volume::{self, chapter::{controllers::{index, store}, ChapterForCreate}}, dev_initial::db::Db};
 
-use super::{controllers::{index, store}, VolumeForCreate};
 
-pub fn volume_router() -> Router<Db>{
+pub fn chapter_router() -> Router<Db>{
     return Router::new()
-    .nest("/chapter", chapter_router())
-    .route("/:comic", get(list))
-    .route("/", post(create))
+        .route("/:volume", get(list))
+        .route("/", post(create))
 }
 
 
@@ -38,17 +33,17 @@ pub fn volume_router() -> Router<Db>{
 /// </ul>
 #[axum_macros::debug_handler]
 async fn create(
-    State(db): State<Db>,
-    Json(payload): Json<VolumeForCreate>
+    State(db) : State<Db>,
+    Json(payload): Json<ChapterForCreate>
 ) -> impl IntoResponse{
     let db = db.unwrap();
     match store(&db, payload).await{
-        Ok(v) => (
+        Ok(chapter) => (
             StatusCode::CREATED,
-            Json(json!({"volume": v}))
+            Json(json!({"chapter": chapter}))
         ).into_response(),
-        Err(e) =>{
-            dbg!(e);
+        Err(error) =>{
+            dbg!(error);
             (StatusCode::INTERNAL_SERVER_ERROR).into_response()
         }
     }
@@ -70,15 +65,15 @@ async fn create(
 ///     <li> <b>Err</b> : 500</li>
 /// </ul>
 #[axum_macros::debug_handler]
-async fn list(State(db): State<Db>,AxumPath(comic): AxumPath<String>)->impl IntoResponse{
+async fn list(State(db): State<Db>,AxumPath(volume): AxumPath<String>)->impl IntoResponse{
     let db = db.unwrap();
-    eprintln!("LIST VOLUMES");
-    match index(&db, comic).await{
-        Ok(v) => {
-            if !v.is_empty(){
+    eprintln!("LIST CHAPTERS");
+    match index(&db, volume).await{
+        Ok(chapters) => {
+            if !chapters.is_empty(){
                 (
                     StatusCode::OK,
-                    Json(json!({"volume_list":v}))
+                    Json(json!({"chapters_list":chapters}))
                 ).into_response()
             }else{
                 (StatusCode::NOT_FOUND).into_response()
@@ -90,4 +85,3 @@ async fn list(State(db): State<Db>,AxumPath(comic): AxumPath<String>)->impl Into
         }
     }
 }
-// endregion:   --- Handlers
