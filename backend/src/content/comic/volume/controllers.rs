@@ -40,7 +40,10 @@ pub async fn show(db: &Surreal<Client>, id: String)-> Result<Volume, VolumeError
 pub async fn store(db: &Surreal<Client>, mut volume_for_create: VolumeForCreate) -> Result<DbId, VolumeError>{
    /*  let mut count =  db.query("SELECT count() FROM volume").await.unwrap();
     let count: Option<i32> = count.take(0)? */;
-    let mut count =  db.query("SELECT count() FROM volume").await.unwrap();
+    // let id: &str = volume_for_create.comic.split(":").collect::<Vec<&str>>()[1];
+    let id = "id";
+    let query = format!("SELECT count() FROM volume WHERE comic = comic:{id}");
+    let mut count =  db.query(query).await.unwrap();
     let count:Vec<Count>  = count.take(0)?;
     println!("{:#?}", count);
     let mut count2:u32 =0; 

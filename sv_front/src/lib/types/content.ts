@@ -42,3 +42,10 @@ export interface VolumeForCreate{
     cover: null|string,
     no_of_chapters: number
 }
+
+export interface ChapterForCreate{
+    [key:string]: string | SurrealId| null | number;
+    pages: number,
+    synopsis: string,
+    volume: SurrealId
+}

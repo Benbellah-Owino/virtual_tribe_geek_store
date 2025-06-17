@@ -46,37 +46,38 @@ pub async fn init_queries(db: &Surreal<Client>) -> surrealdb::Result<()> {
     let sql_dir: &str = "sql";
 
     let current_dir = std::env::current_dir().unwrap();
-    println!("{:?}\n\n------------------------------", current_dir);
+    // println!("{:?}\n\n------------------------------", current_dir);
     let dir = current_dir.to_str().unwrap();
     let file_path: String = format!("{dir}\\{sql_dir}\\{sql_setup}");
-    println!("{:?}\n\n------------------------------", file_path);
+    // println!("{:?}\n\n------------------------------", file_path);
 
     let contents = fs::read_to_string(&file_path);
     match contents {
+        // Commented out lines are for debugging
         Ok(t) => {
-            let mut count: u8 = 1;
+            // let mut count: u8 = 1;
             let t_vec: Vec<_> = t.split(";").collect();
-            println!("{:?}", t_vec);
+            // println!("{:?}", t_vec);
             info!("Running queries");
             for i in t_vec {
                 if i.contains("--") || i.is_empty() {
                     continue;
                 } else {
                     let q = i.to_string();
-                    println!("\n\n------------------------------");
-                    println!("Query :-> {count} \n {q}");
+                    // println!("\n\n------------------------------");
+                    // println!("Query :-> {count} \n {q}");
                     let query = db.query(&q).await;
-                    match query {
-                        Ok(r) => {
-                            println!("{:?}", r);
-                        }
-                        Err(e) => {
-                            println!("\nError");
-                            eprintln!("{:?}", e);
-                        }
-                    }
-                    println!("\n\n------------------------------");
-                    count += 1;
+                    // match query {
+                    //     Ok(r) => {
+                    //         // println!("{:?}", r);
+                    //     }
+                    //     Err(e) => {
+                    //         println!("\nError");
+                    //         eprintln!("{:?}", e);
+                    //     }
+                    // }
+                    // println!("\n\n------------------------------");
+                    // count += 1;
                 }
             }
         }

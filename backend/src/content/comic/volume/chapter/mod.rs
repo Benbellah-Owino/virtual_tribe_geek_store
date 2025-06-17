@@ -19,10 +19,8 @@ pub struct Chapter{
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ChapterForCreate{
-    pub id: Thing,
     pub pages: u16,
     pub synopsis: Option<String>,
-    pub file: Option<String>,
     pub volume: Thing
 }
 // endregion:   --- Structs

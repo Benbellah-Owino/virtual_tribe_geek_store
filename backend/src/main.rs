@@ -6,6 +6,7 @@ use backend::content::routers::content_router;
 use backend::creator::routers::creator_router;
 use backend::middleware::auth::cookies::list_cookies;
 use backend::studio::routers::studio_router;
+use backend::test_grounds::test_grounds_router;
 use backend::user::routers::user_router;
 use backend::middleware::dev::log_request;
 use backend::dev_initial::db::{connect_db, init_queries};
@@ -60,6 +61,7 @@ async fn main() -> surrealdb::Result<()> {
         .layer(ServiceBuilder::new().layer(middleware::from_fn(log_request)))
         .route("/metrics", get(|| async move { metric_handle.render() }))
         .layer(prometheus_layer)
+        .nest("/tester", test_grounds_router())
         .layer(cors)
         .with_state(Ok(db));
 

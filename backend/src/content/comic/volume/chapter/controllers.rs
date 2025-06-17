@@ -1,6 +1,7 @@
 use surrealdb::Surreal;
 use surrealdb::engine::remote::ws::Client;
 use tracing::debug;
+use crate::helpers::db::id_from_thing;
 use crate::DbId;
 use crate::content::comic::volume::chapter::{Chapter,ChapterForCreate,ChapterError};
 
@@ -31,7 +32,24 @@ pub async fn show(db: &Surreal<Client>, id: String)-> Result<Chapter, ChapterErr
 
 
 // Stores new chapter data in db and relevant storage
-pub async fn store(db: &Surreal<Client>, mut chapter_for_create: ChapterForCreate) -> Result<DbId, ChapterError>{
+pub async fn store(db: &Surreal<Client>, chapter_for_create: ChapterForCreate) -> Result<DbId, ChapterError>{
+    // Select Relative count
+    let id = id_from_thing(chapter_for_create.volume);
+    let query = format!("SELECT count() FROM chapter WHERE volume = volume:{id}");
+    let mut count =  db.query(query).await.unwrap();
+    let count:Vec<Count>  = count.take(0)?;
+    println!("{:#?}", count);
+    let mut count2:u32 =0; 
+    if count.len() > 0{
+        let ct = count.len() + 1;
+        eprintln!("{}",ct);
+        count2 =  count.len() as u32 + 1;
+    }else{
+        count2 = 1;
+    };
+    
+    // TODO: Select Absolute Count
+
     let chapter: Option<DbId> = db.create("chapter").content(chapter_for_create).await?;
     eprintln!("Created {:#?}", chapter);
 

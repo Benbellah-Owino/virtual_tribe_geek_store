@@ -1,7 +1,7 @@
 use axum::{extract::{Path as AxumPath, State}, response::IntoResponse, routing::{get, post}, Json, Router};
 use http::StatusCode;
 use serde_json::json;
-use crate::{content::comic::volume::{self, chapter::{controllers::{index, store}, ChapterForCreate}}, dev_initial::db::Db};
+use crate::{content::comic::volume::{chapter::{controllers::{index, store}, ChapterForCreate}}, dev_initial::db::Db};
 
 
 pub fn chapter_router() -> Router<Db>{

@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { stringToSurrealId } from '$lib/helper_functions.ts/converters';
-	import type { VolumeForCreate } from '$lib/types/content';
+	import type { ChapterForCreate, VolumeForCreate } from '$lib/types/content';
 	import { FormError, PageError } from '$lib/types/error';
 	import { Result } from '$lib/types/result';
 	import { updateFormState, type FormState } from '$lib/types/state/form_state';
 	import { updatePageState, type PageState } from '$lib/types/state/page_state';
-	import { error } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
 
 	// section:     --- State
@@ -25,7 +24,7 @@
 		locked: false
 	});
 
-	let comic_id = $page.params.id;
+	let volume_id = $page.params.volumeid;
 	let form_on = $state(false);
 	// endsection:  --- State
 
@@ -33,23 +32,22 @@
 	let comic: any | null = $state(null);
 	let volumes: any[] = $state([]);
 
-	let volume_form: VolumeForCreate = $state({
+	let chapter_form: ChapterForCreate = $state({
+		pages: 0,
 		synopsis: '',
-		comic: {
+		volume: {
 			id: {
 				String: ''
 			},
 			tb: ''
-		},
-		cover: null,
-		no_of_chapters: 0
+		}
 	});
 
 	// endsection:  --- Variables
 
 	onMount(async () => {
-		volume_form.comic = stringToSurrealId(`comic:${comic_id}`);
-		let response = await fetch(`http://localhost:7878/content/comic/index?comic=${comic_id}`, {
+		chapter_form.volume = stringToSurrealId(`comic:${volume_id}`);
+		let response = await fetch(`http://localhost:7878/content/comic/index?comic=${volume_id}`, {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
@@ -89,7 +87,7 @@
 			}
 		}
 
-		let res_volumes = await fetch(`http://localhost:7878/content/comic/volume/${comic_id}`, {
+		let res_volumes = await fetch(`http://localhost:7878/content/comic/volume/${volume_id}`, {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
@@ -133,16 +131,14 @@
 		}
 	});
 
-	async function submit(e: Event) {
+	async function send(e: Event) {
 		e.preventDefault();
-
+		console.log($state.snapshot(chapter_form))
 		try {
-			console.log($state.snapshot(volume_form));
-			// TODO" Fix this route
-			let response = await fetch(`http://localhost:7878/content/comic/volume`, {
+			let response = await fetch(`http://localhost:7878/tester/test_api`, {
 				method: 'POST',
 				credentials: 'include',
-				body: JSON.stringify(volume_form),
+				body: JSON.stringify(chapter_form),
 				headers: {
 					'Content-Type': 'application/json'
 				}
@@ -154,7 +150,54 @@
 					console.log($state.snapshot(formState));
 				}, 3000);
 				console.log('created');
-				window.open(`/content/comics/${comic_id}`, '_self');
+				window.open(`/content/comics/${volume_id}`, '_self');
+			} else if (response.status == 500) {
+				updateFormState(
+					formState,
+					Result.Err,
+					FormError.SubmissionFailed,
+					'Submission Failed',
+					'form',
+					false
+				);
+			} else if (response.ok == false) {
+				console.log(response.statusText);
+				console.log(response)
+				updateFormState(
+					formState,
+					Result.Err,
+					FormError.SubmissionFailed,
+					'Submission Failed',
+					'form',
+					false
+				);
+			}
+		} catch (error) {
+			
+		}
+	}
+	async function submit(e: Event) {
+		e.preventDefault();
+
+		try {
+			console.log($state.snapshot(chapter_form));
+			// TODO" Fix this route
+			let response = await fetch(`http://localhost:7878/content/comic/volume`, {
+				method: 'POST',
+				credentials: 'include',
+				body: JSON.stringify(chapter_form),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (response.status == 201) {
+				//UNIMPLEMENTED
+				setTimeout(() => {
+					updateFormState(formState, Result.Ok, null, 'Registration success', 'form', true);
+					console.log($state.snapshot(formState));
+				}, 3000);
+				console.log('created');
+				window.open(`/content/comics/${volume_id}`, '_self');
 			} else if (response.status == 500) {
 				updateFormState(
 					formState,
@@ -190,6 +233,7 @@
 </script>
 
 <main>
+    <center><h1 class="text-6xl font-extrabold">Chapters</h1></center>
 	{#if pageState.loading}
 		<center>Loading content...</center>
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == null}
@@ -229,7 +273,7 @@
 							id="description"
 							class="w-11/12"
 							rows="10"
-							bind:value={volume_form.synopsis}
+							bind:value={chapter_form.synopsis}
 						></textarea>
 					</div>
 					<button type="submit" class="btn primary_btn w-11/12">submit</button>
@@ -239,7 +283,7 @@
 		{/if}
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == PageError.NotFoundError}
 		<center class="w-full">
-			<form class="form alt_bg mt-3 rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={submit}>
+			<form class="form alt_bg mt-3 rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={send}>
 				<h3 class="float-left mb-4 text-3xl font-extrabold">ADD VOLUME</h3>
 				<br />
 				{#if formState.inner_state == Result.Ok && formState.target == 'form'}
@@ -249,6 +293,13 @@
 						><p class="error text-lg font-semibold text-red-400">{formState.message}</p></center
 					>
 				{/if}
+			<div class="form_div">
+				<label for="pages">Pages</label>
+				<input type="number" name="pages" id="pages" bind:value={chapter_form.pages} />
+				{#if formState.inner_state == Result.Err && formState.target == 'pages'}
+					<p class="error text-red-500">{formState.message}</p>
+				{/if}
+			</div>
 				<div class="form_div">
 					<label for="description">Synopsis</label>
 					<!--TODO: Add word limit to description field on server side -->
@@ -257,7 +308,7 @@
 						id="description"
 						class="w-11/12"
 						rows="10"
-						bind:value={volume_form.synopsis}
+						bind:value={chapter_form.synopsis}
 					></textarea>
 				</div>
 				<button type="submit" class="btn primary_btn w-11/12">submit</button>

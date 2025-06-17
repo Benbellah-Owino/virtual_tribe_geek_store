@@ -11,6 +11,7 @@ pub mod middleware;
 pub mod studio;
 pub mod user;
 pub mod vrt_lib;
+pub mod test_grounds;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DbId {
