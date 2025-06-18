@@ -11,6 +11,6 @@ pub fn thing_from_string(id: String) -> Thing {
 }
 
 
-pub fn id_from_thing(id: Thing) -> &str{
-    &id.id.to_raw()
+pub fn id_from_thing(id: &Thing) -> String{
+    id.id.to_raw()
 }

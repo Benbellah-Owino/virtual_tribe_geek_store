@@ -129,10 +129,11 @@ pub struct ComicRunlength {
 pub struct Volume {
     pub id: Thing,
     pub no_of_chapters: u16,
-    pub runlength: ComicRunlength,
+    pub runlength: Option<ComicRunlength>,
     pub synopsis: String,
     pub comic: Thing,
     pub cover: Option<String>,
+    pub vol_no: u16,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

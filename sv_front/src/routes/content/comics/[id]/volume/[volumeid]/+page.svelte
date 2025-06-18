@@ -150,7 +150,7 @@
 					console.log($state.snapshot(formState));
 				}, 3000);
 				console.log('created');
-				window.open(`/content/comics/${volume_id}`, '_self');
+				//window.open(`/content/comics/${volume_id}`, '_self');
 			} else if (response.status == 500) {
 				updateFormState(
 					formState,
@@ -173,7 +173,7 @@
 				);
 			}
 		} catch (error) {
-			
+			console.error(error);		
 		}
 	}
 	async function submit(e: Event) {

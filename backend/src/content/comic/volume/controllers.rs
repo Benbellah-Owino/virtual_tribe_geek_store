@@ -1,23 +1,18 @@
 use serde::{Serialize,Deserialize};
 use surrealdb::{engine::remote::ws::Client, Surreal};
 use tracing::debug;
-use crate::{content::comic::volume::VolumeForCreateCount, DbId};
+use crate::{content::comic::volume::VolumeForCreateCount, helpers::db::id_from_thing, Count, DbId};
 
 use super::{Volume, VolumeError, VolumeForCreate};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct Count{
-    pub count: u32 
-}
 
 // Shows list of volumes
 pub async fn index(db: &Surreal<Client>, comic: String) -> Result<Vec<Volume>, VolumeError>{
     debug!("{comic}");
     let query = format!("SELECT * FROM volume WHERE comic = comic:{comic}"); // TODO: Order this list
-    debug!("QUERY -> {query}");
     let mut volumes = db.query(query).await?;
     let mut volumes: Vec<Volume> = volumes.take(0)?;
-    // volumes.sort_by(|a,b| 
+    // vort_by(|a,b| 
     //     b.vol_no.cmp(&a.vol_no)
     // );
     return Ok(volumes)
@@ -41,19 +36,20 @@ pub async fn store(db: &Surreal<Client>, mut volume_for_create: VolumeForCreate)
    /*  let mut count =  db.query("SELECT count() FROM volume").await.unwrap();
     let count: Option<i32> = count.take(0)? */;
     // let id: &str = volume_for_create.comic.split(":").collect::<Vec<&str>>()[1];
-    let id = "id";
+    let id = id_from_thing(&volume_for_create.comic);
     let query = format!("SELECT count() FROM volume WHERE comic = comic:{id}");
     let mut count =  db.query(query).await.unwrap();
     let count:Vec<Count>  = count.take(0)?;
     println!("{:#?}", count);
     let mut count2:u32 =0; 
     if count.len() > 0{
-        let ct = count.len() + 1;
-        eprintln!("{}",ct);
+        // let ct = count.len() + 1;
+        // eprintln!("{}",ct);
         count2 =  count.len() as u32 + 1;
     }else{
         count2 = 1;
     };
+    println!("Final count is {:#?}", count);
     //let count = count[1].count + 1;
 
     let vol = VolumeForCreateCount::from_vol_create(volume_for_create, count2);

@@ -18,7 +18,16 @@ pub struct DbId {
     pub id: Thing,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ComicId {
+    pub comic: Thing,
+}
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AvatarUrl {
     pub avatar: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct Count{
+    pub count: u32 
 }
