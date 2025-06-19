@@ -1,10 +1,5 @@
 // region:      --- Imports
-use axum::{
-    extract::State,
-    response::IntoResponse,
-    routing::get,
-    Json, Router,
-};
+use axum::{extract::State, response::IntoResponse, routing::get, Json, Router};
 use http::StatusCode;
 use serde_json::json;
 

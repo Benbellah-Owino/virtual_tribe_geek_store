@@ -58,11 +58,11 @@ pub fn gen_auth_cookie(claims: &Claims, cookies: &Cookies) -> Result<&'static st
         // TODO: Create a cookie with cookie.builder
         let cookie = Cookie::build(("auth_token", s)).path("/");
         cookies.add(Cookie::from(cookie)); //add it to cookies
-        /* Problem: I don't return the cookie. The above statement saves the cookie in server cookie store where 
-        only one auth_token instance can occur so in every login it is replaced
-        It still works according to my knowledge but this should be improved
-        TODO: Increase my understanding of cookies and Request and Respondes
-         */
+                                           /* Problem: I don't return the cookie. The above statement saves the cookie in server cookie store where
+                                           only one auth_token instance can occur so in every login it is replaced
+                                           It still works according to my knowledge but this should be improved
+                                           TODO: Increase my understanding of cookies and Request and Respondes
+                                            */
         Ok("Auth cookie added")
     } else {
         Err(AuthError::AuthTokenError)
@@ -99,12 +99,9 @@ pub async fn gen_refresh_cookie(
     }
 }
 
-pub async fn verify_user(
-    mut request: Request,
-    next: Next,
-) -> Result<Response, StatusCode> {
+pub async fn verify_user(mut request: Request, next: Next) -> Result<Response, StatusCode> {
     //TODO: Retrieve the auth token from request,not the cookies list
-    let auth_token  = request.headers().get("cookie");
+    let auth_token = request.headers().get("cookie");
     // let auth_token = cookiesauth_token -
     //     .get("auth_token")
     //     .map(|t| t.to_string())
@@ -138,7 +135,7 @@ pub async fn list_cookies(
     request: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
-        let cookies = cookies.list();
-        dbg!(&cookies);
-        Ok(next.run(request).await)
+    let cookies = cookies.list();
+    dbg!(&cookies);
+    Ok(next.run(request).await)
 }

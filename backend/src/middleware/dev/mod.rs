@@ -18,4 +18,3 @@ pub async fn log_request(req: Request, next: Next) -> Response {
 
     response
 }
-

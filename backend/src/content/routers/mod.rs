@@ -1,16 +1,30 @@
-use std::path::{Path};
+use std::path::Path;
 
 use axum::{
-    body::Body, extract::{DefaultBodyLimit, Multipart, Path as AxumPath, State}, response::{IntoResponse, Response}, routing::{get, post}, Json, Router
+    body::Body,
+    extract::{DefaultBodyLimit, Multipart, Path as AxumPath, State},
+    response::{IntoResponse, Response},
+    routing::{get, post},
+    Json, Router,
 };
 use http::{header, StatusCode};
 use serde_json::json;
 use tracing::{debug, info};
 
-use crate::{content::{controllers::update_details, ContentForCreateServer, ContentForUpdate}, dev_initial::db::Db, file_upload::{small_file::{self, extract_image}, storage::{self, save_to_disk}}};
+use crate::{
+    content::{controllers::update_details, ContentForCreateServer, ContentForUpdate},
+    dev_initial::db::Db,
+    file_upload::{
+        small_file::{self, extract_image},
+        storage::{self, save_to_disk},
+    },
+};
 
 use super::{
-    comic::routers::comic_router, controllers::{get_all, get_content, list_by_studio, store}, genre::routers::genre_router, ContentError
+    comic::routers::comic_router,
+    controllers::{get_all, get_content, list_by_studio, store},
+    genre::routers::genre_router,
+    ContentError,
 };
 use crate::content::ContentForCreateClient;
 
@@ -110,16 +124,12 @@ async fn list(State(db): State<Db>) -> impl IntoResponse {
 async fn show(State(db): State<Db>, AxumPath(content): AxumPath<String>) -> impl IntoResponse {
     let db = db.unwrap();
     // debug!("Get Content {}", &content);
-    match get_content(&db, content).await{
-        Ok(c) => {
-            (StatusCode::OK, Json(json!({"content": c}))).into_response()
-        }
-        Err(e) => {
-            match e {
-                ContentError::NotFound => (StatusCode::NOT_FOUND).into_response(),
-                _ => (StatusCode::INTERNAL_SERVER_ERROR).into_response()
-            }
-        }
+    match get_content(&db, content).await {
+        Ok(c) => (StatusCode::OK, Json(json!({"content": c}))).into_response(),
+        Err(e) => match e {
+            ContentError::NotFound => (StatusCode::NOT_FOUND).into_response(),
+            _ => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
+        },
     }
 }
 
@@ -129,11 +139,13 @@ async fn edit(State(_db): State<Db>) -> impl IntoResponse {}
 #[allow(dead_code)]
 async fn delete_content(State(_db): State<Db>) -> impl IntoResponse {}
 
-
 #[axum_macros::debug_handler]
-pub async fn list_studio_handler(State(db): State<Db>, AxumPath(studio): AxumPath<String>) -> impl IntoResponse {
+pub async fn list_studio_handler(
+    State(db): State<Db>,
+    AxumPath(studio): AxumPath<String>,
+) -> impl IntoResponse {
     let db = db.unwrap();
-    
+
     // let studio: Vec<&str> = id.split(':').collect();
     let content_list = list_by_studio(&db, studio).await;
 
@@ -146,7 +158,6 @@ pub async fn list_studio_handler(State(db): State<Db>, AxumPath(studio): AxumPat
     }
 }
 
-
 #[axum::debug_handler]
 async fn cover_upload(
     State(db): State<Db>,
@@ -155,7 +166,6 @@ async fn cover_upload(
 ) -> impl IntoResponse {
     let db = db.unwrap();
 
-    
     let id_string = id.split(":").collect::<Vec<&str>>();
     // Attempt to extract the image file from multipart
     let file = match extract_image(multipart).await {
@@ -182,13 +192,7 @@ async fn cover_upload(
     // Store the file in the specified director
     let path = format!("media\\content\\{}", id_string[1]);
     debug!("content_path-> {path}");
-    let file = match storage::store(
-        Some(path),
-        format!("{}cover", id_string[1]),
-        file,
-    )
-    .await
-    {
+    let file = match storage::store(Some(path), format!("{}cover", id_string[1]), file).await {
         Some(f) => f,
         None => {
             println!("File storage failed.");
@@ -211,7 +215,7 @@ async fn cover_upload(
         field: "cover".to_string(),
         value: value.to_string(),
     };
-    
+
     println!("{:?}", &path);
 
     match update_details(&db, id_string[1], payload).await {

@@ -55,7 +55,7 @@ pub async fn save_to_disk(to_write: (&PathBuf, String, Bytes)) -> Result<(), Err
             Ok(_) => println!("path created"),
             Err(_) => return Err(Error::FileCreationError),
         }
-    } 
+    }
 
     match OpenOptions::new().create(true).write(true).open(to_write.0) {
         Ok(mut f) => {

@@ -1,7 +1,7 @@
 use serde::Serialize;
 
-pub mod routers;
 pub mod controllers;
+pub mod routers;
 
 pub mod volume;
 

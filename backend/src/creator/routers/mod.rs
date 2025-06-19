@@ -19,7 +19,7 @@ use crate::file_upload::small_file::{self, extract_image};
 use crate::file_upload::storage::{save_to_disk, store};
 use crate::middleware::auth::cookies::{gen_auth_cookie, gen_refresh_cookie, verify_user};
 
-use super::controllers::{get_details,index,  get_studios, login, register, update_details};
+use super::controllers::{get_details, get_studios, index, login, register, update_details};
 use super::{CreatorForCreate, CreatorForLogin, CreatorForUpdateClient};
 
 // endsection:   -- imports
@@ -192,19 +192,19 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
 ///     <li> <b>Err</b> : 404</li>
 /// </ul>
 pub async fn get_creators(State(db): State<Db>) -> impl IntoResponse {
-        let db = db.unwrap();
-        //TODO: Paginate the results
-        let creator = index(&db).await;
-        match creator {
-            Ok(c) => (StatusCode::OK, Json(json!({"creators": c}))),
-            Err(_) => (
-                StatusCode::NOT_FOUND,
-                Json(json!({"msg": "Creator not found"})),
-            ),
-        }
+    let db = db.unwrap();
+    //TODO: Paginate the results
+    let creator = index(&db).await;
+    match creator {
+        Ok(c) => (StatusCode::OK, Json(json!({"creators": c}))),
+        Err(_) => (
+            StatusCode::NOT_FOUND,
+            Json(json!({"msg": "Creator not found"})),
+        ),
+    }
 }
 
-    /// <h1> Handles updating details of Creators </h1>
+/// <h1> Handles updating details of Creators </h1>
 /// <h2> <b>Endpoint:  <strong>[PATHC]</strong>  /creator </b> </h2>
 ///
 /// <h3> Request body</h3>
@@ -457,10 +457,14 @@ pub async fn get_image(
 ///     <li> <b>Ok</b>  : 302</li>
 ///     <li> <b>Err</b> : 404</li>
 /// </ul>
-pub async fn list_studios_handler(State(db): State<Db>, AxumPath(id): AxumPath<String>, req: Request) -> impl IntoResponse {
+pub async fn list_studios_handler(
+    State(db): State<Db>,
+    AxumPath(id): AxumPath<String>,
+    req: Request,
+) -> impl IntoResponse {
     //TODO: Check if the creator exists
     let mut id = id;
-    if id == "owner"{
+    if id == "owner" {
         if let Some(i) = req.extensions().get::<String>() {
             id = i.to_string();
         }

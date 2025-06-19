@@ -163,18 +163,21 @@ pub async fn check_owner(
         Ok(mut res) => {
             dbg!(&res);
             let studio: Result<Vec<Studio>, surrealdb::Error> = res.take(0);
-            
+
             if let Ok(s) = studio {
                 if s.is_empty() {
                     return Err(StudioError::StudioRetrievingError);
                 }
 
                 // Move the first element to force full ownership
-                let owned_studio = s.into_iter().next().unwrap(); 
+                let owned_studio = s.into_iter().next().unwrap();
 
-                let creator_parts: Vec<String> = creator.split(':').map(|s| s.to_string()).collect();
-                
-                if owned_studio.owner.id.to_string() == creator_parts[1] && owned_studio.owner.tb == creator_parts[0] {
+                let creator_parts: Vec<String> =
+                    creator.split(':').map(|s| s.to_string()).collect();
+
+                if owned_studio.owner.id.to_string() == creator_parts[1]
+                    && owned_studio.owner.tb == creator_parts[0]
+                {
                     Ok(owned_studio)
                 } else {
                     Err(StudioError::OwnerMismatch)
@@ -186,7 +189,6 @@ pub async fn check_owner(
         Err(_) => Err(StudioError::StudioRetrievingError),
     }
 }
-
 
 /// <h1> Handles updating of studio </h1>
 /// <h2> <b>Endpoint:  <strong>[POST]</strong>  /studio/ </b> </h2>

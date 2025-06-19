@@ -9,9 +9,9 @@ use super::{Genre, GenreError, GenreForCreate};
 // region:      --- Controllers
 pub async fn store(genre: GenreForCreate, db: &Surreal<Client>) -> Result<DbId, GenreError> {
     let new_genre: Option<DbId> = db.create("genre").content(genre).await?;
-    if let Some(g) =  new_genre{
+    if let Some(g) = new_genre {
         Ok(g)
-    }else{
+    } else {
         Err(GenreError::RetrievalError)
     }
 }

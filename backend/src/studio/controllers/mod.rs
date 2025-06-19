@@ -1,9 +1,6 @@
 use serde_json::json;
 // section:     -- imports
-use surrealdb::{
-    engine::remote::ws::Client,
-    Surreal,
-};
+use surrealdb::{engine::remote::ws::Client, Surreal};
 use tracing::debug;
 
 use crate::helpers::db::thing_from_string;
@@ -36,7 +33,7 @@ pub async fn create(
         name: studio.name.clone(),
         owner: creator,
         email: studio.email.clone(),
-        description: studio.description
+        description: studio.description,
     };
 
     let new_studio: Result<Option<StudioFull>, surrealdb::Error> =

@@ -9,9 +9,9 @@ pub mod file_upload;
 pub mod helpers;
 pub mod middleware;
 pub mod studio;
+pub mod test_grounds;
 pub mod user;
 pub mod vrt_lib;
-pub mod test_grounds;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DbId {
@@ -28,6 +28,6 @@ pub struct AvatarUrl {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct Count{
-    pub count: u32 
+struct Count {
+    pub count: u32,
 }

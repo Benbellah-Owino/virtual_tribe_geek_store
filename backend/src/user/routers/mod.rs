@@ -56,12 +56,8 @@ async fn register_handler(
     let user = register(&db, payload).await;
 
     match user {
-        Ok(_c) => {
-            (StatusCode::CREATED).into_response()
-        }
-        Err(_) => {
-            (StatusCode::INTERNAL_SERVER_ERROR).into_response()
-        }
+        Ok(_c) => (StatusCode::CREATED).into_response(),
+        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
     }
 }
 
@@ -110,16 +106,12 @@ async fn login_handler(
             crate::user::UserError::WrongCredentialsError => {
                 (StatusCode::UNAUTHORIZED).into_response()
             }
-            crate::user::UserError::LoginAttemptsError => {
-                (
-                    StatusCode::FORBIDDEN,
-                    Json(json!({"msg":"Too many login attempts"})),
-                )
-                    .into_response()
-            }
-            _ => {
-                (StatusCode::INTERNAL_SERVER_ERROR).into_response()
-            }
+            crate::user::UserError::LoginAttemptsError => (
+                StatusCode::FORBIDDEN,
+                Json(json!({"msg":"Too many login attempts"})),
+            )
+                .into_response(),
+            _ => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
         },
     }
 }
@@ -138,15 +130,11 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
         let db = db.unwrap();
         let user = get_details(&db, id.to_owned()).await;
         match user {
-            Ok(c) => {
-                (StatusCode::FOUND, Json(json!({"User": c})))
-            }
-            Err(_) => {
-                (
-                    StatusCode::NOT_FOUND,
-                    Json(json!({"msg": "User not found"})),
-                )
-            }
+            Ok(c) => (StatusCode::FOUND, Json(json!({"User": c}))),
+            Err(_) => (
+                StatusCode::NOT_FOUND,
+                Json(json!({"msg": "User not found"})),
+            ),
         }
     } else {
         println!("Error");
@@ -230,12 +218,10 @@ pub async fn delete_handler(
                 cookies.remove(Cookie::from("auth_token"));
                 (StatusCode::OK, Json(json!({"User": c})))
             }
-            Err(_) => {
-                (
-                    StatusCode::NOT_FOUND,
-                    Json(json!({"msg": "User not found"})),
-                )
-            }
+            Err(_) => (
+                StatusCode::NOT_FOUND,
+                Json(json!({"msg": "User not found"})),
+            ),
         }
     } else {
         println!("Error");

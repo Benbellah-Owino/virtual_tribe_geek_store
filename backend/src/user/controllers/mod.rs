@@ -49,16 +49,17 @@ pub async fn register<'a>(
         "\n\n{:<12} ====================================================================\n\n",
         "User::register()"
     );
-    let created: Result<Option<UserForCreate>, surrealdb::Error> = db.create("user").content(user).await;
+    let created: Result<Option<UserForCreate>, surrealdb::Error> =
+        db.create("user").content(user).await;
 
     match created {
         Ok(c) => {
             debug!("{:<12} - registered new User", "FOR-DEV-ONLY");
 
             println!("\n\n============================================================================================\n\n");
-            if let Some(c) = c{
+            if let Some(c) = c {
                 Ok(c)
-            }else{
+            } else {
                 Err(UserError::DetailsRetrievingError)
             }
         }
@@ -157,7 +158,7 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
                             .unwrap(); // reset the number of login attempts
 
                         println!("\n\n============================================================================================\n\n\n");
-                        Ok(ret_crt)//return the Claim necessary for a cookie
+                        Ok(ret_crt) //return the Claim necessary for a cookie
                     } else {
                         print!("Wrong credentials");
 
@@ -168,7 +169,7 @@ pub async fn login(db: &Surreal<Client>, user: UserForLogin) -> Result<Claims, U
                             .unwrap();
                         dbg!("Update failed", query);
                         println!("\n\n============================================================================================\n\n\n");
-                        Err(UserError::WrongCredentialsError)//else
+                        Err(UserError::WrongCredentialsError) //else
                     }
                 }
                 Err(e) => {

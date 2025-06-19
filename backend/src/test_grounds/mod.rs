@@ -2,7 +2,10 @@ use axum::{extract::State, response::IntoResponse, routing::post, Json, Router};
 use http::StatusCode;
 
 use crate::{
-    content::{comic::volume::chapter::ChapterForCreate, Volume}, dev_initial::db::Db, helpers::db::id_from_thing, ComicId, Count, DbId
+    content::{comic::volume::chapter::ChapterForCreate, Volume},
+    dev_initial::db::Db,
+    helpers::db::id_from_thing,
+    ComicId, Count,
 };
 
 pub fn test_grounds_router() -> Router<Db> {
@@ -20,7 +23,7 @@ async fn test_fn(
     // Get the comic id
     let query = format!("SELECT comic FROM volume WHERE id = volume:{id}");
     let mut comic = db.query(query).await.unwrap();
-    let comic:Option<ComicId> = comic.take(0).unwrap();
+    let comic: Option<ComicId> = comic.take(0).unwrap();
     let comic = comic.unwrap();
     let comic_id = id_from_thing(&comic.comic);
 
@@ -36,9 +39,9 @@ async fn test_fn(
     // Iterate throught the volumes
     for volume in volumes {
         let id = id_from_thing(&volume.id);
-        
+
         // Get number of chapters in this volume
-        let query = format!("SELECT count() FROM chapter WHERE volume = volume:{id}"); 
+        let query = format!("SELECT count() FROM chapter WHERE volume = volume:{id}");
         let mut count = db.query(query).await.unwrap();
         let count: Vec<Count> = count.take(0).unwrap();
         println!("{:#?}", count);
@@ -49,7 +52,7 @@ async fn test_fn(
         } else {
             count2 = 0;
         };
-        
+
         a_count += count2;
     }
     a_count += 1;

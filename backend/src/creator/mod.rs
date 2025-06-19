@@ -130,7 +130,6 @@ pub enum CreatorError {
     DetailsRetrievingError,
     DetailsUpdateError,
 
-
     //Updating Error
     UpdatingError,
     WrongFieldError,
@@ -138,9 +137,8 @@ pub enum CreatorError {
     //Deleting Error
     DeletingError,
     //DB ERROR
-    DbError(surrealdb::Error)
+    DbError(surrealdb::Error),
 }
-
 
 impl From<surrealdb::Error> for CreatorError {
     fn from(value: surrealdb::Error) -> Self {

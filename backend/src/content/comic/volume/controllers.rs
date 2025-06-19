@@ -1,52 +1,54 @@
-use serde::{Serialize,Deserialize};
+use crate::{
+    content::comic::volume::VolumeForCreateCount, helpers::db::id_from_thing, Count, DbId,
+};
 use surrealdb::{engine::remote::ws::Client, Surreal};
 use tracing::debug;
-use crate::{content::comic::volume::VolumeForCreateCount, helpers::db::id_from_thing, Count, DbId};
 
 use super::{Volume, VolumeError, VolumeForCreate};
 
-
 // Shows list of volumes
-pub async fn index(db: &Surreal<Client>, comic: String) -> Result<Vec<Volume>, VolumeError>{
+pub async fn index(db: &Surreal<Client>, comic: String) -> Result<Vec<Volume>, VolumeError> {
     debug!("{comic}");
     let query = format!("SELECT * FROM volume WHERE comic = comic:{comic}"); // TODO: Order this list
     let mut volumes = db.query(query).await?;
-    let mut volumes: Vec<Volume> = volumes.take(0)?;
-    // vort_by(|a,b| 
+    let volumes: Vec<Volume> = volumes.take(0)?;
+    // vort_by(|a,b|
     //     b.vol_no.cmp(&a.vol_no)
     // );
-    return Ok(volumes)
+    return Ok(volumes);
 }
 
 // Shows a specific volume
-pub async fn show(db: &Surreal<Client>, id: String)-> Result<Volume, VolumeError>{
+pub async fn show(db: &Surreal<Client>, id: String) -> Result<Volume, VolumeError> {
     // let id: &str = id.split(":").collect::<Vec<&str>>()[1];
     let volume: Option<Volume> = db.select(("volume", id)).await?;
 
-    if let Some(v) = volume{
-        return Ok(v)
-    }else{
-        return Err(VolumeError::NotFound)
+    if let Some(v) = volume {
+        return Ok(v);
+    } else {
+        return Err(VolumeError::NotFound);
     }
 }
 
-
 // Stores new volume data in db and relevant storage
-pub async fn store(db: &Surreal<Client>, mut volume_for_create: VolumeForCreate) -> Result<DbId, VolumeError>{
-   /*  let mut count =  db.query("SELECT count() FROM volume").await.unwrap();
-    let count: Option<i32> = count.take(0)? */;
+pub async fn store(
+    db: &Surreal<Client>,
+    volume_for_create: VolumeForCreate,
+) -> Result<DbId, VolumeError> {
+    /*  let mut count =  db.query("SELECT count() FROM volume").await.unwrap();
+    let count: Option<i32> = count.take(0)? */
     // let id: &str = volume_for_create.comic.split(":").collect::<Vec<&str>>()[1];
     let id = id_from_thing(&volume_for_create.comic);
     let query = format!("SELECT count() FROM volume WHERE comic = comic:{id}");
-    let mut count =  db.query(query).await.unwrap();
-    let count:Vec<Count>  = count.take(0)?;
+    let mut count = db.query(query).await.unwrap();
+    let count: Vec<Count> = count.take(0)?;
     println!("{:#?}", count);
-    let mut count2:u32 =0; 
-    if count.len() > 0{
+    let mut count2: u32 = 0;
+    if count.len() > 0 {
         // let ct = count.len() + 1;
         // eprintln!("{}",ct);
-        count2 =  count.len() as u32 + 1;
-    }else{
+        count2 = count.len() as u32 + 1;
+    } else {
         count2 = 1;
     };
     println!("Final count is {:#?}", count);
@@ -56,22 +58,18 @@ pub async fn store(db: &Surreal<Client>, mut volume_for_create: VolumeForCreate)
     let volume: Option<DbId> = db.create("volume").content(vol).await?;
     eprintln!("Created {:#?}", volume);
 
-    if let Some(v) =  volume{
+    if let Some(v) = volume {
         Ok(v)
-    }else{
+    } else {
         Err(VolumeError::FailedToCreate)
     }
-
 }
 
 // Show form to edit an existing volume
-pub async fn edit(id: String){
-}
+pub async fn edit(id: String) {}
 
 // Updates a volume's details
-pub async fn update(id: String){
-}
+pub async fn update(id: String) {}
 
 // Deletes a volume
-pub async fn destroy(id: String){
-}
+pub async fn destroy(id: String) {}

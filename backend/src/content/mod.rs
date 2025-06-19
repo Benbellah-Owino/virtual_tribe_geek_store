@@ -10,8 +10,6 @@ pub mod comic;
 pub mod genre;
 pub mod video;
 
-
-
 // region:      --- Types
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Genre {
@@ -20,14 +18,12 @@ pub struct Genre {
     pub description: String,
 }
 
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ContentList {
     pub id: Thing,
     pub title: String,
     pub rating: f32,
     pub recom_price: f32,
-
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Content {
@@ -39,7 +35,7 @@ pub struct Content {
     pub audiences: String,
     pub recom_price: f32,
     pub genre: Vec<Genre>,
-    pub cover: Option<String>
+    pub cover: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -52,7 +48,7 @@ pub struct ContentUpdated {
     pub description: String,
     pub audiences: String,
     pub recom_price: f32,
-    pub cover: Option<String>
+    pub cover: Option<String>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ContentForCreateClient {
@@ -76,11 +72,7 @@ pub struct ContentForCreateServer {
 
 impl From<ContentForCreateClient> for ContentForCreateServer {
     fn from(content: ContentForCreateClient) -> Self {
-        let genre = content
-            .genre
-            .into_iter()
-            .map(thing_from_string)
-            .collect();
+        let genre = content.genre.into_iter().map(thing_from_string).collect();
         ContentForCreateServer {
             studio: thing_from_string(content.studio),
             genre,
@@ -94,7 +86,7 @@ impl From<ContentForCreateClient> for ContentForCreateServer {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ContentForUpdate {
     field: String,
-    value: String
+    value: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -104,10 +96,10 @@ pub struct Comic {
     pub chapters: u16,
     pub writer: Vec<String>,
     pub artist: Vec<String>,
-    pub creator: Vec<Creator>,// Make it so that it fetches the creator details
+    pub creator: Vec<Creator>, // Make it so that it fetches the creator details
     pub created_at: String,
     pub cover: Option<String>,
-    pub content: Thing
+    pub content: Thing,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -115,7 +107,7 @@ pub struct ComicForCreate {
     pub writer: Vec<String>,
     pub artist: Vec<String>,
     pub creator: Vec<Thing>,
-    pub content: Thing
+    pub content: Thing,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

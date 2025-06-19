@@ -41,7 +41,7 @@ pub struct StudioForCreate {
     pub owner: String,
     pub email: String,
     pub description: Option<String>, //More fields cam be addede
-    //More fields cam be addede
+                                     //More fields cam be addede
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -49,7 +49,7 @@ pub struct StudioForCreateForward {
     pub name: String,
     pub owner: Thing,
     pub email: String,
-    pub description: Option<String>, 
+    pub description: Option<String>,
     //More fields cam be addede
 }
 
@@ -135,7 +135,7 @@ mod tests {
             name: "test_studio".to_owned(),
             owner: creator.id.to_string(), //Enter surrealdb creator id
             email: "test_studio@gmail.com".to_owned(),
-            description:Some("Studio".to_string())
+            description: Some("Studio".to_string()),
         };
 
         let st = create(&db, new_studio).await.unwrap();
@@ -156,13 +156,13 @@ mod tests {
             name: "test_studio".to_owned(),
             owner: creator.id.to_string(), //Enter surrealdb creator id
             email: "test_studio@gmail.com".to_owned(),
-            description:Some("Studio".to_string())
+            description: Some("Studio".to_string()),
         };
         let new_studio2 = StudioForCreate {
             name: "test_studio2".to_owned(),
             owner: creator.id.to_string(), //Enter surrealdb creator id
             email: "test_studio2@gmail.com".to_owned(),
-            description:Some("Studio".to_string())
+            description: Some("Studio".to_string()),
         };
 
         let n_st = new_studio.clone();
@@ -187,7 +187,7 @@ mod tests {
             name: "test_studio".to_owned(),
             owner: creator.id.to_string(), //Enter surrealdb creator id
             email: "test_studio@gmail.com".to_owned(),
-            description:Some("Studio".to_string())
+            description: Some("Studio".to_string()),
         };
         let studio = create(&db, new_studio.clone()).await.unwrap();
 

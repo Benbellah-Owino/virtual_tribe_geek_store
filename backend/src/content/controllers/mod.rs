@@ -12,34 +12,31 @@ pub async fn store(
 ) -> Result<DbId, ContentError> {
     let content_db: Option<DbId> = db.create("content").content(content).await?;
     eprintln!("{:?} created", content_db);
-    if let Some(c) =  content_db{
+    if let Some(c) = content_db {
         Ok(c)
-    }else{
+    } else {
         Err(ContentError::RetrievalError)
     }
-
 }
 
-
-pub async fn get_content(db: &Surreal<Client>, id: String) -> Result<Content, ContentError>{
+pub async fn get_content(db: &Surreal<Client>, id: String) -> Result<Content, ContentError> {
     //let id: &str = id.split(":").collect::<Vec<&str>>()[1];
-    //let content: Option<Content> = db.select(("content", id)).await?; 
+    //let content: Option<Content> = db.select(("content", id)).await?;
     debug!("Getting content from db");
     let query = format!("SELECT * FROM content WHERE id = {id} FETCH genre, studio");
     let mut res = db.query(&query).await?;
 
     let content: Option<Content> = res.take(0)?;
-    
+
     // eprintln!("Content {:?}", &content);
     // eprintln!("Retrieved");
-    if let Some(c) = content{
+    if let Some(c) = content {
         dbg!(&c);
         return Ok(c);
-    }else{
+    } else {
         return Err(ContentError::NotFound);
     }
 }
-
 
 pub async fn get_all(db: &Surreal<Client>) -> Result<Vec<Content>, ContentError> {
     let content_list: Vec<Content> = db.select("content").await?;
@@ -47,7 +44,10 @@ pub async fn get_all(db: &Surreal<Client>) -> Result<Vec<Content>, ContentError>
     Ok(content_list)
 }
 
-pub async fn list_by_studio(db: &Surreal<Client>, id: String) -> Result<Vec<ContentList>, ContentError>{
+pub async fn list_by_studio(
+    db: &Surreal<Client>,
+    id: String,
+) -> Result<Vec<ContentList>, ContentError> {
     let query = format!("SELECT * FROM content WHERE studio = {id} FETCH genre;");
     let mut res = db.query(query).await?;
     dbg!(&res);
@@ -57,8 +57,11 @@ pub async fn list_by_studio(db: &Surreal<Client>, id: String) -> Result<Vec<Cont
     Ok(content_list)
 }
 
-
-pub async fn update_details(db: &Surreal<Client>,id:&str, payload: ContentForUpdate) -> Result<DbId, ContentError>{
+pub async fn update_details(
+    db: &Surreal<Client>,
+    id: &str,
+    payload: ContentForUpdate,
+) -> Result<DbId, ContentError> {
     //TODO: test if it accepts different types o
     // Items to update username, password, socials, description,
     let mut res: Option<DbId> = None;
