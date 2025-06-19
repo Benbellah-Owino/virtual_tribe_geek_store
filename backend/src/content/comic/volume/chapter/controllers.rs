@@ -1,10 +1,11 @@
 use surrealdb::Surreal;
 use surrealdb::engine::remote::ws::Client;
 use tracing::debug;
-use crate::content::comic::volume::controllers::show;
+use crate::content::comic::volume::controllers::show as volume_show;
+use crate::content::comic::volume::Volume;
 use crate::helpers::db::id_from_thing;
 use crate::{ComicId, Count, DbId};
-use crate::content::comic::volume::chapter::{Chapter,ChapterForCreate,ChapterError};
+use crate::content::comic::volume::chapter::{Chapter, ChapterError, ChapterForCreate, ChapterForCreateCount};
 
 // Shows list of chapters
 pub async fn index(db: &Surreal<Client>, volume: String) -> Result<Vec<Chapter>, ChapterError>{
@@ -34,20 +35,18 @@ pub async fn show(db: &Surreal<Client>, id: String)-> Result<Chapter, ChapterErr
 
 // Stores new chapter data in db and relevant storage
 pub async fn store(db: &Surreal<Client>, chapter_for_create: ChapterForCreate) -> Result<DbId, ChapterError>{
+    
     // Select Relative count
-    // TODO: Resolve naming issues
     let id = id_from_thing(&chapter_for_create.volume);
     let query = format!("SELECT count() FROM chapter WHERE volume = volume:{id}");
-    let mut count =  db.query(query).await.unwrap();
-    let count:Vec<Count>  = count.take(0)?;
-    println!("{:#?}", count);
-    let mut count2:u32 =0; 
-    if count.len() > 0{
-        let ct = count.len() + 1;
-        eprintln!("{}",ct);
-        count2 =  count.len() as u32 + 1;
+    let mut relative_count_db =  db.query(query).await.unwrap();
+    let relative_count_db:Vec<Count>  = relative_count_db.take(0)?;
+    println!("{:#?}", relative_count_db);
+    let mut relative_count:u32 =0; 
+    if relative_count_db.len() > 0{
+        relative_count =  relative_count_db.len() as u32 + 1;
     }else{
-        count2 = 1;
+        relative_count = 1;
     };
     
     // section: Select Absolute Count
@@ -67,34 +66,34 @@ pub async fn store(db: &Surreal<Client>, chapter_for_create: ChapterForCreate) -
     // Sorting the volumes
     volumes.sort_by(|a, b| b.vol_no.cmp(&a.vol_no));
 
-    let mut a_count = 0;
+    let mut absolute_count = 0;
     // Iterate throught the volumes
     for volume in volumes {
         let id = id_from_thing(&volume.id);
         
         // Get number of chapters in this volume
         let query = format!("SELECT count() FROM chapter WHERE volume = volume:{id}"); 
-        let mut count = db.query(query).await.unwrap();
-        let count: Vec<Count> = count.take(0).unwrap();
-        println!("{:#?}", count);
+        let mut absolute_count_db = db.query(query).await.unwrap();
+        let absolute_count_db: Vec<Count> = absolute_count_db.take(0).unwrap();
+        println!("{:#?}", absolute_count_db);
         // Since nothing is returned when a volume has nothing, zero is assigned to count in such a case.
         let mut count2: u32 = 0;
-        if count.len() > 0 {
-            count2 = count.len() as u32;
+        if absolute_count_db.len() > 0 {
+            count2 = absolute_count_db.len() as u32;
         } else {
             count2 = 0;
         };
         
-        a_count += count2;
+        absolute_count += count2;
     }
-    a_count += 1;
-    eprintln!("Final Count is {a_count}");
+    absolute_count += 1;
+    eprintln!("Final Count is {absolute_count}");
     // end section: Select Absolute Count
 
-    //TODO: Assign both counts to new chapter
-    let comic = db.select("comic", );
+    let new_chapter = ChapterForCreateCount::from_chap_create(chapter_for_create, relative_count, absolute_count); // Assign both counts to new chapter
+    // let comic = db.select("comic", );
 
-    let chapter: Option<DbId> = db.create("chapter").content(chapter_for_create).await?;
+    let chapter: Option<DbId> = db.create("chapter").content(new_chapter).await?;
     eprintln!("Created {:#?}", chapter);
 
     if let Some(c) = chapter{

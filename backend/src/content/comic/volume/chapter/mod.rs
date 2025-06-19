@@ -1,30 +1,52 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
-pub mod routers;
 pub mod controllers;
-
-
+pub mod routers;
 
 // region:      --- Structs
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Chapter{
+pub struct Chapter {
     pub id: Thing,
     pub relative_chapter: u32,
     pub absolute_chapter: u32,
     pub pages: u16,
     pub synopsis: Option<String>,
     pub file: Option<String>,
-    pub volume: Thing
+    pub volume: Thing,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ChapterForCreate{
+pub struct ChapterForCreate {
     pub pages: u16,
     pub synopsis: Option<String>,
-    pub volume: Thing
+    pub volume: Thing,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ChapterForCreateCount {
+    pub pages: u16,
+    pub synopsis: Option<String>,
+    pub volume: Thing,
+    pub relative_chapter: u32,
+    pub absolute_chapter: u32,
+}
+
+impl ChapterForCreateCount {
+    fn from_chap_create(
+        chap: ChapterForCreate,
+        relative_count: u32,
+        absolute_count: u32,
+    ) -> ChapterForCreateCount {
+        ChapterForCreateCount {
+            pages: chap.pages,
+            synopsis: chap.synopsis,
+            volume: chap.volume,
+            relative_chapter: relative_count,
+            absolute_chapter: absolute_count,
+        }
+    }
 }
 // endregion:   --- Structs
-
 
 // region:      --- Error
 
