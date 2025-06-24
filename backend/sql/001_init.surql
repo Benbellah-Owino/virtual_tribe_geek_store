@@ -102,7 +102,8 @@ DEFINE TABLE IF NOT EXISTS chapter SCHEMAFULL;
 DEFINE FIELD relative_chapter ON TABLE chapter TYPE number;
 DEFINE FIELD absolute_chapter ON TABLE chapter TYPE number;
 DEFINE FIELD pages ON TABLE chapter TYPE number;
-DEFINE FIELD sypnosis ON TABLE chapter TYPE string ASSERT string::len($value) <= 350 ;
+DEFINE FIELD synopsis ON TABLE chapter TYPE string ASSERT string::len($value) <= 350 ;
+--DEFINE FIELD title ON TABLE chapter TYPE string ASSERT string::len($value) <=  100 ;
 DEFINE FIELD file ON TABLE chapter TYPE option<string>;
 DEFINE FIELD cover ON TABLE chapter TYPE option<string>;
 DEFINE FIELD volume ON TABLE chapter TYPE record<volume>;
@@ -127,7 +128,7 @@ DEFINE FIELD video_type ON TABLE video TYPE string; -- Animation OR Live Action
 DEFINE TABLE IF NOT EXISTS season SCHEMAFULL;
 DEFINE FIELD no_of_episodes ON TABLE season TYPE number;
 DEFINE FIELD runlength ON TABLE season TYPE object;
-DEFINE FIELD sypnosis ON TABLE season TYPE string ASSERT string::len($value) <= 1000 ;
+DEFINE FIELD synopsis ON TABLE season TYPE string ASSERT string::len($value) <= 1000 ;
 DEFINE FIELD video ON TABLE season TYPE record<video>;
 DEFINE FIELD cover ON TABLE season TYPE option<string>;
 
@@ -137,7 +138,7 @@ DEFINE FIELD relative_episode ON TABLE episode TYPE number;
 DEFINE FIELD absolute_episode ON TABLE episode TYPE number;
 DEFINE FIELD runlength ON TABLE episode TYPE object;
 DEFINE FIELD skiplength ON TABLE episode TYPE object;
-DEFINE FIELD sypnosis ON TABLE episode TYPE string ASSERT string::len($value) <= 350 ;
+DEFINE FIELD synopsis ON TABLE episode TYPE string ASSERT string::len($value) <= 350 ;
 DEFINE FIELD file ON TABLE episode TYPE option<string>;
 DEFINE FIELD cover ON TABLE episode TYPE option<string>;
 DEFINE FIELD season ON TABLE episode TYPE record<season>;

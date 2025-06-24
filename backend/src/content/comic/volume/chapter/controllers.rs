@@ -1,12 +1,15 @@
+use crate::content::comic::volume::chapter::routers::GetChapterQuery;
 use crate::content::comic::volume::chapter::{
     Chapter, ChapterError, ChapterForCreate, ChapterForCreateCount,
 };
 use crate::content::comic::volume::Volume;
+use crate::content::ContentForUpdate;
 use crate::helpers::db::id_from_thing;
 use crate::{ComicId, Count, DbId};
+use serde_json::json;
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::Surreal;
-use tracing::debug;
+use tracing::{debug, field};
 
 // Shows list of chapters
 pub async fn index(db: &Surreal<Client>, volume: String) -> Result<Vec<Chapter>, ChapterError> {
@@ -22,7 +25,7 @@ pub async fn index(db: &Surreal<Client>, volume: String) -> Result<Vec<Chapter>,
 }
 
 // Shows a specific chapter
-pub async fn show(db: &Surreal<Client>, id: String) -> Result<Chapter, ChapterError> {
+pub async fn show(db: &Surreal<Client>, id: String, query: GetChapterQuery) -> Result<Chapter, ChapterError> {
     let chapter: Option<Chapter> = db.select(("chapter", id)).await?;
 
     if let Some(c) = chapter {
@@ -94,7 +97,7 @@ pub async fn store(
     let new_chapter =
         ChapterForCreateCount::from_chap_create(chapter_for_create, relative_count, absolute_count); // Assign both counts to new chapter
                                                                                                      // let comic = db.select("comic", );
-
+    dbg!(&new_chapter);
     let chapter: Option<DbId> = db.create("chapter").content(new_chapter).await?;
     eprintln!("Created {:#?}", chapter);
 
@@ -109,7 +112,33 @@ pub async fn store(
 pub async fn edit(id: String) {}
 
 // Updates a chapter's details
-pub async fn update(id: String) {}
+pub async fn update(db: &Surreal<Client>,id: &str, payload: ContentForUpdate) -> Result<DbId, ChapterError> {
+    let mut res:Option<DbId> = None;
+
+    let field = payload.field.clone();
+
+    
+    match field.as_str() {
+        "title" | "synopsis" | "file" | "cover" | "pages" => {
+            res = db
+                .update(("chapter", id))
+                .merge(json!({&payload.field: &payload.value}))
+                .await
+                .map_err(|e| dbg!(e))?; // reset the number of login attempts
+        }
+
+        &_ => return Err(ChapterError::DetailsUpdateError), //Change to update error
+    }
+
+    if res.is_none() {
+        Err(ChapterError::DetailsUpdateError)
+    } else if let Some(chapter) = res {
+        debug!("{:?}", chapter);
+        Ok(chapter)
+    } else {
+        Err(ChapterError::DetailsUpdateError)
+    }
+}
 
 // Deletes a chapter
 pub async fn destroy(id: String) {}

@@ -4,6 +4,7 @@
 	import type { ChapterForCreate, VolumeForCreate } from '$lib/types/content';
 	import { FormError, PageError } from '$lib/types/error';
 	import { Result } from '$lib/types/result';
+	import { suridToString, type SurrealId } from '$lib/types/server';
 	import { updateFormState, type FormState } from '$lib/types/state/form_state';
 	import { updatePageState, type PageState } from '$lib/types/state/page_state';
 	import { onMount } from 'svelte';
@@ -30,7 +31,7 @@
 
 	// section:     --- Variables
 	let comic: any | null = $state(null);
-	let volumes: any[] = $state([]);
+	let chapters: any[] = $state([]);
 
 	let chapter_form: ChapterForCreate = $state({
 		pages: 0,
@@ -46,8 +47,9 @@
 	// endsection:  --- Variables
 
 	onMount(async () => {
-		chapter_form.volume = stringToSurrealId(`comic:${volume_id}`);
-		let response = await fetch(`http://localhost:7878/content/comic/index?comic=${volume_id}`, {
+		chapter_form.volume = stringToSurrealId(`volume:${volume_id}`);
+
+		let res_chapters = await fetch(`http://localhost:7878/content/comic/volume/chapter/${volume_id}`, {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
@@ -55,16 +57,18 @@
 			}
 		});
 
-		if (response.ok == true) {
+		if (res_chapters.ok == true) {
 			//UNIMPLEMENTED
-			let res = await response.json();
-			// console.log($state.snapshot(res));
-			comic = res.comic;
-			console.log($state.snapshot(comic));
+			console.log(res_chapters);
+			let res = await res_chapters.json();
+			chapters = res.chapters_list;
+			chapters = chapters.sort((a,b) => a.relative_chapter - b.relative_chapter);
+			console.log($state.snapshot(chapters));
 			pageState.loading = false;
-		} else if (response.ok == false) {
+		} else if (res_chapters.ok == false) {
 			console.error('failed');
-			if (response.status == 401) {
+			console.log(res_chapters);
+			if (res_chapters.status == 401) {
 				updatePageState(
 					pageState,
 					Result.Err,
@@ -75,49 +79,7 @@
 				setTimeout(() => {
 					window.open('content/login', '_self');
 				}, 5000);
-			} else if (response.status == 404) {
-				updatePageState(
-					pageState,
-					Result.Ok,
-					PageError.NotFoundError,
-					false,
-					"The requested comic doesn't exist"
-				);
-				console.log($state.snapshot(pageState));
-			}
-		}
-
-		let res_volumes = await fetch(`http://localhost:7878/content/comic/volume/${volume_id}`, {
-			method: 'GET',
-			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		if (res_volumes.ok == true) {
-			//UNIMPLEMENTED
-			console.log(res_volumes);
-			let res = await res_volumes.json();
-			volumes = res.volume_list;
-			volumes = volumes.sort((a,b) => a.vol_no - b.vol_no);
-			console.log($state.snapshot(volumes));
-			pageState.loading = false;
-		} else if (res_volumes.ok == false) {
-			console.error('failed');
-			console.log(res_volumes);
-			if (res_volumes.status == 401) {
-				updatePageState(
-					pageState,
-					Result.Err,
-					PageError.Unauthorized,
-					false,
-					'You are not authorized! Redirecting you to login page...'
-				);
-				setTimeout(() => {
-					window.open('content/login', '_self');
-				}, 5000);
-			} else if (res_volumes.status == 404) {
+			} else if (res_chapters.status == 404) {
 				console.error('not found');
 				updatePageState(
 					pageState,
@@ -131,11 +93,11 @@
 		}
 	});
 
-	async function send(e: Event) {
+	async function submit(e: Event) {
 		e.preventDefault();
 		console.log($state.snapshot(chapter_form))
 		try {
-			let response = await fetch(`http://localhost:7878/tester/test_api`, {
+			let response = await fetch(`http://localhost:7878/content/comic/volume/chapter`, {
 				method: 'POST',
 				credentials: 'include',
 				body: JSON.stringify(chapter_form),
@@ -146,10 +108,14 @@
 			if (response.status == 201) {
 				//UNIMPLEMENTED
 				setTimeout(() => {
-					updateFormState(formState, Result.Ok, null, 'Registration success', 'form', true);
+					updateFormState(formState, Result.Ok, null, 'Chapter creation success', 'form', true);
 					console.log($state.snapshot(formState));
 				}, 3000);
 				console.log('created');
+				let res = await response.json();
+				console.log(res)
+				console.log("Uploading file")
+				upload_file(res.chapter.id)
 				//window.open(`/content/comics/${volume_id}`, '_self');
 			} else if (response.status == 500) {
 				updateFormState(
@@ -174,52 +140,6 @@
 			}
 		} catch (error) {
 			console.error(error);		
-		}
-	}
-	async function submit(e: Event) {
-		e.preventDefault();
-
-		try {
-			console.log($state.snapshot(chapter_form));
-			// TODO" Fix this route
-			let response = await fetch(`http://localhost:7878/content/comic/volume`, {
-				method: 'POST',
-				credentials: 'include',
-				body: JSON.stringify(chapter_form),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			if (response.status == 201) {
-				//UNIMPLEMENTED
-				setTimeout(() => {
-					updateFormState(formState, Result.Ok, null, 'Registration success', 'form', true);
-					console.log($state.snapshot(formState));
-				}, 3000);
-				console.log('created');
-				window.open(`/content/comics/${volume_id}`, '_self');
-			} else if (response.status == 500) {
-				updateFormState(
-					formState,
-					Result.Err,
-					FormError.SubmissionFailed,
-					'Submission Failed',
-					'form',
-					false
-				);
-			} else if (response.ok == false) {
-				console.log(response.statusText);
-				updateFormState(
-					formState,
-					Result.Err,
-					FormError.SubmissionFailed,
-					'Submission Failed',
-					'form',
-					false
-				);
-			}
-		} catch (error) {
-			console.error(error);
 			updateFormState(
 				formState,
 				Result.Err,
@@ -230,6 +150,56 @@
 			);
 		}
 	}
+
+	async function pf(e:Event) {
+		e.preventDefault()
+	}
+
+	async function upload_file(id: SurrealId) {
+
+		const fileInput: any = document.getElementById('comic');
+		if (fileInput == null) return;
+
+		const file = fileInput.files[0];
+		console.log(file);
+		if (!file) {
+			alert('Please select a file to upload.');
+			return;
+		}
+
+		let formData = new FormData();
+		formData.append('file', file);
+		console.log(formData.values);
+
+		let response = await fetch(`http://localhost:7878/content/comic/volume/chapter/file/upload/${suridToString(id)}`, {
+			method: 'POST',
+			credentials: 'include',
+			body: formData
+		});
+
+		if (response.ok == true) {
+			console.log(await response.json())
+			setTimeout(()=>{
+				updateFormState(formState, Result.Ok, null, 'Uploading success!', 'form', true);
+			}, 3000)
+			console.log('Uploading file')
+			//open(`/studio/${$page.params.studio}/content`)
+		} else if (response.ok == false) {
+			console.log('Cover update failed');
+			updateFormState(
+				formState,
+				Result.Err,
+				FormError.UpdateFailed,
+				'avatar',
+				'Update Failed',
+				false
+			);
+		}else{
+			console.log('Cover update failed');
+			console.log(response.ok);
+			console.log(response.status);
+		}
+	}
 </script>
 
 <main>
@@ -237,10 +207,10 @@
 	{#if pageState.loading}
 		<center>Loading content...</center>
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == null}
-		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Volumes list</h1>
+		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Chapter list</h1>
 		<ul class="content_list flex_col" id="content_list">
-			{#each volumes as volume}
-				<li>volume {volume.vol_no}</li>
+			{#each chapters as chapter}
+				<li>chapter {chapter.relative_chapter}</li>
 			{/each}
 		</ul>
 		<br><br>
@@ -254,37 +224,23 @@
 			>
 		</center>
 		{#if form_on == true}
+		<!-- TODO: Remove this shit -->
 			<center class="w-full">
-				<form class="form alt_bg mt-3 rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={submit}>
-					<h3 class="float-left mb-4 text-3xl font-extrabold">ADD VOLUME</h3>
-					<br />
-					{#if formState.inner_state == Result.Ok && formState.target == 'form'}
-						<center><p class="error main_txt text-lg font-semibold">{formState.message}</p></center>
-					{:else if formState.inner_state == Result.Err && formState.target == 'form'}
-						<center
-							><p class="error text-lg font-semibold text-red-400">{formState.message}</p></center
-						>
-					{/if}
-					<div class="form_div">
-						<label for="description">Synopsis</label>
-						<!--TODO: Add word limit to description field on server side -->
-						<textarea
-							name="description"
-							id="description"
-							class="w-11/12"
-							rows="10"
-							bind:value={chapter_form.synopsis}
-						></textarea>
-					</div>
-					<button type="submit" class="btn primary_btn w-11/12">submit</button>
-					<!-- TODO: Next time number the volumes -->
-				</form>
+				FORM
 			</center>
 		{/if}
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == PageError.NotFoundError}
 		<center class="w-full">
-			<form class="form alt_bg mt-3 rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={send}>
-				<h3 class="float-left mb-4 text-3xl font-extrabold">ADD VOLUME</h3>
+	<form
+		enctype="multipart/form-data"
+		class=" flex_col secondary_border mb-9 w-full rounded-md"
+		onsubmit={pf}
+	>
+		<input type="file" name="comic" id="comic" /><br />
+
+	</form>
+			<form class="form alt_bg mt-3 rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={submit}>
+				<h3 class="float-left mb-4 text-3xl font-extrabold">ADD CHAPTER</h3>
 				<br />
 				{#if formState.inner_state == Result.Ok && formState.target == 'form'}
 					<center><p class="error main_txt text-lg font-semibold">{formState.message}</p></center>
