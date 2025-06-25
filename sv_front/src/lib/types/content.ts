@@ -46,6 +46,17 @@ export interface VolumeForCreate{
 export interface ChapterForCreate{
     [key:string]: string | SurrealId| null | number;
     pages: number,
+    title: string,
     synopsis: string,
     volume: SurrealId
+}
+
+export interface Chapter{
+    [key:string]: string | SurrealId| null | number;
+    pages: number,
+    title: string,
+    synopsis: string,
+    volume: SurrealId,
+    relative_chapter: number,
+    absolute_chapter: number,
 }

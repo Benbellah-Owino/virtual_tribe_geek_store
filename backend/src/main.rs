@@ -58,7 +58,7 @@ async fn main() -> surrealdb::Result<()> {
         .nest("/user", user_router())
         .nest("/creator", creator_router())
         .layer(CookieManagerLayer::new())
-        .layer(ServiceBuilder::new().layer(middleware::from_fn(log_request)))
+        //.layer(ServiceBuilder::new().layer(middleware::from_fn(log_request)))
         .route("/metrics", get(|| async move { metric_handle.render() }))
         .layer(prometheus_layer)
         .nest("/tester", test_grounds_router())

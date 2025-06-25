@@ -103,7 +103,7 @@ DEFINE FIELD relative_chapter ON TABLE chapter TYPE number;
 DEFINE FIELD absolute_chapter ON TABLE chapter TYPE number;
 DEFINE FIELD pages ON TABLE chapter TYPE number;
 DEFINE FIELD synopsis ON TABLE chapter TYPE string ASSERT string::len($value) <= 350 ;
---DEFINE FIELD title ON TABLE chapter TYPE string ASSERT string::len($value) <=  100 ;
+DEFINE FIELD title ON TABLE chapter TYPE string ASSERT string::len($value) <=  100 ;
 DEFINE FIELD file ON TABLE chapter TYPE option<string>;
 DEFINE FIELD cover ON TABLE chapter TYPE option<string>;
 DEFINE FIELD volume ON TABLE chapter TYPE record<volume>;

@@ -8,6 +8,7 @@ pub mod routers;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Chapter {
     pub id: Thing,
+    pub title: String,
     pub relative_chapter: u32,
     pub absolute_chapter: u32,
     pub pages: u16,
@@ -18,6 +19,7 @@ pub struct Chapter {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ChapterForCreate {
     pub pages: u16,
+    pub title: String,
     pub synopsis: Option<String>,
     pub volume: Thing,
 }
@@ -25,6 +27,7 @@ pub struct ChapterForCreate {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ChapterForCreateCount {
     pub pages: u16,
+    pub title: String,
     pub synopsis: Option<String>,
     pub volume: Thing,
     pub relative_chapter: u32,
@@ -43,6 +46,7 @@ impl ChapterForCreateCount {
             volume: chap.volume,
             relative_chapter: relative_count,
             absolute_chapter: absolute_count,
+            title: chap.title,
         }
     }
 }

@@ -1,28 +1,38 @@
+use std::path::Path;
+use crate::content::ContentForUpdate;
 use crate::{
     content::comic::volume::chapter::{
         controllers::{index, show, store, update},
         ChapterForCreate,
     },
-    dev_initial::db::Db, file_upload::{small_file::{self, extract_image}, storage::{self, save_to_disk}},
+    dev_initial::db::Db,
+    file_upload::{
+        small_file::{self, extract_image},
+        storage::{self, save_to_disk},
+    },
 };
-use crate::content::ContentForUpdate;
+use axum::extract::Multipart;
+use axum::response::Response;
 use axum::{
     extract::{Path as AxumPath, State},
     response::IntoResponse,
     routing::{get, post},
     Json, Router,
 };
-use axum::extract::Multipart;
-use http::StatusCode;
+use std::fs::File;
+use axum::body::Body;
+use http::{StatusCode,header};
 use serde::Deserialize;
 use serde_json::json;
 use tracing::debug;
-
+use zip::ZipArchive;
 pub fn chapter_router() -> Router<Db> {
     return Router::new()
-
         .route("/file/upload/:id", post(file_upload))
         .route("/:volume", get(list))
+        .route("/show/:chapter", get(get_chapter))
+        //.route("/image/*path", get(get_file))
+        .route("/file/:chapter/:file/:index", get(get_file))
         .route("/", post(create));
 }
 
@@ -132,11 +142,101 @@ async fn file_upload(
         Err(e) => {
             dbg!(e);
             (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({"msg": "Upload error"})),
-        )
-    },
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"msg": "Upload error"})),
+            )
+        }
     }
+}
+
+
+
+/// <h1> Handles getting details of Creator </h1>
+/// <h2> <b>Endpoint: /creator </b> </h2>
+///
+/// <h3> No request body</h3>
+///
+/// <p>
+///     Empty parameters <br>
+///     Need auth token <br>
+/// </p>
+/// <br><hr>
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 302</li>
+///     <li> <b>Err</b> : 404</li>
+/// </ul>
+pub async fn send_file(
+    // State(db): State<Db>,
+    AxumPath(path): AxumPath<String>,
+    // req: Request,
+) -> impl IntoResponse {
+    //TODO: Change to path
+
+    println!("{:?}", path);
+    let path = path.to_string();
+    match tokio::fs::read(path.clone()).await {
+        Ok(d) => {
+            let content_type = Path::new(&path).extension().and_then(|ext| ext.to_str()) ;
+            eprintln!("CONTENT TYPE: {:#?}", content_type);
+            let content_type = match content_type {
+                Some("png") => "image/png",
+                Some("jpg") | Some("jpeg") => "image/jpeg",
+                Some("cbz") | Some("cbr") | Some("zip") | Some("octet-stream")=> "application/octet-stream",
+                Some("pdf") => "application/pdf",
+                _ => {
+                    
+                    return (
+                        StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                        "Unsupported image format",
+                    )
+                        .into_response()
+                }
+            };
+            Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, content_type)
+                .body(Body::from(d))
+                .unwrap()
+        }
+        Err(_) => todo!(),
+    }
+}
+
+pub async fn get_file(
+    // State(db): State<Db>,
+    AxumPath((chapter,path, index)): AxumPath<(String,String,usize)>,
+    // req: Request,
+) -> impl IntoResponse {
+    //TODO: Rendering of comic
+    let archive_path = format!("media/comics/{}/{}", chapter,path); // example: "comics/mycomic.cbz"
+
+    let file = match File::open(&archive_path) {
+        Ok(f) => f,
+        Err(_) => return (StatusCode::NOT_FOUND, "Comic file not found").into_response(),
+    };
+
+    let mut archive = match ZipArchive::new(file) {
+        Ok(a) => a,
+        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid archive").into_response(),
+    };
+
+    if index >= archive.len() {
+        return (StatusCode::NOT_FOUND, "Image index out of range").into_response();
+    }
+
+    let mut file = archive.by_index(index).unwrap();
+    let mut buf = vec![];
+    use std::io::Read;
+    file.read_to_end(&mut buf).unwrap();
+
+    let mime = mime_guess::from_path(file.name()).first_or_octet_stream();
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, mime.as_ref())
+        .body(Body::from(buf))
+        .unwrap()
 }
 /// <h1> Handles Getting list of Comic </h1>
 /// <h2> <b>Endpoint:  <strong>[GET]</strong>  /comic </b> </h2>
@@ -171,7 +271,6 @@ async fn list(State(db): State<Db>, AxumPath(volume): AxumPath<String>) -> impl 
     }
 }
 
-
 /// <h1> Handles Getting one instance of Comic </h1>
 /// <h2> <b>Endpoint:  <strong>[GET]</strong>  /comic/:id </b> </h2>
 ///
@@ -190,15 +289,18 @@ async fn list(State(db): State<Db>, AxumPath(volume): AxumPath<String>) -> impl 
 /// </ul>
 // async fn get_one(State(db): State<Db>, AxumPath(comic_id): AxumPath<String>)->impl IntoResponse{
 #[axum_macros::debug_handler]
-async fn get_chapters_for_volume(
+async fn get_chapter(
     State(db): State<Db>,
-   // Query(chapter_query): Query<GetChapterQuery>,
+    // Query(chapter_query): Query<GetChapterQuery>,
+    AxumPath(chapter): AxumPath<String>,
 ) -> impl IntoResponse {
-    // let db = db.unwrap();
+    let db = db.unwrap();
 
-
-    // match show(&db, chapter_query).await{
-    //     Ok(chapter) =>{}
-    // }
-    unimplemented!()
+    match show(&db, chapter).await {
+        Ok(chapter) => (StatusCode::OK, Json(json!({"chapter": chapter}))),
+        Err(e) => (
+            StatusCode::NOT_FOUND,
+            Json(json!({"msg": "Chapter is not found"})),
+        ),
+    }
 }

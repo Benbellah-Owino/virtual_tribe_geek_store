@@ -25,7 +25,7 @@ pub async fn index(db: &Surreal<Client>, volume: String) -> Result<Vec<Chapter>,
 }
 
 // Shows a specific chapter
-pub async fn show(db: &Surreal<Client>, id: String, query: GetChapterQuery) -> Result<Chapter, ChapterError> {
+pub async fn show(db: &Surreal<Client>, id: String) -> Result<Chapter, ChapterError> {
     let chapter: Option<Chapter> = db.select(("chapter", id)).await?;
 
     if let Some(c) = chapter {

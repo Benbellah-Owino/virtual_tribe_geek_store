@@ -25,7 +25,8 @@
 		locked: false
 	});
 
-	let volume_id = $page.params.volumeid;
+	let volumeId = $page.params.volumeid;
+	let comicId = $page.params.id;
 	let form_on = $state(false);
 	// endsection:  --- State
 
@@ -34,6 +35,7 @@
 	let chapters: any[] = $state([]);
 
 	let chapter_form: ChapterForCreate = $state({
+		title: '',
 		pages: 0,
 		synopsis: '',
 		volume: {
@@ -47,9 +49,9 @@
 	// endsection:  --- Variables
 
 	onMount(async () => {
-		chapter_form.volume = stringToSurrealId(`volume:${volume_id}`);
+		chapter_form.volume = stringToSurrealId(`volume:${volumeId}`);
 
-		let res_chapters = await fetch(`http://localhost:7878/content/comic/volume/chapter/${volume_id}`, {
+		let res_chapters = await fetch(`http://localhost:7878/content/comic/volume/chapter/${volumeId}`, {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
@@ -116,7 +118,7 @@
 				console.log(res)
 				console.log("Uploading file")
 				upload_file(res.chapter.id)
-				//window.open(`/content/comics/${volume_id}`, '_self');
+				//window.open(`/content/comics/${volumeId}`, '_self');
 			} else if (response.status == 500) {
 				updateFormState(
 					formState,
@@ -210,7 +212,7 @@
 		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Chapter list</h1>
 		<ul class="content_list flex_col" id="content_list">
 			{#each chapters as chapter}
-				<li>chapter {chapter.relative_chapter}</li>
+				<li><a href="/content/comics/{comicId}/volume/{volumeId}/chapter/{chapter.id.id.String}">{chapter.relative_chapter}. {chapter.title}</a></li>
 			{/each}
 		</ul>
 		<br><br>
@@ -249,6 +251,13 @@
 						><p class="error text-lg font-semibold text-red-400">{formState.message}</p></center
 					>
 				{/if}
+			<div class="form_div">
+				<label for="title">Title</label>
+				<input type="text" name="title" id="title" bind:value={chapter_form.title} />
+				{#if formState.inner_state == Result.Err && formState.target == 'title'}
+					<p class="error text-red-500">{formState.message}</p>
+				{/if}
+			</div>
 			<div class="form_div">
 				<label for="pages">Pages</label>
 				<input type="number" name="pages" id="pages" bind:value={chapter_form.pages} />
