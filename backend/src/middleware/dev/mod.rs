@@ -6,9 +6,9 @@ pub async fn log_request(req: Request, next: Next) -> Response {
     println!("Request: {} {}", req.method(), req.uri());
 
     // Optionally log headers
-    for (name, value) in req.headers().iter() {
-        println!("Header: {}: {:?}", name, value);
-    }
+    // for (name, value) in req.headers().iter() {
+    //     println!("Header: {}: {:?}", name, value);
+    // }
 
     // Pass the request to the next handler
     let response = next.run(req).await;

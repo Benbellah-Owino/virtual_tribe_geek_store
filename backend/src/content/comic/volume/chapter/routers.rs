@@ -19,6 +19,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use zip::read::ZipFile;
 use std::fs::File;
 use axum::body::Body;
 use http::{StatusCode,header};
@@ -32,7 +33,8 @@ pub fn chapter_router() -> Router<Db> {
         .route("/:volume", get(list))
         .route("/show/:chapter", get(get_chapter))
         //.route("/image/*path", get(get_file))
-        .route("/file/:chapter/:file/:index", get(get_file))
+        .route("/file/:index/*file_path", get(get_file))
+        .route("/file/count/*file_path", get(get_comic_page_count))
         .route("/", post(create));
 }
 
@@ -205,11 +207,13 @@ pub async fn send_file(
 
 pub async fn get_file(
     // State(db): State<Db>,
-    AxumPath((chapter,path, index)): AxumPath<(String,String,usize)>,
+    AxumPath(( index, file_path)): AxumPath<(usize, String)>,
     // req: Request,
 ) -> impl IntoResponse {
     //TODO: Rendering of comic
-    let archive_path = format!("media/comics/{}/{}", chapter,path); // example: "comics/mycomic.cbz"
+    eprintln!("{}", file_path);
+    //let archive_path = format!("media/comics/{}/{}", chapter,file_path); // example: "comics/mycomic.cbz"
+    let archive_path = format!("{}",file_path); // example: "comics/mycomic.cbz"
 
     let file = match File::open(&archive_path) {
         Ok(f) => f,
@@ -238,6 +242,41 @@ pub async fn get_file(
         .body(Body::from(buf))
         .unwrap()
 }
+
+#[axum_macros::debug_handler]
+async fn get_comic_page_count(AxumPath(file): AxumPath<String>) -> impl IntoResponse {
+    let path = format!("{}", file);
+
+    let file = match File::open(&path) {
+        Ok(f) => f,
+        Err(_) => return (axum::http::StatusCode::NOT_FOUND, "File not found").into_response(),
+    };
+
+    let mut archive = match ZipArchive::new(file) {
+        Ok(a) => a,
+        Err(_) => return (axum::http::StatusCode::BAD_REQUEST, "Invalid archive").into_response(),
+    };
+
+    let mut count = 0;
+
+    for i in 0..archive.len() {
+        if let Ok(file) = archive.by_index(i) {
+            let name = file.name();
+            if let Some(ext) = Path::new(name).extension().and_then(|e| e.to_str()) {
+                if matches!(
+                    ext.to_ascii_lowercase().as_str(),
+                    "jpg" | "jpeg" | "png" | "gif" | "bmp" | "webp"
+                ) {
+                    count += 1;
+                }
+            }
+        }
+    }
+
+
+    Json(count).into_response()
+}
+
 /// <h1> Handles Getting list of Comic </h1>
 /// <h2> <b>Endpoint:  <strong>[GET]</strong>  /comic </b> </h2>
 ///
