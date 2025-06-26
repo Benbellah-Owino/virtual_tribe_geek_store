@@ -43,6 +43,17 @@ export interface VolumeForCreate{
     no_of_chapters: number
 }
 
+export interface Volume{
+    [key:string]: string | SurrealId| null | number;
+    id: SurrealId
+    synopsis: string,
+    comic: SurrealId,
+    cover: null|string,
+    no_of_chapters: number
+    //runlengtj: RunLength
+    vol_no:number,
+}
+
 export interface ChapterForCreate{
     [key:string]: string | SurrealId| null | number;
     pages: number,

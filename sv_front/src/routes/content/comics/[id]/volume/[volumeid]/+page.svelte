@@ -212,7 +212,12 @@
 		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Chapter list</h1>
 		<ul class="content_list flex_col" id="content_list">
 			{#each chapters as chapter}
-				<li><a href="/content/comics/{comicId}/volume/{volumeId}/chapter/{chapter.id.id.String}">{chapter.relative_chapter}. {chapter.title}</a></li>
+				<article class="chapter secondary_bg_hover primary_txt_hover secondary_border  m-2 p-1 rounded cursor-default">
+					<li><a class="tertiary_txt font-bold underline " href="/content/comics/{comicId}/volume/{volumeId}/chapter/{chapter.id.id.String}">{chapter.relative_chapter}. {chapter.title}</a></li>
+					<p class="text-sm">
+						{chapter.synopsis}
+					</p>
+				</article>
 			{/each}
 		</ul>
 		<br><br>

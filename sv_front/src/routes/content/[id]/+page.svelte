@@ -133,7 +133,8 @@
 			class="profile secondary_border mx-auto mb-2 rounded-md"
 		/>
 		<center><Banner text={content.name} /></center>
-		<ul class="secondary_border mt-8 flex h-fit w-full flex-col items-start justify-center p-4">
+		<hr class="main_txt">
+		<ul class="mt-8 flex h-fit w-full flex-col items-start justify-center p-4">
 			<li class="tertiary_txt"><b class="main_txt">Title: &nbsp </b>{content.title}</li>
 			<li class="tertiary_txt"><b class="main_txt">Rating: &nbsp </b>{content.rating}</li>
 			<li class="tertiary_txt">
@@ -152,7 +153,7 @@
 			</div>
 			<li class="tertiary_txt"><b class="main_txt">Studio: &nbsp </b>{content.studio?.name}</li>
 
-			<li class="tertiary_txt w-10/12 border border-gray-500">
+			<li class="tertiary_txt w-10/12 p-1 border border-gray-500 rounded">
 				<h3 class="main_txt underline">Description</h3>
 				<p class="text-sm">{content.description}</p>
 			</li>

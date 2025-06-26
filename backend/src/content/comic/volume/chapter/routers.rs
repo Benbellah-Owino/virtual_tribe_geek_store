@@ -210,7 +210,7 @@ pub async fn get_file(
     AxumPath(( index, file_path)): AxumPath<(usize, String)>,
     // req: Request,
 ) -> impl IntoResponse {
-    //TODO: Rendering of comic
+    //TODO: Handle PDFS files
     eprintln!("{}", file_path);
     //let archive_path = format!("media/comics/{}/{}", chapter,file_path); // example: "comics/mycomic.cbz"
     let archive_path = format!("{}",file_path); // example: "comics/mycomic.cbz"
@@ -249,7 +249,9 @@ async fn get_comic_page_count(AxumPath(file): AxumPath<String>) -> impl IntoResp
 
     let file = match File::open(&path) {
         Ok(f) => f,
-        Err(_) => return (axum::http::StatusCode::NOT_FOUND, "File not found").into_response(),
+        Err(e) =>{ 
+            return (axum::http::StatusCode::NOT_FOUND, "File not found").into_response()
+    },
     };
 
     let mut archive = match ZipArchive::new(file) {

@@ -79,10 +79,17 @@
 			}
 		}
 
-		const res = await fetch(
+		let count = 0;
+		try {
+			
+			const res = await fetch(
 			`http://localhost:7878/content/comic/volume/chapter/file/count/${chapter?.file}`
 		);
-		const count = await res.json();
+		 count = await res.json();
+		} catch (error) {
+			
+			count = 60;
+		}
 		pages = Array.from({ length: count + 1 }, (_, i) => i);
 	});
 	// endsection:  --- State
