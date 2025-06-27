@@ -1,4 +1,4 @@
-use std::path::Path;
+use crate::content::comic::volume::chapter::routers::file_handlers::{open_octet_stream, open_pdf};
 use crate::content::ContentForUpdate;
 use crate::{
     content::comic::volume::chapter::{
@@ -11,6 +11,7 @@ use crate::{
         storage::{self, save_to_disk},
     },
 };
+use axum::body::Body;
 use axum::extract::Multipart;
 use axum::response::Response;
 use axum::{
@@ -19,14 +20,17 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use zip::read::ZipFile;
-use std::fs::File;
-use axum::body::Body;
-use http::{StatusCode,header};
+use http::{header, StatusCode};
 use serde::Deserialize;
 use serde_json::json;
+use std::fs::File;
+use std::path::Path;
 use tracing::debug;
+use zip::read::ZipFile;
 use zip::ZipArchive;
+
+mod file_handlers;
+
 pub fn chapter_router() -> Router<Db> {
     return Router::new()
         .route("/file/upload/:id", post(file_upload))
@@ -151,8 +155,6 @@ async fn file_upload(
     }
 }
 
-
-
 /// <h1> Handles getting details of Creator </h1>
 /// <h2> <b>Endpoint: /creator </b> </h2>
 ///
@@ -179,15 +181,16 @@ pub async fn send_file(
     let path = path.to_string();
     match tokio::fs::read(path.clone()).await {
         Ok(d) => {
-            let content_type = Path::new(&path).extension().and_then(|ext| ext.to_str()) ;
+            let content_type = Path::new(&path).extension().and_then(|ext| ext.to_str());
             eprintln!("CONTENT TYPE: {:#?}", content_type);
             let content_type = match content_type {
                 Some("png") => "image/png",
                 Some("jpg") | Some("jpeg") => "image/jpeg",
-                Some("cbz") | Some("cbr") | Some("zip") | Some("octet-stream")=> "application/octet-stream",
+                Some("cbz") | Some("cbr") | Some("zip") | Some("octet-stream") => {
+                    "application/octet-stream"
+                }
                 Some("pdf") => "application/pdf",
                 _ => {
-                    
                     return (
                         StatusCode::UNSUPPORTED_MEDIA_TYPE,
                         "Unsupported image format",
@@ -207,40 +210,63 @@ pub async fn send_file(
 
 pub async fn get_file(
     // State(db): State<Db>,
-    AxumPath(( index, file_path)): AxumPath<(usize, String)>,
+    AxumPath((index, file_path)): AxumPath<(usize, String)>,
     // req: Request,
 ) -> impl IntoResponse {
     //TODO: Handle PDFS files
     eprintln!("{}", file_path);
     //let archive_path = format!("media/comics/{}/{}", chapter,file_path); // example: "comics/mycomic.cbz"
-    let archive_path = format!("{}",file_path); // example: "comics/mycomic.cbz"
+    //let archive_path = format!("{}", file_path); // example: "comics/mycomic.cbz"
+    let content_type = Path::new(&file_path).extension().and_then(|ext| ext.to_str());
+    eprintln!("CONTENT TYPE: {:#?}", content_type);
+    match content_type {
+        Some("png") => {
+            unimplemented!()
+        }
+        Some("jpg") | Some("jpeg") => {
+            unimplemented!()
+        }
+        Some("cbz") | Some("cbr") => {
+            unimplemented!()
+        }
+        Some("zip") | Some("octet-stream") => {
+            let (comic_file, mime) = match open_octet_stream(file_path, index){
+                Ok(c) =>{
+                    c
+                },
+                Err(e) =>{
+                    dbg!(e);
+                    return (StatusCode::INTERNAL_SERVER_ERROR, "Could not retrieve file")
+                        .into_response()
 
-    let file = match File::open(&archive_path) {
-        Ok(f) => f,
-        Err(_) => return (StatusCode::NOT_FOUND, "Comic file not found").into_response(),
-    };
+                }
+            };
 
-    let mut archive = match ZipArchive::new(file) {
-        Ok(a) => a,
-        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid archive").into_response(),
-    };
-
-    if index >= archive.len() {
-        return (StatusCode::NOT_FOUND, "Image index out of range").into_response();
+            Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, mime.as_ref())
+                .body(Body::from(comic_file))
+                .unwrap()
+        }
+        Some("pdf") => match open_pdf(file_path).await {
+            Ok(comic_file) => Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, "application/pdf")
+                .body(Body::from(comic_file))
+                .unwrap(),
+            Err(_) => {
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Could not retrieve file")
+                    .into_response()
+            }
+        },
+        _ => {
+            return (
+                StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                "Unsupported image format",
+            )
+                .into_response()
+        }
     }
-
-    let mut file = archive.by_index(index).unwrap();
-    let mut buf = vec![];
-    use std::io::Read;
-    file.read_to_end(&mut buf).unwrap();
-
-    let mime = mime_guess::from_path(file.name()).first_or_octet_stream();
-
-    Response::builder()
-        .status(StatusCode::OK)
-        .header(header::CONTENT_TYPE, mime.as_ref())
-        .body(Body::from(buf))
-        .unwrap()
 }
 
 #[axum_macros::debug_handler]
@@ -249,9 +275,7 @@ async fn get_comic_page_count(AxumPath(file): AxumPath<String>) -> impl IntoResp
 
     let file = match File::open(&path) {
         Ok(f) => f,
-        Err(e) =>{ 
-            return (axum::http::StatusCode::NOT_FOUND, "File not found").into_response()
-    },
+        Err(e) => return (axum::http::StatusCode::NOT_FOUND, "File not found").into_response(),
     };
 
     let mut archive = match ZipArchive::new(file) {
@@ -274,7 +298,6 @@ async fn get_comic_page_count(AxumPath(file): AxumPath<String>) -> impl IntoResp
             }
         }
     }
-
 
     Json(count).into_response()
 }

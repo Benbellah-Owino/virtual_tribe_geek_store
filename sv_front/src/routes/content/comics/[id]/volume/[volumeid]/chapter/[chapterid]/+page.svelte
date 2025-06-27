@@ -81,13 +81,11 @@
 
 		let count = 0;
 		try {
-			
 			const res = await fetch(
-			`http://localhost:7878/content/comic/volume/chapter/file/count/${chapter?.file}`
-		);
-		 count = await res.json();
+				`http://localhost:7878/content/comic/volume/chapter/file/count/${chapter?.file}`
+			);
+			count = await res.json();
 		} catch (error) {
-			
 			count = 60;
 		}
 		pages = Array.from({ length: count + 1 }, (_, i) => i);
@@ -116,6 +114,7 @@
 		</ul>
 
 		<section class="book flex_col w-full">
+			<!-- TODO: Create different rendering modes for zip files and pdfs. RENDER PDF -->
 			{#each pages as page}
 				{#if page > 0}
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -130,6 +129,7 @@
 							alt={`Page ${page + 1}`}
 							loading="lazy"
 							class=" md:10/12 w-full"
+							o
 						/>
 						<!-- style="width: 90%; margin-bottom: 1rem;" -->
 						<p>{page}</p>
