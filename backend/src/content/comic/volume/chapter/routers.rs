@@ -26,7 +26,6 @@ use serde_json::json;
 use std::fs::File;
 use std::path::Path;
 use tracing::debug;
-use zip::read::ZipFile;
 use zip::ZipArchive;
 
 mod file_handlers;

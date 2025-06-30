@@ -1,4 +1,3 @@
-use crate::content::comic::volume::chapter::routers::GetChapterQuery;
 use crate::content::comic::volume::chapter::{
     Chapter, ChapterError, ChapterForCreate, ChapterForCreateCount,
 };
@@ -9,7 +8,7 @@ use crate::{ComicId, Count, DbId};
 use serde_json::json;
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::Surreal;
-use tracing::{debug, field};
+use tracing::debug;
 
 // Shows list of chapters
 pub async fn index(db: &Surreal<Client>, volume: String) -> Result<Vec<Chapter>, ChapterError> {

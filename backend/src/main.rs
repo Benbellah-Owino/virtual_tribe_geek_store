@@ -5,7 +5,6 @@ use axum_prometheus::PrometheusMetricLayer;
 use backend::content::routers::content_router;
 use backend::creator::routers::creator_router;
 use backend::dev_initial::db::{connect_db, init_queries};
-use backend::middleware::auth::cookies::list_cookies;
 use backend::middleware::dev::log_request;
 use backend::studio::routers::studio_router;
 use backend::test_grounds::test_grounds_router;
