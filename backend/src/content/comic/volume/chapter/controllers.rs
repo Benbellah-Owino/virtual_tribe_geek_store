@@ -112,12 +112,15 @@ pub async fn store(
 pub async fn edit(id: String) {}
 
 // Updates a chapter's details
-pub async fn update(db: &Surreal<Client>,id: &str, payload: ContentForUpdate) -> Result<DbId, ChapterError> {
-    let mut res:Option<DbId> = None;
+pub async fn update(
+    db: &Surreal<Client>,
+    id: &str,
+    payload: ContentForUpdate,
+) -> Result<DbId, ChapterError> {
+    let mut res: Option<DbId> = None;
 
     let field = payload.field.clone();
 
-    
     match field.as_str() {
         "title" | "synopsis" | "file" | "cover" | "pages" => {
             res = db
