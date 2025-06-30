@@ -7,8 +7,19 @@
 	import { ComicType, ret_comic_type } from '$lib/types/state/comic_type';
 	import type { FormState } from '$lib/types/state/form_state';
 	import { updatePageState, type PageState } from '$lib/types/state/page_state';
-	import { text } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
+	import * as pdfJsLib from 'pdfjs-dist';
+	import { createPdfWorkerBlobUrl } from '$lib/helper_functions.ts/pdfWorkert';
+
+	// section:     --- Globals
+
+	// The workerSrc property shall be specified.
+	try {
+		pdfJsLib.GlobalWorkerOptions.workerSrc = createPdfWorkerBlobUrl();
+	} catch (error) {
+		console.error('LINE 22 -> Error setting PDF worker:', error);
+	}
+	// endsection:  --- Globals
 
 	// section:     --- State
 	let pageState: PageState = $state({
@@ -37,10 +48,10 @@
 
 	let pageInFocus = $state(0);
 
-	let comic_file_details: ComicFileDetails = {
+	let comic_file_details: ComicFileDetails = $state({
 		count: 50,
 		content_type: ''
-	};
+	});
 
 	onMount(async () => {
 		let res_chapter = await fetch(
@@ -95,6 +106,11 @@
 			comic_file_details = await res.json();
 			comicType = ret_comic_type(comic_file_details.content_type);
 			console.log(comic_file_details);
+			if (comic_file_details.content_type == 'pdf') {
+				console.log('Fetching pdf ' + chapter?.file);
+				let url = `http://localhost:7878/content/comic/volume/chapter/file/0/${chapter?.file}`;
+				renderPdf(url);
+			}
 		} catch (error) {
 			console.error(error);
 		}
@@ -102,8 +118,52 @@
 	});
 	// endsection:  --- State
 
+	// Renders file if it is a PDF
+	async function renderPdf(url: string) {
 
-	// TODO: Render PDF
+		 // Asynchronous download of PDF
+		let loadingComic = pdfJsLib.getDocument(url);
+		loadingComic.promise.then(
+			(pdf) => {
+				// Caclulate and update page details
+				comic_file_details.count = pdf.numPages;
+				pages = Array.from({ length: pdf.numPages  }, (_, i) => i);
+				
+				// Asynchronous download of PDF
+				for (let pageNumber = 1; pageNumber < pdf.numPages; pageNumber++) {
+					pdf.getPage(pageNumber).then((page) => {
+						let scale = 0.7;
+						let viewport = page.getViewport({ scale: scale });
+
+						// Prepare canvas using PDF page dimensions
+						let canvas: HTMLCanvasElement | null = document.getElementById(
+							`pdfCanvas${pageNumber}`
+						);
+						if (canvas == null) {
+							return;
+						}
+						let context = canvas.getContext('2d');
+						canvas.height = viewport.height;
+						canvas.width = viewport.width;
+
+						// Render PDF into canvase context
+						let renderContext: any = {
+							canvasContext: context,
+							viewport: viewport
+						};
+
+						let renderTask = page.render(renderContext);
+						renderTask.promise.then(() => {
+							console.log('page renderd');
+						});
+					});
+				}
+			},
+			(reason) => {
+				console.error(reason);
+			}
+		);
+	}
 </script>
 
 <main class="page">
@@ -148,7 +208,17 @@
 					{/if}
 				{/each}
 			{:else if comicType == ComicType.PDF}
-					<Banner text = {"pdf"}/>
+				{#each pages as page}
+					{#if page > 0}
+						<article
+							class="comicPage secondary_border flex_col my-4 w-full rounded p-1 md:w-10/12"
+							onmouseenter={() => (pageInFocus = page)}
+						>
+							<canvas id="pdfCanvas{page}" class=" md:10/12 w-full"></canvas>
+							<p>{page}</p>
+						</article>
+					{/if}
+				{/each}
 			{/if}
 		</section>
 	{:else}

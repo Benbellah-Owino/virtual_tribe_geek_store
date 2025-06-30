@@ -39,6 +39,8 @@
 		"vitest": "^2.0.4"
 	},
 	"dependencies": {
-		"caniuse-lite": "^1.0.30001710"
+		"caniuse-lite": "^1.0.30001710",
+		"pdfjs-dist": "^5.3.31",
+		"pdfjs-lib": "^0.0.149"
 	}
 }
