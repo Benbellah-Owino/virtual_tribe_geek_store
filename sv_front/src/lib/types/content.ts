@@ -71,3 +71,9 @@ export interface Chapter{
     relative_chapter: number,
     absolute_chapter: number,
 }
+
+export interface ComicFileDetails{
+    [key:string] : string | number;
+    count: number,
+    content_type: string
+}

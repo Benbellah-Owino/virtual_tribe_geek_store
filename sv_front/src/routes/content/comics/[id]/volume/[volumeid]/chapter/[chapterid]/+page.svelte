@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import Banner from '$lib/components/studio/std/comps/Banner.svelte';
-	import type { Chapter } from '$lib/types/content';
+	import type { Chapter, ComicFileDetails } from '$lib/types/content';
 	import { PageError } from '$lib/types/error';
 	import { Result } from '$lib/types/result';
+	import { ComicType, ret_comic_type } from '$lib/types/state/comic_type';
 	import type { FormState } from '$lib/types/state/form_state';
 	import { updatePageState, type PageState } from '$lib/types/state/page_state';
+	import { text } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
 
 	// section:     --- State
@@ -24,6 +26,8 @@
 		locked: false
 	});
 
+	let comicType: ComicType = $state(ComicType.UNKNOWN);
+
 	let chapterId = $page.params.chapterid;
 	let formOn = $state(false);
 
@@ -32,6 +36,11 @@
 	let pages: any[] = $state([]);
 
 	let pageInFocus = $state(0);
+
+	let comic_file_details: ComicFileDetails = {
+		count: 50,
+		content_type: ''
+	};
 
 	onMount(async () => {
 		let res_chapter = await fetch(
@@ -79,20 +88,22 @@
 			}
 		}
 
-		let count = 0;
 		try {
 			const res = await fetch(
 				`http://localhost:7878/content/comic/volume/chapter/file/count/${chapter?.file}`
 			);
-			count = await res.json();
+			comic_file_details = await res.json();
+			comicType = ret_comic_type(comic_file_details.content_type);
+			console.log(comic_file_details);
 		} catch (error) {
-			count = 60;
+			console.error(error);
 		}
-		pages = Array.from({ length: count + 1 }, (_, i) => i);
+		pages = Array.from({ length: comic_file_details.count + 1 }, (_, i) => i);
 	});
 	// endsection:  --- State
 
-	//TODO: Retrieve chapter
+
+	// TODO: Render PDF
 </script>
 
 <main class="page">
@@ -115,27 +126,30 @@
 
 		<section class="book flex_col w-full">
 			<!-- TODO: Create different rendering modes for zip files and pdfs. RENDER PDF -->
-			{#each pages as page}
-				{#if page > 0}
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<article
-						class="comicPage secondary_border flex_col my-4 w-full rounded p-1 md:w-10/12"
-						onmouseenter={() => (pageInFocus = page)}
-					>
-						<img
-							src={chapter?.file
-								? `http://localhost:7878/content/comic/volume/chapter/file/${page}/${chapter.file}`
-								: ''}
-							alt={`Page ${page + 1}`}
-							loading="lazy"
-							class=" md:10/12 w-full"
-							o
-						/>
-						<!-- style="width: 90%; margin-bottom: 1rem;" -->
-						<p>{page}</p>
-					</article>
-				{/if}
-			{/each}
+			{#if comicType == ComicType.OCTET_STREAM}
+				{#each pages as page}
+					{#if page > 0}
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<article
+							class="comicPage secondary_border flex_col my-4 w-full rounded p-1 md:w-10/12"
+							onmouseenter={() => (pageInFocus = page)}
+						>
+							<img
+								src={chapter?.file
+									? `http://localhost:7878/content/comic/volume/chapter/file/${page}/${chapter.file}`
+									: ''}
+								alt={`Page ${page + 1}`}
+								loading="lazy"
+								class=" md:10/12 w-full"
+							/>
+							<!-- style="width: 90%; margin-bottom: 1rem;" -->
+							<p>{page}</p>
+						</article>
+					{/if}
+				{/each}
+			{:else if comicType == ComicType.PDF}
+					<Banner text = {"pdf"}/>
+			{/if}
 		</section>
 	{:else}
 		<div class="back_btn flex_center w-full p-3">

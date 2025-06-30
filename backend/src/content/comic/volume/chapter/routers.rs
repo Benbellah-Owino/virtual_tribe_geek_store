@@ -38,7 +38,7 @@ pub fn chapter_router() -> Router<Db> {
         .route("/show/:chapter", get(get_chapter))
         //.route("/image/*path", get(get_file))
         .route("/file/:index/*file_path", get(get_file))
-        .route("/file/count/*file_path", get(get_comic_page_count))
+        .route("/file/count/*file_path", get(get_comic_info))
         .route("/", post(create));
 }
 
@@ -217,7 +217,9 @@ pub async fn get_file(
     eprintln!("{}", file_path);
     //let archive_path = format!("media/comics/{}/{}", chapter,file_path); // example: "comics/mycomic.cbz"
     //let archive_path = format!("{}", file_path); // example: "comics/mycomic.cbz"
-    let content_type = Path::new(&file_path).extension().and_then(|ext| ext.to_str());
+    let content_type = Path::new(&file_path)
+        .extension()
+        .and_then(|ext| ext.to_str());
     eprintln!("CONTENT TYPE: {:#?}", content_type);
     match content_type {
         Some("png") => {
@@ -230,15 +232,12 @@ pub async fn get_file(
             unimplemented!()
         }
         Some("zip") | Some("octet-stream") => {
-            let (comic_file, mime) = match open_octet_stream(file_path, index){
-                Ok(c) =>{
-                    c
-                },
-                Err(e) =>{
+            let (comic_file, mime) = match open_octet_stream(file_path, index) {
+                Ok(c) => c,
+                Err(e) => {
                     dbg!(e);
                     return (StatusCode::INTERNAL_SERVER_ERROR, "Could not retrieve file")
-                        .into_response()
-
+                        .into_response();
                 }
             };
 
@@ -270,36 +269,63 @@ pub async fn get_file(
 }
 
 #[axum_macros::debug_handler]
-async fn get_comic_page_count(AxumPath(file): AxumPath<String>) -> impl IntoResponse {
-    let path = format!("{}", file);
-
-    let file = match File::open(&path) {
-        Ok(f) => f,
-        Err(e) => return (axum::http::StatusCode::NOT_FOUND, "File not found").into_response(),
-    };
-
-    let mut archive = match ZipArchive::new(file) {
-        Ok(a) => a,
-        Err(_) => return (axum::http::StatusCode::BAD_REQUEST, "Invalid archive").into_response(),
+async fn get_comic_info(AxumPath(path): AxumPath<String>) -> impl IntoResponse {
+    // Get pages count
+    let content_type = Path::new(&path).extension().and_then(|ext| ext.to_str());
+    let mut ct = String::new();
+    if let Some(content_type) = content_type {
+        ct = content_type.to_owned();
+    } else {
+        ct = String::from("error")
     };
 
     let mut count = 0;
 
-    for i in 0..archive.len() {
-        if let Ok(file) = archive.by_index(i) {
-            let name = file.name();
-            if let Some(ext) = Path::new(name).extension().and_then(|e| e.to_str()) {
-                if matches!(
-                    ext.to_ascii_lowercase().as_str(),
-                    "jpg" | "jpeg" | "png" | "gif" | "bmp" | "webp"
-                ) {
-                    count += 1;
+    match content_type {
+        Some("octet-stream") | Some("zip") => {
+            let file = match File::open(&path) {
+                Ok(f) => f,
+                Err(e) => {
+                    return (axum::http::StatusCode::NOT_FOUND, "File not found").into_response()
+                }
+            };
+
+            let mut archive = match ZipArchive::new(file) {
+                Ok(a) => a,
+                Err(_) => {
+                    return (axum::http::StatusCode::BAD_REQUEST, "Invalid archive").into_response()
+                }
+            };
+
+            for i in 0..archive.len() {
+                if let Ok(file) = archive.by_index(i) {
+                    let name = file.name();
+                    if let Some(ext) = Path::new(name).extension().and_then(|e| e.to_str()) {
+                        if matches!(
+                            ext.to_ascii_lowercase().as_str(),
+                            "jpg" | "jpeg" | "png" | "gif" | "bmp" | "webp"
+                        ) {
+                            count += 1;
+                        }
+                    }
                 }
             }
         }
+        _ => {
+            // Get page count from Database for other file types
+            count = 0;
+        }
     }
+    // Get comic file type
 
-    Json(count).into_response()
+    return (
+        StatusCode::OK,
+        Json(json!({
+            "count": count,
+            "content_type" : ct
+        })),
+    )
+        .into_response();
 }
 
 /// <h1> Handles Getting list of Comic </h1>
