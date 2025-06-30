@@ -1,18 +1,17 @@
-use std::{path};
 use chrono::OutOfRangeError;
 use http::StatusCode;
 use mime_guess::Mime;
-use tokio::{fs, io};
 use std::fs::File;
+use std::path;
+use tokio::{fs, io};
 use zip::{result::ZipError, ZipArchive};
 
 #[derive(Debug)]
-pub enum ComicFileError{
+pub enum ComicFileError {
     FileOpenError(io::Error),
     ArchiveExtractionError(ZipError),
-    OutOfRangeError
+    OutOfRangeError,
 }
-
 
 impl From<io::Error> for ComicFileError {
     fn from(value: io::Error) -> Self {
@@ -26,13 +25,16 @@ impl From<ZipError> for ComicFileError {
     }
 }
 
-pub fn open_octet_stream(archive_path: String, index: usize) -> Result<(Vec<u8>, Mime), ComicFileError>{
-    let file = File::open(&archive_path)?; 
+pub fn open_octet_stream(
+    archive_path: String,
+    index: usize,
+) -> Result<(Vec<u8>, Mime), ComicFileError> {
+    let file = File::open(&archive_path)?;
 
-    let mut archive = ZipArchive::new(file) ?;
+    let mut archive = ZipArchive::new(file)?;
 
     if index >= archive.len() {
-        return Err(ComicFileError::OutOfRangeError)
+        return Err(ComicFileError::OutOfRangeError);
     }
 
     let mut file = archive.by_index(index).unwrap();
@@ -45,8 +47,8 @@ pub fn open_octet_stream(archive_path: String, index: usize) -> Result<(Vec<u8>,
     Ok((buf, mime))
 }
 
-pub async fn open_pdf(pdf_path: String) -> Result<Vec<u8>, ComicFileError>{
+pub async fn open_pdf(pdf_path: String) -> Result<Vec<u8>, ComicFileError> {
     let file = fs::read(&pdf_path).await?;
 
-    return Ok(file)
+    return Ok(file);
 }
