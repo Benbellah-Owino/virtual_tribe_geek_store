@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import ChapterForm from '$lib/components/content/forms/chapterForm.svelte';
 	import { stringToSurrealId } from '$lib/helper_functions.ts/converters';
 	import type { ChapterForCreate, VolumeForCreate } from '$lib/types/content';
 	import { FormError, PageError } from '$lib/types/error';
@@ -51,20 +52,23 @@
 	onMount(async () => {
 		chapter_form.volume = stringToSurrealId(`volume:${volumeId}`);
 
-		let res_chapters = await fetch(`http://localhost:7878/content/comic/volume/chapter/${volumeId}`, {
-			method: 'GET',
-			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json'
+		let res_chapters = await fetch(
+			`http://localhost:7878/content/comic/volume/chapter/${volumeId}`,
+			{
+				method: 'GET',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json'
+				}
 			}
-		});
+		);
 
 		if (res_chapters.ok == true) {
 			//UNIMPLEMENTED
 			console.log(res_chapters);
 			let res = await res_chapters.json();
 			chapters = res.chapters_list;
-			chapters = chapters.sort((a,b) => a.relative_chapter - b.relative_chapter);
+			chapters = chapters.sort((a, b) => a.relative_chapter - b.relative_chapter);
 			console.log($state.snapshot(chapters));
 			pageState.loading = false;
 		} else if (res_chapters.ok == false) {
@@ -97,7 +101,7 @@
 
 	async function submit(e: Event) {
 		e.preventDefault();
-		console.log($state.snapshot(chapter_form))
+		console.log($state.snapshot(chapter_form));
 		try {
 			let response = await fetch(`http://localhost:7878/content/comic/volume/chapter`, {
 				method: 'POST',
@@ -115,9 +119,9 @@
 				}, 3000);
 				console.log('created');
 				let res = await response.json();
-				console.log(res)
-				console.log("Uploading file")
-				upload_file(res.chapter.id)
+				console.log(res);
+				console.log('Uploading file');
+				upload_file(res.chapter.id);
 				//window.open(`/content/comics/${volumeId}`, '_self');
 			} else if (response.status == 500) {
 				updateFormState(
@@ -130,7 +134,7 @@
 				);
 			} else if (response.ok == false) {
 				console.log(response.statusText);
-				console.log(response)
+				console.log(response);
 				updateFormState(
 					formState,
 					Result.Err,
@@ -141,7 +145,7 @@
 				);
 			}
 		} catch (error) {
-			console.error(error);		
+			console.error(error);
 			updateFormState(
 				formState,
 				Result.Err,
@@ -153,12 +157,11 @@
 		}
 	}
 
-	async function pf(e:Event) {
-		e.preventDefault()
+	async function pf(e: Event) {
+		e.preventDefault();
 	}
 
 	async function upload_file(id: SurrealId) {
-
 		const fileInput: any = document.getElementById('comic');
 		if (fileInput == null) return;
 
@@ -173,30 +176,78 @@
 		formData.append('file', file);
 		console.log(formData.values);
 
-		let response = await fetch(`http://localhost:7878/content/comic/volume/chapter/file/upload/${suridToString(id)}`, {
+		let response = await fetch(
+			`http://localhost:7878/content/comic/volume/chapter/file/upload/${suridToString(id)}`,
+			{
+				method: 'POST',
+				credentials: 'include',
+				body: formData
+			}
+		);
+
+		if (response.ok == true) {
+			console.log(await response.json());
+			setTimeout(() => {
+				updateFormState(formState, Result.Ok, null, 'Uploading success!', 'form', true);
+			}, 3000);
+			console.log('Uploading file');
+			//open(`/studio/${$page.params.studio}/content`)
+		} else if (response.ok == false) {
+			console.log('Comic upload failed');
+			updateFormState(
+				formState,
+				Result.Err,
+				FormError.UpdateFailed,
+				'comic',
+				'Upload failed',
+				false
+			);
+		} else {
+			console.log('Cover upload failed');
+			console.log(response.ok);
+			console.log(response.status);
+		}
+	}
+
+	async function upload_cover(id: SurrealId) {
+		console.log(id);
+		const fileInput: any = document.getElementById('comic_cover');
+		if (fileInput == null) return;
+
+		const file = fileInput.files[0];
+		console.log(file);
+		if (!file) {
+			alert('Please select a file to upload.');
+			return;
+		}
+
+		let formData = new FormData();
+		formData.append('file', file);
+		console.log(formData.values);
+
+		let response = await fetch(`http://localhost:7878/content/cover/upload/${suridToString(id)}`, {
 			method: 'POST',
 			credentials: 'include',
 			body: formData
 		});
 
 		if (response.ok == true) {
-			console.log(await response.json())
-			setTimeout(()=>{
+			console.log(await response.json());
+			setTimeout(() => {
 				updateFormState(formState, Result.Ok, null, 'Uploading success!', 'form', true);
-			}, 3000)
-			console.log('Uploading file')
-			//open(`/studio/${$page.params.studio}/content`)
+			}, 3000);
+			open(`/studio/${$page.params.studio}/content`);
 		} else if (response.ok == false) {
 			console.log('Cover update failed');
 			updateFormState(
 				formState,
 				Result.Err,
 				FormError.UpdateFailed,
-				'avatar',
+				'comic_cover',
 				'Update Failed',
 				false
 			);
-		}else{
+		} else {
 			console.log('Cover update failed');
 			console.log(response.ok);
 			console.log(response.status);
@@ -204,86 +255,56 @@
 	}
 </script>
 
-<main>
-    <center><h1 class="text-6xl font-extrabold">Chapters</h1></center>
+<main class="page">
+	<center><h1 class="text-6xl font-extrabold">Chapters</h1></center>
 	{#if pageState.loading}
 		<center>Loading content...</center>
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == null}
 		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Chapter list</h1>
-		<ul class="content_list flex_col" id="content_list">
+		<ul class="contentList flex m-5 w-full h-fit p-2 secondary_border" id="content_list">
 			{#each chapters as chapter}
-				<article class="chapter secondary_bg_hover primary_txt_hover secondary_border  m-2 p-1 rounded cursor-default">
-					<li><a class="tertiary_txt font-bold underline " href="/content/comics/{comicId}/volume/{volumeId}/chapter/{chapter.id.id.String}">{chapter.relative_chapter}. {chapter.title}</a></li>
-					<p class="text-sm">
-						{chapter.synopsis}
-					</p>
+				<article
+					class="chapter secondary_bg_hover primary_txt_hover w-72 m-2 cursor-default"
+				>
+					<img
+						src={chapter?.cover
+							? `http://localhost:7878/content/comic/volume/chapter/cover/${chapter.cover}`
+							: ''}
+						alt="Picture of {chapter?.title}"
+						height="384px"
+						class="chapterCover w-72 mx-auto"
+					/>
+					<li>
+						<a
+							class="tertiary_txt font-bold underline"
+							href="/content/comics/{comicId}/volume/{volumeId}/chapter/{chapter.id.id.String}"
+							>{chapter.relative_chapter}. {chapter.title}</a
+						>
+					</li>
 				</article>
 			{/each}
 		</ul>
-		<br><br>
+		<br /><br />
 		<center>
 			<button
-				class="btn primary_btn"
+				class="btn primary_btn mt-5"
 				onclick={() => {
 					form_on = !form_on;
 					console.log($state.snapshot(form_on));
-				}}>Toggle Volume form</button
+				}}>Toggle Chapter form</button
 			>
 		</center>
+
 		{#if form_on == true}
-		<!-- TODO: Remove this shit -->
-			<center class="w-full">
-				FORM
+			<br />
+			<center class="p-4">
+				<ChapterForm {chapter_form} />
 			</center>
 		{/if}
-	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == PageError.NotFoundError}
-		<center class="w-full">
-	<form
-		enctype="multipart/form-data"
-		class=" flex_col secondary_border mb-9 w-full rounded-md"
-		onsubmit={pf}
-	>
-		<input type="file" name="comic" id="comic" /><br />
-
-	</form>
-			<form class="form alt_bg mt-3 rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={submit}>
-				<h3 class="float-left mb-4 text-3xl font-extrabold">ADD CHAPTER</h3>
-				<br />
-				{#if formState.inner_state == Result.Ok && formState.target == 'form'}
-					<center><p class="error main_txt text-lg font-semibold">{formState.message}</p></center>
-				{:else if formState.inner_state == Result.Err && formState.target == 'form'}
-					<center
-						><p class="error text-lg font-semibold text-red-400">{formState.message}</p></center
-					>
-				{/if}
-			<div class="form_div">
-				<label for="title">Title</label>
-				<input type="text" name="title" id="title" bind:value={chapter_form.title} />
-				{#if formState.inner_state == Result.Err && formState.target == 'title'}
-					<p class="error text-red-500">{formState.message}</p>
-				{/if}
-			</div>
-			<div class="form_div">
-				<label for="pages">Pages</label>
-				<input type="number" name="pages" id="pages" bind:value={chapter_form.pages} />
-				{#if formState.inner_state == Result.Err && formState.target == 'pages'}
-					<p class="error text-red-500">{formState.message}</p>
-				{/if}
-			</div>
-				<div class="form_div">
-					<label for="description">Synopsis</label>
-					<!--TODO: Add word limit to description field on server side -->
-					<textarea
-						name="description"
-						id="description"
-						class="w-11/12"
-						rows="10"
-						bind:value={chapter_form.synopsis}
-					></textarea>
-				</div>
-				<button type="submit" class="btn primary_btn w-11/12">submit</button>
-				<!-- TODO: Next time number the volumes -->
-			</form>
+	{:else if (pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == PageError.NotFoundError) || form_on == true}
+		<center class="mt-3">
+			<h2 class="mb-2 mt-8 text-3xl">Add new chapter to this volume below</h2>
+			<ChapterForm {chapter_form} />
 		</center>
 	{:else}
 		<h3>Not found</h3>
@@ -291,4 +312,10 @@
 </main>
 
 <style>
+	.contentList{
+		min-height: 30rem;
+	}
+	.chapter{
+		height: 26rem;
+	}
 </style>

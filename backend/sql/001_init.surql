@@ -63,7 +63,7 @@ DEFINE TABLE IF NOT EXISTS content SCHEMAFULL;
 DEFINE FIELD title ON TABLE content TYPE string;
 DEFINE FIELD rating ON TABLE content TYPE float DEFAULT 0.0f;
 DEFINE FIELD studio ON TABLE content TYPE record<studio>;
-DEFINE FIELD description ON TABLE content TYPE string ASSERT string::len($value) <= 1000 ;
+DEFINE FIELD description ON TABLE content TYPE string ;
 DEFINE FIELD audiences ON TABLE content TYPE string;
 DEFINE FIELD recom_price ON TABLE content TYPE float;
 DEFINE FIELD genre ON TABLE content TYPE array<record<genre>;
@@ -102,11 +102,12 @@ DEFINE TABLE IF NOT EXISTS chapter SCHEMAFULL;
 DEFINE FIELD relative_chapter ON TABLE chapter TYPE number;
 DEFINE FIELD absolute_chapter ON TABLE chapter TYPE number;
 DEFINE FIELD pages ON TABLE chapter TYPE number;
-DEFINE FIELD synopsis ON TABLE chapter TYPE string ASSERT string::len($value) <= 350 ;
+DEFINE FIELD synopsis ON TABLE chapter TYPE string ASSERT string::len($value) <= 700 ;
 DEFINE FIELD title ON TABLE chapter TYPE string ASSERT string::len($value) <=  100 ;
 DEFINE FIELD file ON TABLE chapter TYPE option<string>;
 DEFINE FIELD cover ON TABLE chapter TYPE option<string>;
 DEFINE FIELD volume ON TABLE chapter TYPE record<volume>;
+DEFINE FIELD created_at ON TABLE chapter TYPE datetime DEFAULT time::now();
 
 -- endregion:   -- Comic table
 

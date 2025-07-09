@@ -14,6 +14,7 @@ pub struct Chapter {
     pub pages: u16,
     pub synopsis: Option<String>,
     pub file: Option<String>,
+    pub cover: Option<String>,
     pub volume: Thing,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -22,6 +23,7 @@ pub struct ChapterForCreate {
     pub title: String,
     pub synopsis: Option<String>,
     pub volume: Thing,
+    pub cover: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -32,6 +34,7 @@ pub struct ChapterForCreateCount {
     pub volume: Thing,
     pub relative_chapter: u32,
     pub absolute_chapter: u32,
+    pub cover: Option<String>,
 }
 
 impl ChapterForCreateCount {
@@ -47,6 +50,7 @@ impl ChapterForCreateCount {
             relative_chapter: relative_count,
             absolute_chapter: absolute_count,
             title: chap.title,
+            cover: chap.cover,
         }
     }
 }

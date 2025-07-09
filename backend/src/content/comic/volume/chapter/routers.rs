@@ -36,6 +36,8 @@ pub fn chapter_router() -> Router<Db> {
         .route("/:volume", get(list))
         .route("/show/:chapter", get(get_chapter))
         //.route("/image/*path", get(get_file))
+        .route("/cover/upload/:id", post(cover_upload))
+        .route("/cover/*path", get(get_cover))
         .route("/file/:index/*file_path", get(get_file))
         .route("/file/count/*file_path", get(get_comic_info))
         .route("/", post(create));
@@ -114,7 +116,7 @@ async fn file_upload(
 
     // Store the file in the specified director
     dbg!(&id_string[1]);
-    let path = format!("media\\comics\\{}", id_string[1]);
+    let path = format!("media\\comic\\files\\{}", id_string[1]);
     debug!("content_path-> {path}");
     let file = match storage::store(Some(path), format!("{}comic", id_string[1]), file).await {
         Some(f) => f,
@@ -154,6 +156,7 @@ async fn file_upload(
     }
 }
 
+// TODO: DELETE THIS FILE
 /// <h1> Handles getting details of Creator </h1>
 /// <h2> <b>Endpoint: /creator </b> </h2>
 ///
@@ -391,5 +394,132 @@ async fn get_chapter(
             StatusCode::NOT_FOUND,
             Json(json!({"msg": "Chapter is not found"})),
         ),
+    }
+}
+
+
+
+// Section for uploading chapter cover
+#[axum::debug_handler]
+async fn cover_upload(
+    State(db): State<Db>,
+    AxumPath(id): AxumPath<String>,
+    multipart: Multipart,
+) -> impl IntoResponse {
+    let db = db.unwrap();
+
+    let id_string = id.split(":").collect::<Vec<&str>>();
+    // Attempt to extract the image file from multipart
+    let file = match extract_image(multipart).await {
+        Ok(file) => file,
+        Err(e) => {
+            println!("File extraction failed.");
+            match e {
+                small_file::Error::TooBig => {
+                    return (
+                        StatusCode::BAD_REQUEST,
+                        Json(json!({"msg": "Image is too big, use a smaller image"})),
+                    )
+                }
+                _ => {
+                    return (
+                        StatusCode::BAD_REQUEST,
+                        Json(json!({"msg": "Update Failed"})),
+                    )
+                }
+            }
+        }
+    };
+
+    // Store the file in the specified director
+    let path = format!("media\\comic\\covers\\{}", id_string[1]);
+    debug!("content_path-> {path}");
+    let file = match storage::store(Some(path), format!("{}cover", id_string[1]), file).await {
+        Some(f) => f,
+        None => {
+            println!("File storage failed.");
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"msg": "File storage error"})),
+            );
+        }
+    };
+
+    // Check if we have the ID in request extensions
+    // Proceed with saving to disk and updating details
+    let file = (&file.0.clone(), file.1, file.2);
+    let path = file.0.clone();
+    let _ = save_to_disk(file).await;
+    let value = path.to_str().unwrap();
+    debug!("{value}");
+
+    let payload = ContentForUpdate {
+        field: "cover".to_string(),
+        value: value.to_string(),
+    };
+
+    println!("{:?}", &path);
+
+    match update(&db, id_string[1], payload).await {
+        Ok(_) => (StatusCode::OK, Json(json!({"msg": "File uploaded"}))),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({"msg": "Upload error"})),
+        ),
+    }
+}
+
+
+/// <h1> Handles getting details of content </h1>
+/// <h2> <b>Endpoint: /content </b> </h2>
+///
+/// <h3> No request body</h3>
+///
+/// <p>
+///     Empty parameters <br>
+///     Need auth token <br>
+/// </p>
+/// <br><hr>
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 302</li>
+///     <li> <b>Err</b> : 404</li>
+/// </ul>
+/// 
+/// 
+
+
+pub async fn get_cover(
+    // State(db): State<Db>,
+    AxumPath(path): AxumPath<String>,
+    // req: Request,
+) -> impl IntoResponse {
+    //TODO: Change to path
+
+    println!("{:?}", path);
+    let path = path.to_string();
+    match tokio::fs::read(path.clone()).await {
+        Ok(d) => {
+            let content_type = match Path::new(&path).extension().and_then(|ext| ext.to_str()) {
+                Some("png") => "image/png",
+                Some("jpg") | Some("jpeg") => "image/jpeg",
+                Some("gif") => "image/gif",
+                Some("bmp") => "image/bmp",
+                Some("webp") => "image/webp",
+                _ => {
+                    return (
+                        StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                        "Unsupported image format",
+                    )
+                        .into_response()
+                }
+            };
+            Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, content_type)
+                .body(Body::from(d))
+                .unwrap()
+        }
+        Err(_) => todo!(),
     }
 }

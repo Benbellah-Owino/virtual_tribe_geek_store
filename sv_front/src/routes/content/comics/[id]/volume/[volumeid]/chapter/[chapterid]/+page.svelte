@@ -176,6 +176,13 @@
 		<center>Loading chapter...</center>
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok}
 		<Banner text={chapter?.title}></Banner><br />
+		<img
+			src={chapter?.cover ? `http://localhost:7878/content/comic/volume/chapter/cover/${chapter.cover}` : ''}
+			alt="Picture of {chapter?.title}"
+			width="281px"
+			height="500px"
+			class="profile secondary_border mx-auto mb-2 rounded-md"
+		/>
 		<ul class="flex_col h-fit w-full p-1">
 			<li class=""><b class="">Pages: &nbsp;</b>{chapter?.pages}</li>
 			<li class=""><b class="">Number in volume: &nbsp;</b>{chapter?.relative_chapter}</li>
@@ -185,7 +192,6 @@
 		</ul>
 
 		<section class="book flex_col w-full">
-			<!-- TODO: Create different rendering modes for zip files and pdfs. RENDER PDF -->
 			{#if comicType == ComicType.OCTET_STREAM}
 				{#each pages as page}
 					{#if page > 0}

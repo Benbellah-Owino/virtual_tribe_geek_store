@@ -70,6 +70,7 @@ export interface Chapter{
     volume: SurrealId,
     relative_chapter: number,
     absolute_chapter: number,
+    cover: string|number
 }
 
 export interface ComicFileDetails{

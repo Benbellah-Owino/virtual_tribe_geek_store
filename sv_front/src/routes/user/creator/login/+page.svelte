@@ -19,7 +19,6 @@
 
 	async function login(e: Event) {
 		e.preventDefault();
-		console.log('submit');
 
 		for (const key in login_form) {
 			if (login_form[key] == '') {
@@ -47,7 +46,7 @@
 		if (response.status == 202) {
 			//UNIMPLEMENTED
 			let res = await response.json();
-			window.open('/user/creator');
+			window.open('/user/creator','_self');
 			console.log(res);
 		} else if (response.ok == false) {
 			// error(500, 'Registraition failure');

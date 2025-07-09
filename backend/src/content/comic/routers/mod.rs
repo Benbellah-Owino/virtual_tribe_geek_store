@@ -59,7 +59,10 @@ async fn create(State(db): State<Db>, Json(payload): Json<ComicForCreate>) -> im
     debug!("content/comic/create -> {:#?}", payload);
     // eprintln!("");
     dbg!(&payload);
-    let comic = store(&db, payload).await;
+    let mut p = payload;
+    p.price = (p.price * 100.0).round / 100.0;
+
+    let comic = store(&db, p).await;
 
     match comic {
         Ok(c) => (StatusCode::CREATED, Json(json!({"comic": c}))).into_response(),
