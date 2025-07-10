@@ -74,8 +74,11 @@ async fn create(
 ) -> impl IntoResponse {
     let db = db.unwrap();
     dbg!(&payload);
-    let content: ContentForCreateServer = payload.into();
+    let mut content: ContentForCreateServer = payload.into();
+
+    content.recom_price = (content.recom_price * 100.00).round() / 100.0;
     dbg!(&content);
+
     let content = store(content, &db).await;
     eprintln!("{:?}", content);
     match content {

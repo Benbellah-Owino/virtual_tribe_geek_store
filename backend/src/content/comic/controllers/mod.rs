@@ -2,16 +2,20 @@ use surrealdb::engine::remote::ws::Client;
 use surrealdb::Surreal;
 
 use crate::{
-    content::{Comic, ComicForCreate, ContentForUpdate},
+    content::{Comic, ComicForCreate, ContentForUpdate, ListComic},
     DbId,
 };
 
 use super::{routers::GetComicQuery, ComicError};
 
 // Shows list of comics
-pub async fn index(db: &Surreal<Client>) -> Result<Vec<Comic>, ComicError> {
-    let comic: Vec<Comic> = db.select("comic").await?;
-
+pub async fn index(db: &Surreal<Client>) -> Result<Vec<ListComic>, ComicError> {
+    let comic= db
+            .query(format!("SELECT * FROM comic FETCH creator, content, content.studio, content.genre;"))
+            .await?
+            .take(0);
+    dbg!(&comic);
+    let comic: Vec<ListComic> = comic?;
     return Ok(comic);
 }
 

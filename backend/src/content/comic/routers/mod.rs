@@ -59,10 +59,7 @@ async fn create(State(db): State<Db>, Json(payload): Json<ComicForCreate>) -> im
     debug!("content/comic/create -> {:#?}", payload);
     // eprintln!("");
     dbg!(&payload);
-    let mut p = payload;
-    p.price = (p.price * 100.0).round / 100.0;
-
-    let comic = store(&db, p).await;
+    let comic = store(&db, payload).await;
 
     match comic {
         Ok(c) => (StatusCode::CREATED, Json(json!({"comic": c}))).into_response(),
@@ -92,16 +89,21 @@ async fn create(State(db): State<Db>, Json(payload): Json<ComicForCreate>) -> im
 async fn list(State(db): State<Db>) -> impl IntoResponse {
     let db = db.unwrap();
     let comic_list = index(&db).await;
-
+    println!("comic list");
     match comic_list {
         Ok(c) => {
             if !c.is_empty() {
+                eprintln!("{:#?}", c);
                 (StatusCode::OK, Json(json!({"content_list":c}))).into_response()
             } else {
+                eprintln!("Empty");
                 (StatusCode::NOT_FOUND).into_response()
             }
         }
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
+        Err(e) => {
+            
+            eprintln!("ERROR: {:#?}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR).into_response()},
     }
 }
 

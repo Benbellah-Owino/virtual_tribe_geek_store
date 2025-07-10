@@ -15,6 +15,7 @@ pub struct Chapter {
     pub synopsis: Option<String>,
     pub file: Option<String>,
     pub cover: Option<String>,
+    pub created_at: String,
     pub volume: Thing,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
