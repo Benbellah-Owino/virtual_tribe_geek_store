@@ -260,13 +260,13 @@
 	{#if pageState.loading}
 		<center>Loading content...</center>
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == null}
-		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Chapter list</h1>
-		<ul class="contentList flex m-5 w-full h-fit p-2 secondary_border" id="content_list">
+	
+		<ul class="contentList  my-5 w-full h-fit p-2 flex flex-col justify-center items-center md:grid md:grid-cols-3" id="content_list">
 			{#each chapters as chapter}
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 				<article
-					class="chapter color2_bg_hover w-72 m-2 p-2 cursor-pointer hover:scale-105 duration-300"
+					class="chapter color2_bg_hover bg-black  w-72 m-2  cursor-pointer hover:scale-105 duration-300"
 					onclick={()=>{
 						window.open(`/content/comics/${comicId}/volume/${volumeId}/chapter/${chapter.id.id.String}`)
 					}}
@@ -279,13 +279,13 @@
 						height="384px"
 						class="chapterCover w-72 mx-auto object-contain"
 					/>
-					<li>
+					<div class="pl-2 w-full">
 						<a
 							class="tertiary_txt secondary_txt_hover font-bold underline"
 							href="/content/comics/{comicId}/volume/{volumeId}/chapter/{chapter.id.id.String}"
 							>{chapter.relative_chapter}. {chapter.title}</a
 						>
-					</li>
+					</div>
 				</article>
 			{/each}
 		</ul>

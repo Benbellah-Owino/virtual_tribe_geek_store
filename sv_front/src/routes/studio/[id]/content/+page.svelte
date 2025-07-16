@@ -34,7 +34,7 @@
 
 	<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Studio Content list</h1>
     <section class="content_list" id="content_list">
-		<table class=" table_border tbl_txt w-11/12 m-auto p-0 table-auto border-separate border-spacing-0 rounded">
+		<table class=" table_border tbl_txt w-11/12 mx-auto p-0 table-auto border-separate border-spacing-0 rounded text-xs">
 			<thead>
 				<tr class="text-center">
 					<th>Title</th>
@@ -45,12 +45,12 @@
 			</thead>
 			<tbody>
 				{#each contents as content }
-					<tr class="p-1">
-						<td class=" p-2 text-left">{content.title}</td>
-						<td class=" p-2 text-left">ksh {content.recom_price}</td>
-						<td class=" p-2 text-left">{content.rating}</td>
-						<td class="p-2 text-center">
-            				<a class="primary_txt secondary_bg tertiary_bg_hover p-1 m-auto w-14 border border-yellow-300 rounded-xl text-center text-sm font-bold"
+					<tr class="md:p-1">
+						<td class=" md:p-2 text-left">{content.title}</td>
+						<td class=" md:p-2 text-left">ksh {content.recom_price}</td>
+						<td class=" md:p-2 text-left">{content.rating}</td>
+						<td class="md:p-2 text-center">
+            				<a class="primary_txt secondary_bg tertiary_bg_hover md:p-1 m-auto w-fit md:w-14 border border-yellow-300 rounded-xl text-center text-sm font-semibold md:font-bold"
 							target="_blank" href="/content/{surrealIdToString(content.id)}">view</a><br>
 						</td>
 

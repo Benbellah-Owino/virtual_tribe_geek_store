@@ -71,7 +71,8 @@
 			</li>
 		</ul>
 		<br>
-        <a href="/studio/{studio_id}/content" class="tertiary_txt_hover mt-3 p-3 ml-1 text-lg font-bold">Click here to view this studios content</a>
+	
+        <a href="/studio/{studio_id}/content" class="tertiary_txt_hover w-full  mt-3 ml-1 text-lg font-bold text-left">Click here to view this studios content</a>
 	{:else if pageState.inner_state == Result.Err}
 		<h3 class="error">{pageState.message}</h3>
 	{/if}
