@@ -54,7 +54,7 @@
 		<center>Loading content...</center>
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == null}
 		<!--COMIC ASPECT RATIO IS 2:3  -->
-	<section class="comicList w-full  flex_col  md:flex-start md:flex">
+	<section class="comicList w-full flex flex-col justify-center items-center md:flex-start md:flex-row">
 			{#each comics as comic}
 				<article
 					class="comicTile secondary_shadow_hover main_txt flex_col m-4 bg-black"
@@ -140,7 +140,7 @@
 		}
 
 		.comicDescription {
-			overflow: hidden;
+			white-space: inherit;
 			display: -webkit-box;
 			-webkit-line-clamp: 5; /* Number of lines */
 			-webkit-box-orient: vertical;

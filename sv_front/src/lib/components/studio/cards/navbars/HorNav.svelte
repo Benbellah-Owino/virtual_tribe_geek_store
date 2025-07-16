@@ -2,10 +2,10 @@
     <div class="logo">
         <h1 class="text text-6xl font-bold">VRT</h1>
     </div>
-    <ul class="links flex justify-around items-center">
-        <li><a href="/content/comics/" class="nav_link">Comic books</a></li>
-        <li><a href="/user/creator/" class="nav_link">My Page</a></li>
-        <li><a href="/user/logout" class="nav_link">Logout</a></li>
+    <ul class="links flex justify-around items-center text-sm md:text-base">
+        <li><a href="/content/comics/" class="nav_link underline">Comics</a></li>
+        <li><a href="/user/creator/" class="nav_link underline">My Page</a></li>
+        <li><a href="/user/logout" class="nav_link underline">Logout</a></li>
     </ul>
 </nav>
 
