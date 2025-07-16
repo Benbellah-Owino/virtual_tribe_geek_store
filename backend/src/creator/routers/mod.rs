@@ -35,8 +35,8 @@ pub fn creator_router() -> Router<Db> {
                 .patch(details_update_handler)
                 .delete(delete_handler),
         )
-        .layer(middleware::from_fn(verify_user))
         .route("/studio/:id", get(list_studios_handler))
+        .layer(middleware::from_fn(verify_user))
         .route("/list", get(get_creators))
         .route("/", post(register_handler))
         .route("/login", post(login_handler))
@@ -465,10 +465,17 @@ pub async fn list_studios_handler(
     //TODO: Check if the creator exists
     let mut id = id;
     if id == "owner" {
+
+        eprintln!("path = {id}");
         if let Some(i) = req.extensions().get::<String>() {
+            eprintln!("i extensions = {i}");
             id = i.to_string();
+        }else{
+            eprintln!("req id = NONE");
         }
     }
+    
+    eprintln!("id = {id}");
     let db = db.unwrap();
     let studios = get_studios(&db, id).await;
     if let Ok(s) = studios {
