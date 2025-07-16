@@ -471,7 +471,6 @@ pub async fn list_studios_handler(
     }
     let db = db.unwrap();
     let studios = get_studios(&db, id).await;
-    dbg!(&studios);
     if let Ok(s) = studios {
         (StatusCode::OK, Json(json!({"studios": s}))).into_response()
     } else {

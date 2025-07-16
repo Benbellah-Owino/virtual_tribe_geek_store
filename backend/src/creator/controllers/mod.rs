@@ -365,6 +365,7 @@ pub async fn get_studios(
     db: &Surreal<Client>,
     id: String,
 ) -> Result<Vec<StudioFull>, CreatorError> {
+    eprintln!("{id}");
     let query = format!("SELECT * FROM studio WHERE owner = {id};");
     debug!("{query}");
     let studios: Vec<StudioFull> = db.query(query).await?.take(0)?;
