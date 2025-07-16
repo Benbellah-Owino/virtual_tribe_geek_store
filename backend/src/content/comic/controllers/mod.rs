@@ -14,7 +14,6 @@ pub async fn index(db: &Surreal<Client>) -> Result<Vec<ListComic>, ComicError> {
             .query(format!("SELECT * FROM comic FETCH creator, content, content.studio, content.genre;"))
             .await?
             .take(0);
-    dbg!(&comic);
     let comic: Vec<ListComic> = comic?;
     return Ok(comic);
 }

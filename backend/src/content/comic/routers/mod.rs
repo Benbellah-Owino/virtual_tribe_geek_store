@@ -91,10 +91,9 @@ async fn list(State(db): State<Db>) -> impl IntoResponse {
     let comic_list = index(&db).await;
     println!("comic list");
     match comic_list {
-        Ok(c) => {
-            if !c.is_empty() {
-                eprintln!("{:#?}", c);
-                (StatusCode::OK, Json(json!({"content_list":c}))).into_response()
+        Ok(comics) => {
+            if !comics.is_empty() {
+                (StatusCode::OK, Json(json!({"comic_list":comics}))).into_response()
             } else {
                 eprintln!("Empty");
                 (StatusCode::NOT_FOUND).into_response()
