@@ -31,8 +31,8 @@ export function getChartDatesObject(isoDateString: string): ChartDateObject {
 		hour: date.getHours(),
 		date: date.getDate(),
 		day: DaysOfTheWeek[date.getDay()],
-		month: 0,
-		year: 0
+		month: date.getMonth(),
+		year: date.getFullYear()
 	};
 
 	return chartDateObject;
