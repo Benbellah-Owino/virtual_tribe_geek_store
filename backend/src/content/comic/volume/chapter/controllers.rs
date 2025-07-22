@@ -80,11 +80,10 @@ pub async fn store(
         let absolute_count_db: Vec<Count> = absolute_count_db.take(0).unwrap();
         println!("{:#?}", absolute_count_db);
         // Since nothing is returned when a volume has nothing, zero is assigned to count in such a case.
-        let mut count2: u32 = 0;
-        if absolute_count_db.len() > 0 {
-            count2 = absolute_count_db.len() as u32;
+        let mut count2: u32 =  if absolute_count_db.len() > 0 {
+            absolute_count_db.len() as u32
         } else {
-            count2 = 0;
+            0
         };
 
         absolute_count += count2;
@@ -108,7 +107,7 @@ pub async fn store(
 }
 
 // Show form to edit an existing chapter
-pub async fn edit(id: String) {}
+pub async fn edit(_id: String) {}
 
 // Updates a chapter's details
 pub async fn update(
@@ -116,21 +115,19 @@ pub async fn update(
     id: &str,
     payload: ContentForUpdate,
 ) -> Result<DbId, ChapterError> {
-    let mut res: Option<DbId> = None;
-
+    // Worked on this. It may be defective
     let field = payload.field.clone();
 
-    match field.as_str() {
+    let res: Option<DbId>  = match field.as_str() {
         "title" | "synopsis" | "file" | "cover" | "pages" => {
-            res = db
+            db
                 .update(("chapter", id))
                 .merge(json!({&payload.field: &payload.value}))
-                .await
-                .map_err(|e| dbg!(e))?; // reset the number of login attempts
+                .await?
         }
 
-        &_ => return Err(ChapterError::DetailsUpdateError), //Change to update error
-    }
+        &_ => None 
+    };
 
     if res.is_none() {
         Err(ChapterError::DetailsUpdateError)
@@ -143,4 +140,4 @@ pub async fn update(
 }
 
 // Deletes a chapter
-pub async fn destroy(id: String) {}
+pub async fn destroy(_id: String) {}
