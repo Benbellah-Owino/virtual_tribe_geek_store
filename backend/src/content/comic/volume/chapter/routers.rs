@@ -35,7 +35,6 @@ pub fn chapter_router() -> Router<Db> {
         .route("/file/upload/:id", post(file_upload))
         .route("/:volume", get(list))
         .route("/show/:chapter", get(get_chapter))
-        //.route("/image/*path", get(get_file))
         .route("/cover/upload/:id", post(cover_upload))
         .route("/cover/*path", get(get_cover))
         .route("/file/:index/*file_path", get(get_file))
@@ -51,24 +50,26 @@ pub struct GetChapterQuery {
 }
 // endregion:   --- Query Structs
 // region:      --- Handlers
-/// <h1> Handles creation of Volume </h1>
-/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /comic </b> </h2>
+/// <h1> Handles creation of Chapter </h1>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /chapter </b> </h2>
 ///
 /// <h3> Request body</h3>
 /// { <br>
-///     "writer": ["John Doe, Jane Doe"], <br>
-///     "creator": ["creator:***"], <br>
+///     "pages": 1, <br>
+///     "title": "Test Chapter", <br>
+///     "synopsis": "this is an example of a chapter to be created", <br>
+///     "volume": "volume:***", <br>
 ///     "cover" : "path to file"
 /// }<br><br>
 ///
 /// <p>
-///     Parameters cannot be empty
+///     Parameters can be empty
 /// </p>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
 ///     <li> <b>Ok</b>  : 201</li>
-///     <li> <b>Err</b> : 500</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 #[axum_macros::debug_handler]
 async fn create(State(db): State<Db>, Json(payload): Json<ChapterForCreate>) -> impl IntoResponse {
@@ -81,7 +82,24 @@ async fn create(State(db): State<Db>, Json(payload): Json<ChapterForCreate>) -> 
         }
     }
 }
-
+/// <h1> Handles the uploading of the actual comic file </h1>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /chapter/file/upload/:id </b> </h2>
+///
+/// <h3> Request body</h3>
+/// { <br>
+///     "FILE DATA"
+/// }<br><br>
+///
+/// <p>
+///      Path parameter id represents the id of Comic whose file is being uploaded
+/// </p>
+///
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 200</li>
+///     <li> <b>Err: Bad Request</b> : 400</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
+/// </ul>
 #[axum::debug_handler]
 async fn file_upload(
     State(db): State<Db>,
@@ -156,59 +174,6 @@ async fn file_upload(
     }
 }
 
-// TODO: DELETE THIS FILE
-/// <h1> Handles getting details of Creator </h1>
-/// <h2> <b>Endpoint: /creator </b> </h2>
-///
-/// <h3> No request body</h3>
-///
-/// <p>
-///     Empty parameters <br>
-///     Need auth token <br>
-/// </p>
-/// <br><hr>
-/// <h4>Status Codes</h4>
-/// <ul>
-///     <li> <b>Ok</b>  : 302</li>
-///     <li> <b>Err</b> : 404</li>
-/// </ul>
-pub async fn send_file(
-    // State(db): State<Db>,
-    AxumPath(path): AxumPath<String>,
-    // req: Request,
-) -> impl IntoResponse {
-    //TODO: Change to path
-
-    println!("{:?}", path);
-    let path = path.to_string();
-    match tokio::fs::read(path.clone()).await {
-        Ok(d) => {
-            let content_type = Path::new(&path).extension().and_then(|ext| ext.to_str());
-            eprintln!("CONTENT TYPE: {:#?}", content_type);
-            let content_type = match content_type {
-                Some("png") => "image/png",
-                Some("jpg") | Some("jpeg") => "image/jpeg",
-                Some("cbz") | Some("cbr") | Some("zip") | Some("octet-stream") => {
-                    "application/octet-stream"
-                }
-                Some("pdf") => "application/pdf",
-                _ => {
-                    return (
-                        StatusCode::UNSUPPORTED_MEDIA_TYPE,
-                        "Unsupported image format",
-                    )
-                        .into_response()
-                }
-            };
-            Response::builder()
-                .status(StatusCode::OK)
-                .header(header::CONTENT_TYPE, content_type)
-                .body(Body::from(d))
-                .unwrap()
-        }
-        Err(_) => todo!(),
-    }
-}
 
 pub async fn get_file(
     // State(db): State<Db>,
@@ -287,7 +252,7 @@ async fn get_comic_info(AxumPath(path): AxumPath<String>) -> impl IntoResponse {
         Some("octet-stream") | Some("zip") => {
             let file = match File::open(&path) {
                 Ok(f) => f,
-                Err(e) => {
+                Err(_e) => {
                     return (axum::http::StatusCode::NOT_FOUND, "File not found").into_response()
                 }
             };
