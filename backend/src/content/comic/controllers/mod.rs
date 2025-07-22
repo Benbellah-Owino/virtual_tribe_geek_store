@@ -10,10 +10,12 @@ use super::{routers::GetComicQuery, ComicError};
 
 // Shows list of comics
 pub async fn index(db: &Surreal<Client>) -> Result<Vec<ListComic>, ComicError> {
-    let comic= db
-            .query(format!("SELECT * FROM comic FETCH creator, content, content.studio, content.genre;"))
-            .await?
-            .take(0);
+    let comic = db
+        .query(format!(
+            "SELECT * FROM comic FETCH creator, content, content.studio, content.genre;"
+        ))
+        .await?
+        .take(0);
     let comic: Vec<ListComic> = comic?;
     return Ok(comic);
 }
@@ -91,9 +93,9 @@ pub async fn store(db: &Surreal<Client>, comic: ComicForCreate) -> Result<DbId, 
 
 // Updates a comic's details
 pub async fn update(
-    db: &Surreal<Client>,
-    id: String,
-    payload: ContentForUpdate,
+    _db: &Surreal<Client>,
+    _id: String,
+    _payload: ContentForUpdate,
 ) -> Result<Comic, ComicError> {
     unimplemented!()
 }

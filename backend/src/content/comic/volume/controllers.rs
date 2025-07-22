@@ -43,13 +43,10 @@ pub async fn store(
     let mut count = db.query(query).await.unwrap();
     let count: Vec<Count> = count.take(0)?;
     println!("{:#?}", count);
-    let mut count2: u32 = 0;
-    if count.len() > 0 {
-        // let ct = count.len() + 1;
-        // eprintln!("{}",ct);
-        count2 = count.len() as u32 + 1;
+    let count2: u32 = if count.len() > 0 {
+        count.len() as u32 + 1
     } else {
-        count2 = 1;
+        1
     };
     println!("Final count is {:#?}", count);
     //let count = count[1].count + 1;
@@ -66,10 +63,10 @@ pub async fn store(
 }
 
 // Show form to edit an existing volume
-pub async fn edit(id: String) {}
+pub async fn edit(_id: String) {}
 
 // Updates a volume's details
-pub async fn update(id: String) {}
+pub async fn update(_id: String) {}
 
 // Deletes a volume
-pub async fn destroy(id: String) {}
+pub async fn destroy(_id: String) {}

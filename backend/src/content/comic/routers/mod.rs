@@ -41,16 +41,17 @@ pub struct GetComicQuery {
 /// { <br>
 ///     "writer": ["John Doe, Jane Doe"], <br>
 ///     "creator": ["creator:***"], <br>
-///     "cover" : "path to file"
+///     "cover" : "path to file",<br>
+///     "content": "content:***"<br>
 /// }<br><br>
 ///
 /// <p>
-///     Parameters cannot be empty
+///     Parameters are empty
 /// </p>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 201</li>
+///     <li> <b>Ok: Created</b>  : 201</li>
 ///     <li> <b>Err</b> : 500</li>
 /// </ul>
 #[axum_macros::debug_handler]
@@ -71,19 +72,37 @@ async fn create(State(db): State<Db>, Json(payload): Json<ComicForCreate>) -> im
     }
 }
 
+
 /// <h1> Handles Getting list of Comic </h1>
 /// <h2> <b>Endpoint:  <strong>[GET]</strong>  /comic </b> </h2>
 ///
 /// <h3> Request body</h3>
-/// NONE
-////// <p>
+///        NONE<br>
+/// 
+/// <h3> Response Body</h3>
+/// [
+///  { <br>
+///     "id" : comic:***, <br>
+///     "volumes" : 32, <br>
+///     "chapters": 12, <br>
+///     "writer": ["Stan Lee", "Jack Kirby"], <br>
+///     "artist": ["Bob Ross", "Michael Angelo"], <br>
+///     "creator": ["creator:***", creator: ***], <br>
+///     "created_at": "2025-07-22T16:45:03+00:00",<br>
+///     "cover": "path to file",<br>
+///     "content": "content:***"",<br>
+///     }, ...]<br><br>
+/// 
+/// 
+/// <p>
 ///     Parameters can be empty
 /// </p>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 201</li>
-///     <li> <b>Err</b> : 500</li>
+///     <li> <b>Ok </b>  : 200</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 #[axum_macros::debug_handler]
 async fn list(State(db): State<Db>) -> impl IntoResponse {
@@ -100,9 +119,9 @@ async fn list(State(db): State<Db>) -> impl IntoResponse {
             }
         }
         Err(e) => {
-            
             eprintln!("ERROR: {:#?}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR).into_response()},
+            (StatusCode::INTERNAL_SERVER_ERROR).into_response()
+        }
     }
 }
 
@@ -111,7 +130,19 @@ async fn list(State(db): State<Db>) -> impl IntoResponse {
 ///
 /// <h3> Request body</h3>
 ///     NONE <br>
-///
+/// 
+/// <h3> Response Body</h3>
+/// { <br>
+///     "id" : comic:***, <br>
+///     "volumes" : 32, <br>
+///     "chapters": 12, <br>
+///     "writer": ["Stan Lee", "Jack Kirby"], <br>
+///     "artist": ["Bob Ross", "Michael Angelo"], <br>
+///     "creator": ["creator:***", creator: ***], <br>
+///     "created_at": "2025-07-22T16:45:03+00:00",<br>
+///     "cover": "path to file",<br>
+///     "content": "content:***"",<br>
+/// } <br> <br>
 /// <p>
 ///     Path parameter id represents the Comic ID needed
 ///     Needs auth token
@@ -119,8 +150,9 @@ async fn list(State(db): State<Db>) -> impl IntoResponse {
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 201</li>
-///     <li> <b>Err</b> : 500</li>
+///     <li> <b>Ok </b>  : 200</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 // async fn get_one(State(db): State<Db>, AxumPath(comic_id): AxumPath<String>)->impl IntoResponse{
 #[axum_macros::debug_handler]
@@ -160,12 +192,13 @@ async fn get_one(
 /// <h4>Status Codes</h4>
 /// <ul>
 ///     <li> <b>Ok</b>  : 201</li>
-///     <li> <b>Err</b> : 500</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 #[axum_macros::debug_handler]
-async fn edit(
-    State(db): State<Db>,
-    Json(payload): Json<ComicForCreate>, //Create ComicForUpdate
+async fn _edit(
+    State(_db): State<Db>,
+    Json(_payload): Json<ComicForCreate>, //Create ComicForUpdate
 ) -> impl IntoResponse {
     //TODO: Implement edit functionalities for comics
     //TODO: Make sure only creators and admin can edit comic
@@ -177,6 +210,19 @@ async fn edit(
 /// <h3> Request body</h3>
 ///     NONE <br>
 ///
+/// <h3> Response Body</h3>
+/// { <br>
+///     "id" : comic:***, <br>
+///     "volumes" : 32, <br>
+///     "chapters": 12, <br>
+///     "writer": ["Stan Lee", "Jack Kirby"], <br>
+///     "artist": ["Bob Ross", "Michael Angelo"], <br>
+///     "creator": ["creator:***", creator: ***], <br>
+///     "created_at": "2025-07-22T16:45:03+00:00",<br>
+///     "cover": "path to file",<br>
+///     "content": "content:***"",<br>
+/// } <br> <br>
+/// 
 /// <p>
 ///     Path parameter id represents the Comic ID needed
 ///     Needs auth token
@@ -185,7 +231,8 @@ async fn edit(
 /// <h4>Status Codes</h4>
 /// <ul>
 ///     <li> <b>Ok</b>  : 201</li>
-///     <li> <b>Err</b> : 500</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 #[axum_macros::debug_handler]
 async fn delete_comic(
@@ -196,7 +243,7 @@ async fn delete_comic(
 
     match destroy(&db, comic_id).await {
         Ok(c) => (StatusCode::OK, Json(json!({"comic":c}))).into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
+        Err(_e) => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
     }
 }
 

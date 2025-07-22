@@ -3,6 +3,7 @@ use std::fs::File;
 use tokio::{fs, io};
 use zip::{result::ZipError, ZipArchive};
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum ComicFileError {
     FileOpenError(io::Error),

@@ -21,14 +21,16 @@ pub fn volume_router() -> Router<Db> {
 }
 
 // region:      --- Handlers
+
 /// <h1> Handles creation of Volume </h1>
-/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /comic </b> </h2>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /content/comic/volume/ </b> </h2>
 ///
 /// <h3> Request body</h3>
 /// { <br>
-///     "writer": ["John Doe, Jane Doe"], <br>
-///     "creator": ["creator:***"], <br>
-///     "cover" : "path to file"
+///     "synopsis": "A thrilling adventure of unlikely heroes.", <br>
+///     "comic": "comic:***", <br>
+///     "cover": "path/to/cover.jpg", <br>
+///     "no_of_chapters": 16 <br>
 /// }<br><br>
 ///
 /// <p>
@@ -37,8 +39,8 @@ pub fn volume_router() -> Router<Db> {
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 201</li>
-///     <li> <b>Err</b> : 500</li>
+///     <li> <b>Ok: Created</b>  : 201</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 #[axum_macros::debug_handler]
 async fn create(State(db): State<Db>, Json(payload): Json<VolumeForCreate>) -> impl IntoResponse {
@@ -52,19 +54,32 @@ async fn create(State(db): State<Db>, Json(payload): Json<VolumeForCreate>) -> i
     }
 }
 
-/// <h1> Handles Getting list of Comic </h1>
+
+
+/// <h1> Handles Getting list of Volume </h1>
 /// <h2> <b>Endpoint:  <strong>[GET]</strong>  /comic </b> </h2>
 ///
 /// <h3> Request body</h3>
-/// NONE
-////// <p>
+///         NONE<br>
+/// 
+/// <h3> Response body</h3>
+/// [{ <br>
+///     "synopsis": "A thrilling adventure of unlikely heroes.", <br>
+///     "comic": "comic:***", <br>
+///     "cover": "path/to/cover.jpg", <br>
+///     "no_of_chapters": 16 <br>
+/// }, ...]<br><br>
+/// 
+/// 
+/// <p>
 ///     Parameters can be empty
 /// </p>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
 ///     <li> <b>Ok</b>  : 201</li>
-///     <li> <b>Err</b> : 500</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 #[axum_macros::debug_handler]
 async fn list(State(db): State<Db>, AxumPath(comic): AxumPath<String>) -> impl IntoResponse {

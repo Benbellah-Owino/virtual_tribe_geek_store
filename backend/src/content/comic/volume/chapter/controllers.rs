@@ -45,11 +45,10 @@ pub async fn store(
     let mut relative_count_db = db.query(query).await.unwrap();
     let relative_count_db: Vec<Count> = relative_count_db.take(0)?;
     println!("{:#?}", relative_count_db);
-    let mut relative_count: u32 = 0;
-    if relative_count_db.len() > 0 {
-        relative_count = relative_count_db.len() as u32 + 1;
+    let relative_count: u32 = if relative_count_db.len() > 0 {
+        relative_count_db.len() as u32 + 1
     } else {
-        relative_count = 1;
+        1
     };
 
     // section: Select Absolute Count
@@ -80,7 +79,7 @@ pub async fn store(
         let absolute_count_db: Vec<Count> = absolute_count_db.take(0).unwrap();
         println!("{:#?}", absolute_count_db);
         // Since nothing is returned when a volume has nothing, zero is assigned to count in such a case.
-        let mut count2: u32 =  if absolute_count_db.len() > 0 {
+        let count2: u32 =  if absolute_count_db.len() > 0 {
             absolute_count_db.len() as u32
         } else {
             0

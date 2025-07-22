@@ -38,7 +38,7 @@ pub fn chapter_router() -> Router<Db> {
         .route("/cover/upload/:id", post(cover_upload))
         .route("/cover/*path", get(get_cover))
         .route("/file/:index/*file_path", get(get_file))
-        .route("/file/count/*file_path", get(get_comic_info))
+        .route("/file/info/*file_path", get(get_comic_info)) //TODO: change this path in relevant frontend fetch calls
         .route("/", post(create));
 }
 
@@ -49,9 +49,11 @@ pub struct GetChapterQuery {
     pub chapter: Option<String>,
 }
 // endregion:   --- Query Structs
+
 // region:      --- Handlers
+
 /// <h1> Handles creation of Chapter </h1>
-/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /chapter </b> </h2>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /content/comic/volume/chapter </b> </h2>
 ///
 /// <h3> Request body</h3>
 /// { <br>
@@ -59,7 +61,7 @@ pub struct GetChapterQuery {
 ///     "title": "Test Chapter", <br>
 ///     "synopsis": "this is an example of a chapter to be created", <br>
 ///     "volume": "volume:***", <br>
-///     "cover" : "path to file"
+///     "cover" : "path to file" <br>
 /// }<br><br>
 ///
 /// <p>
@@ -68,7 +70,7 @@ pub struct GetChapterQuery {
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 201</li>
+///     <li> <b>Ok: Created</b>  : 201</li>
 ///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 #[axum_macros::debug_handler]
@@ -82,8 +84,105 @@ async fn create(State(db): State<Db>, Json(payload): Json<ChapterForCreate>) -> 
         }
     }
 }
+
+/// <h1> Handles Getting list of Chapter </h1>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /content/comic/volume/chapter/:volume </b> </h2>
+///
+/// <h3> Request body</h3>
+///     NONE<br>
+///
+/// <h3> Response body</h3>
+/// [{<br>
+///     "id": "chapter:***", <br>
+///     "relative_chapter": 5, <br>
+///     "absolute_chapter": 12, <br>
+///     "pages": 24, <br>
+///     "sypnosis": "The heroes regroup after a devastating ambush.", <br>
+///     "file": "path/to/file.pdf", <br>
+///     "cover": "path/to/cover.jpg", <br>
+///     "volume": "volume:***" <br>
+/// }]]<br><br>
+///
+///     
+////// <p>
+///     Path parameter :volume represents volume whose chapters we want to fetch
+/// </p>
+///
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 200</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
+/// </ul>
+#[axum_macros::debug_handler]
+async fn list(State(db): State<Db>, AxumPath(volume): AxumPath<String>) -> impl IntoResponse {
+    let db = db.unwrap();
+    eprintln!("LIST CHAPTERS");
+    //TODO: Support listing of chapters by different criteria like creation date, ratings or even by user profile
+    match index(&db, volume).await {
+        Ok(chapters) => {
+            if !chapters.is_empty() {
+                (StatusCode::OK, Json(json!({"chapters_list":chapters}))).into_response()
+            } else {
+                (StatusCode::NOT_FOUND).into_response()
+            }
+        }
+        Err(e) => {
+            eprintln!("{:#?}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR).into_response()
+        }
+    }
+}
+
+/// <h1> Handles Getting one instance of Chapter </h1>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /content/comic/volume/chapter/show/:chapter </b> </h2>
+///
+/// <h3> Request body</h3>
+///     NONE <br>
+///
+/// <h3> Response body</h3>
+/// {<br>
+///     "id": "chapter:***", <br>
+///     "relative_chapter": 5, <br>
+///     "absolute_chapter": 12, <br>
+///     "pages": 24, <br>
+///     "sypnosis": "The heroes regroup after a devastating ambush.", <br>
+///     "file": "path/to/file.pdf", <br>
+///     "cover": "path/to/cover.jpg", <br>
+///     "volume": "volume:***" <br>
+/// }<br><br>
+///
+/// <p>
+///     Path parameter id represents the Comic ID needed
+///     Needs auth token
+/// </p>
+///
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 201</li>
+///     <li> <b>Err</b> : 500</li>
+/// </ul>
+#[axum_macros::debug_handler]
+async fn get_chapter(
+    State(db): State<Db>,
+    // Query(chapter_query): Query<GetChapterQuery>,
+    AxumPath(chapter): AxumPath<String>,
+) -> impl IntoResponse {
+    let db = db.unwrap();
+
+    match show(&db, chapter).await {
+        Ok(chapter) => (StatusCode::OK, Json(json!({"chapter": chapter}))),
+        Err(_e) => (
+            StatusCode::NOT_FOUND,
+            Json(json!({"msg": "Chapter is not found"})),
+        ),
+    }
+}
+
+// Below Routes deal with the actual files and not db data
+
 /// <h1> Handles the uploading of the actual comic file </h1>
-/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /chapter/file/upload/:id </b> </h2>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /content/comic/volume/chapter/file/upload/:id </b> </h2>
 ///
 /// <h3> Request body</h3>
 /// { <br>
@@ -91,12 +190,12 @@ async fn create(State(db): State<Db>, Json(payload): Json<ChapterForCreate>) -> 
 /// }<br><br>
 ///
 /// <p>
-///      Path parameter id represents the id of Comic whose file is being uploaded
+///      Path parameter id represents the id of Chapter whose file is being uploaded
 /// </p>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 200</li>
+///     <li> <b>Ok: Created</b>  : 201</li>
 ///     <li> <b>Err: Bad Request</b> : 400</li>
 ///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
@@ -163,7 +262,7 @@ async fn file_upload(
     println!("{:?}", &path);
 
     match update(&db, id_string[1], payload).await {
-        Ok(_) => (StatusCode::OK, Json(json!({"msg": "File uploaded"}))),
+        Ok(_) => (StatusCode::CREATED, Json(json!({"msg": "File uploaded"}))),
         Err(e) => {
             dbg!(e);
             (
@@ -174,16 +273,31 @@ async fn file_upload(
     }
 }
 
-
+/// <h1> Handles the fetching of the actual comic book file </h1>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /content/comic/volume/chapter/comic/file/:index/*file_path </b> </h2>
+///
+/// <h3> Request body</h3>
+///     NONE <br>
+///
+/// <h3> Request body</h3>
+///     FILE DATA <br>
+///
+/// <p>
+///     Path parameter :index represents the page to be fetched
+///     Path parameter *file represents the path to comic book file
+///     Needs auth token
+/// </p>
+///
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 200</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Unsupported Media Type </b> : 415</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 pub async fn get_file(
-    // State(db): State<Db>,
     AxumPath((index, file_path)): AxumPath<(usize, String)>,
-    // req: Request,
 ) -> impl IntoResponse {
-    //TODO: Handle PDFS files
     eprintln!("{}", file_path);
-    //let archive_path = format!("media/comics/{}/{}", chapter,file_path); // example: "comics/mycomic.cbz"
-    //let archive_path = format!("{}", file_path); // example: "comics/mycomic.cbz"
     let content_type = Path::new(&file_path)
         .extension()
         .and_then(|ext| ext.to_str());
@@ -235,15 +349,38 @@ pub async fn get_file(
     }
 }
 
+/// <h1> Handles Getting one instance of Chapter </h1>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /content/comic/volume/chapter/file/info/*file_path </b> </h2>
+///
+/// <h3> Request body</h3>
+///     NONE <br>
+/// <h3> Request body</h3>
+/// {<br>
+///     "count": 10, <br>
+///     "content_type": "pdf"br <br>
+/// }<br><br>
+///
+/// <p>
+///     Path parameter *file_path represents path to file
+///     Needs auth token
+/// </p>
+///
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 200</li>
+///     <li> <b>Err: Bad Request</b> : 400</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
+/// </ul>
 #[axum_macros::debug_handler]
 async fn get_comic_info(AxumPath(path): AxumPath<String>) -> impl IntoResponse {
     // Get pages count
     let content_type = Path::new(&path).extension().and_then(|ext| ext.to_str());
-    let mut ct = String::new();
-    if let Some(content_type) = content_type {
-        ct = content_type.to_owned();
+
+    let ct: String = if content_type.is_some() {
+        content_type.unwrap().to_string()
     } else {
-        ct = String::from("error")
+        String::from("error")
     };
 
     let mut count = 0;
@@ -295,76 +432,22 @@ async fn get_comic_info(AxumPath(path): AxumPath<String>) -> impl IntoResponse {
         .into_response();
 }
 
-/// <h1> Handles Getting list of Comic </h1>
-/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /comic </b> </h2>
+/// <h1> Handles the uploading of the chapter cover photo</h1>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /content/comic/volume/chapter/cover/upload/:id </b> </h2>
 ///
 /// <h3> Request body</h3>
-/// NONE
-////// <p>
-///     Parameters can be empty
-/// </p>
-///
-/// <h4>Status Codes</h4>
-/// <ul>
-///     <li> <b>Ok</b>  : 201</li>
-///     <li> <b>Err</b> : 500</li>
-/// </ul>
-#[axum_macros::debug_handler]
-async fn list(State(db): State<Db>, AxumPath(volume): AxumPath<String>) -> impl IntoResponse {
-    let db = db.unwrap();
-    eprintln!("LIST CHAPTERS");
-    match index(&db, volume).await {
-        Ok(chapters) => {
-            if !chapters.is_empty() {
-                (StatusCode::OK, Json(json!({"chapters_list":chapters}))).into_response()
-            } else {
-                (StatusCode::NOT_FOUND).into_response()
-            }
-        }
-        Err(e) => {
-            eprintln!("{:#?}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR).into_response()
-        }
-    }
-}
-
-/// <h1> Handles Getting one instance of Comic </h1>
-/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /comic/:id </b> </h2>
-///
-/// <h3> Request body</h3>
-///     NONE <br>
+///     "FILE DATA" <br>
 ///
 /// <p>
-///     Path parameter id represents the Comic ID needed
-///     Needs auth token
+///      Path parameter id represents the id of Chapter whose cover photo is being uploaded
 /// </p>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 201</li>
-///     <li> <b>Err</b> : 500</li>
+///     <li> <b>Ok: Created</b>  : 201</li>
+///     <li> <b>Err: Bad Request</b> : 400</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
-// async fn get_one(State(db): State<Db>, AxumPath(comic_id): AxumPath<String>)->impl IntoResponse{
-#[axum_macros::debug_handler]
-async fn get_chapter(
-    State(db): State<Db>,
-    // Query(chapter_query): Query<GetChapterQuery>,
-    AxumPath(chapter): AxumPath<String>,
-) -> impl IntoResponse {
-    let db = db.unwrap();
-
-    match show(&db, chapter).await {
-        Ok(chapter) => (StatusCode::OK, Json(json!({"chapter": chapter}))),
-        Err(e) => (
-            StatusCode::NOT_FOUND,
-            Json(json!({"msg": "Chapter is not found"})),
-        ),
-    }
-}
-
-
-
-// Section for uploading chapter cover
 #[axum::debug_handler]
 async fn cover_upload(
     State(db): State<Db>,
@@ -426,7 +509,7 @@ async fn cover_upload(
     println!("{:?}", &path);
 
     match update(&db, id_string[1], payload).await {
-        Ok(_) => (StatusCode::OK, Json(json!({"msg": "File uploaded"}))),
+        Ok(_) => (StatusCode::CREATED, Json(json!({"msg": "Cover uploaded"}))),
         Err(_) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({"msg": "Upload error"})),
@@ -434,11 +517,13 @@ async fn cover_upload(
     }
 }
 
-
 /// <h1> Handles getting details of content </h1>
 /// <h2> <b>Endpoint: /content </b> </h2>
 ///
 /// <h3> No request body</h3>
+///
+/// <h3> Request body</h3>
+///     NONE <br>
 ///
 /// <p>
 ///     Empty parameters <br>
@@ -450,17 +535,9 @@ async fn cover_upload(
 ///     <li> <b>Ok</b>  : 302</li>
 ///     <li> <b>Err</b> : 404</li>
 /// </ul>
-/// 
-/// 
-
-
-pub async fn get_cover(
-    // State(db): State<Db>,
-    AxumPath(path): AxumPath<String>,
-    // req: Request,
-) -> impl IntoResponse {
-    //TODO: Change to path
-
+///
+///
+pub async fn get_cover(AxumPath(path): AxumPath<String>) -> impl IntoResponse {
     println!("{:?}", path);
     let path = path.to_string();
     match tokio::fs::read(path.clone()).await {
