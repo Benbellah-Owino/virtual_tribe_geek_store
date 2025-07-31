@@ -57,7 +57,7 @@ async fn create(State(db): State<Db>, Json(payload): Json<VolumeForCreate>) -> i
 
 
 /// <h1> Handles Getting list of Volume </h1>
-/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /comic </b> </h2>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /content/comic/volume </b> </h2>
 ///
 /// <h3> Request body</h3>
 ///         NONE<br>

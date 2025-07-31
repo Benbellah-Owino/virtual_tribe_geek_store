@@ -59,7 +59,7 @@ pub fn content_router() -> Router<Db> {
 ///
 /// <p>
 ///     Parameters cannot be empty
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -96,6 +96,32 @@ async fn create(
     }
 }
 
+/// <h1> Handles Getting list of Content </h1>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /content </b> </h2>
+///
+/// <h3> Request body</h3>
+///         NONE<br>
+/// 
+/// <h3> Response body</h3>
+/// [{ <br>
+///     "title": "test_creator1", <br>
+///     "studio": "studio:sxshus8430sdd9dde"
+///     "description": "Nice content", <br>
+///     "audiences": "FAMILY", <br>
+///     "recom_price": "password" <br>
+/// }, ...]<br><br>
+/// 
+/// 
+/// <p>
+///     Parameters are empty
+/// </p><br><hr>
+///
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 201</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
+/// </ul>
 async fn list(State(db): State<Db>) -> impl IntoResponse {
     let db = db.unwrap();
     info!("list");
@@ -123,6 +149,32 @@ async fn list(State(db): State<Db>) -> impl IntoResponse {
     }
 }
 
+/// <h1> Handles fetching of a Content </h1>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /content/:content_id </b> </h2>
+///
+/// <h3> Request body</h3>
+///         NONE<br>
+/// 
+/// <h3> Response body</h3>
+/// { <br>
+///     "title": "test_creator1", <br>
+///     "studio": "studio:sxshus8430sdd9dde"
+///     "description": "Nice content", <br>
+///     "audiences": "FAMILY", <br>
+///     "recom_price": "password" <br>
+/// }<br><br>
+/// 
+/// 
+/// <p>
+///     Path parameter content_id represents the db id of the resource needed
+/// </p><br><hr>
+///
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 201</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
+/// </ul>
 #[allow(dead_code)]
 async fn show(State(db): State<Db>, AxumPath(content): AxumPath<String>) -> impl IntoResponse {
     let db = db.unwrap();
@@ -142,6 +194,32 @@ async fn edit(State(_db): State<Db>) -> impl IntoResponse {}
 #[allow(dead_code)]
 async fn delete_content(State(_db): State<Db>) -> impl IntoResponse {}
 
+/// <h1> Handles Getting list of Content owned by Studio </h1>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /content/studio/:studio_id </b> </h2>
+///
+/// <h3> Request body</h3>
+///         NONE<br>
+/// 
+/// <h3> Response body</h3>
+/// [{ <br>
+///     "title": "test_creator1", <br>
+///     "studio": "studio:sxshus8430sdd9dde"
+///     "description": "Nice content", <br>
+///     "audiences": "FAMILY", <br>
+///     "recom_price": "password" <br>
+/// }, ...]<br><br>
+/// 
+/// 
+/// <p>
+///     Path parameter studio_id represents the db id of the studio whose content we need
+/// </p><br><hr>
+///
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 201</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
+/// </ul>
 #[axum_macros::debug_handler]
 pub async fn list_studio_handler(
     State(db): State<Db>,
@@ -161,6 +239,22 @@ pub async fn list_studio_handler(
     }
 }
 
+/// <h1> Handles the uploading of the content cover photo</h1>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /content/cover/upload/:id </b> </h2>
+///
+/// <h3> Request body</h3>
+///     "FILE DATA" <br>
+///
+/// <p>
+///      Path parameter id represents the id of Content whose cover photo is being uploaded
+/// </p><br><hr>
+///
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok: Created</b>  : 201</li>
+///     <li> <b>Err: Bad Request</b> : 400</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
+/// </ul>
 #[axum::debug_handler]
 async fn cover_upload(
     State(db): State<Db>,
@@ -230,20 +324,22 @@ async fn cover_upload(
     }
 }
 
-/// <h1> Handles getting details of content </h1>
+/// <h1> Handles fetching content cover </h1>
 /// <h2> <b>Endpoint: /content </b> </h2>
 ///
 /// <h3> No request body</h3>
-///
+/// 
+/// <h3> response body is media file</h3>
 /// <p>
 ///     Empty parameters <br>
 ///     Need auth token <br>
 /// </p>
 /// <br><hr>
+/// 
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 302</li>
-///     <li> <b>Err</b> : 404</li>
+///     <li> <b>Ok</b>  : 200</li>
+///     <li> <b>Err: Unsupported F</b> : 404</li>
 /// </ul>
 pub async fn get_image(
     // State(db): State<Db>,
@@ -274,7 +370,7 @@ pub async fn get_image(
                 .status(StatusCode::OK)
                 .header(header::CONTENT_TYPE, content_type)
                 .body(Body::from(d))
-                .unwrap()
+                .unwrap() // TODO: Handle this error more gracefully
         }
         Err(_) => todo!(),
     }
