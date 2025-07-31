@@ -211,6 +211,7 @@ pub enum ContentError {
     FailedToCreate,
     RetrievalError,
     DetailsUpdateError,
+    InvalidFieldError,
     DbError(surrealdb::Error),
 }
 

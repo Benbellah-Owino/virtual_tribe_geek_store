@@ -62,29 +62,22 @@ pub async fn update_details(
     id: &str,
     payload: ContentForUpdate,
 ) -> Result<DbId, ContentError> {
-    //TODO: test if it accepts different types o
-    // Items to update username, password, socials, description,
-    let mut res: Option<DbId> = None;
-    //debug!("{:#?}",&payload);
     let field = payload.field.clone();
     match field.as_str() {
         "title" | "description" | "cover" => {
-            res = db
+            let res: Option<DbId> = db
                 .update(("content", id))
                 .merge(json!({&payload.field: &payload.value}))
                 .await
-                .map_err(|e| dbg!(e))?; // reset the number of login attempts
+                .map_err(|e| dbg!(e))?;
+
+            if let Some(c) = res {
+                return Ok(c);
+            } else {
+                return Err(ContentError::DetailsUpdateError);
+            }
         }
 
-        &_ => return Err(ContentError::FailedToCreate), //Change to update error
-    }
-
-    if res.is_none() {
-        Err(ContentError::DetailsUpdateError)
-    } else if let Some(c) = res {
-        debug!("{:?}", c);
-        Ok(c)
-    } else {
-        Err(ContentError::DetailsUpdateError)
+        &_ => return Err(ContentError::InvalidFieldError), //Change to update error
     }
 }
