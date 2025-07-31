@@ -31,7 +31,7 @@ pub fn genre_router() -> Router<Db> {
 ///
 /// <p>
 ///     Parameters are empty
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -69,7 +69,7 @@ pub async fn create_handler(
 /// 
 /// <p>
 ///     Parameters can be empty
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>

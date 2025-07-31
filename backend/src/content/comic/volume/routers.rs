@@ -35,7 +35,7 @@ pub fn volume_router() -> Router<Db> {
 ///
 /// <p>
 ///     Parameters cannot be empty
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -73,7 +73,7 @@ async fn create(State(db): State<Db>, Json(payload): Json<VolumeForCreate>) -> i
 /// 
 /// <p>
 ///     Parameters can be empty
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>

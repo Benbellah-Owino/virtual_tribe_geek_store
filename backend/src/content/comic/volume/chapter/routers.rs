@@ -66,7 +66,7 @@ pub struct GetChapterQuery {
 ///
 /// <p>
 ///     Parameters can be empty
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -106,7 +106,7 @@ async fn create(State(db): State<Db>, Json(payload): Json<ChapterForCreate>) -> 
 ///     
 ////// <p>
 ///     Path parameter :volume represents volume whose chapters we want to fetch
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -155,7 +155,7 @@ async fn list(State(db): State<Db>, AxumPath(volume): AxumPath<String>) -> impl 
 /// <p>
 ///     Path parameter id represents the Comic ID needed
 ///     Needs auth token
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -191,7 +191,7 @@ async fn get_chapter(
 ///
 /// <p>
 ///      Path parameter id represents the id of Chapter whose file is being uploaded
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -286,7 +286,7 @@ async fn file_upload(
 ///     Path parameter :index represents the page to be fetched
 ///     Path parameter *file represents the path to comic book file
 ///     Needs auth token
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -363,7 +363,7 @@ pub async fn get_file(
 /// <p>
 ///     Path parameter *file_path represents path to file
 ///     Needs auth token
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -440,7 +440,7 @@ async fn get_comic_info(AxumPath(path): AxumPath<String>) -> impl IntoResponse {
 ///
 /// <p>
 ///      Path parameter id represents the id of Chapter whose cover photo is being uploaded
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>

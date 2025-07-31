@@ -47,7 +47,7 @@ pub struct GetComicQuery {
 ///
 /// <p>
 ///     Parameters are empty
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -96,7 +96,7 @@ async fn create(State(db): State<Db>, Json(payload): Json<ComicForCreate>) -> im
 /// 
 /// <p>
 ///     Parameters can be empty
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -146,7 +146,7 @@ async fn list(State(db): State<Db>) -> impl IntoResponse {
 /// <p>
 ///     Path parameter id represents the Comic ID needed
 ///     Needs auth token
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -187,7 +187,7 @@ async fn get_one(
 /// <p>
 ///     Path parameter is the comic id
 ///     Needs auth token
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -226,7 +226,7 @@ async fn _edit(
 /// <p>
 ///     Path parameter id represents the Comic ID needed
 ///     Needs auth token
-/// </p>
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
