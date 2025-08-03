@@ -58,8 +58,8 @@ pub fn creator_router() -> Router<Db> {
 /// }<br><br>
 ///
 /// <p>
-///     Parameters cannot be empty
-/// </p>
+///     Parameters are empty
+/// </p><br><hr>
 ///
 /// <h4>Status Codes</h4>
 /// <ul>
@@ -81,7 +81,7 @@ async fn register_handler(
 
 #[axum_macros::debug_handler]
 /// <h1> Handles logging in of Creator </h1>
-/// <h2> <b>Endpoint: <strong>[GET]</strong>  /creator </b> </h2>
+/// <h2> <b>Endpoint: <strong>[GET]</strong>  /creator/login </b> </h2>
 ///
 /// <h3> Request body</h3>
 /// { <br>
@@ -91,13 +91,13 @@ async fn register_handler(
 ///
 /// <p>
 ///     Parameters cannot be empty
-/// </p>
-///
-/// <br><hr>
+/// </p> <br><hr>
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 202</li>
-///     <li> <b>Err</b> : 401, 500, 403</li>
+///     <li> <b>Ok: Accepted</b>  : 202</li>
+///     <li> <b>Err: Unauthorized</b> : 401</li>
+///     <li> <b>Err: Forbidenn</b> : 403</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 async fn login_handler(
     State(db): State<Db>, //TODO: Update the status codes of each rout
@@ -141,19 +141,34 @@ async fn login_handler(
 }
 
 /// <h1> Handles getting details of Creator </h1>
-/// <h2> <b>Endpoint: /creator </b> </h2>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /creator </b> </h2>
 ///
 /// <h3> No request body</h3>
 ///
+/// <h3> Request body</h3>
+/// { <br>
+///     "username": "test_creator1", <br>
+///     "email": "test_creator1@gmail.com", <br>
+///     "role": ["writer", "artist"], <br>
+///     "description": "Passionate creator of webcomics and illustrations.", <br>
+///     "verified": true, <br>
+///     "socials": {<br>
+///         "twitter": "@creatorhandle",<br>
+///         "instagram": "@creatorinsta"<br>
+///     }, <br>
+///     "joined_at": "2025-07-22T16:45:03+00:00", <br>
+///     "avatar": "path/to/avatar.jpg" <br>
+/// }<br><br>
+/// 
 /// <p>
 ///     Empty parameters <br>
 ///     Need auth token <br>
-/// </p>
-/// <br><hr>
+/// </p> <br><hr>
+/// 
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 302</li>
-///     <li> <b>Err</b> : 404</li>
+///     <li> <b>Ok</b>  : 200</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
 /// </ul>
 pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoResponse {
     //TODO: Change to path
@@ -177,10 +192,25 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
 }
 
 /// <h1> Handles getting details of all Creators </h1>
-/// <h2> <b>Endpoint: /creator </b> </h2>
+/// <h2> <b>Endpoint:  <strong>[GET]</strong>  /creator/list </b> </h2>
 ///
 /// <h3> No request body</h3>
 ///
+/// <h3> Request body</h3>
+/// [{ <br>
+///     "username": "test_creator1", <br>
+///     "email": "test_creator1@gmail.com", <br>
+///     "role": ["writer", "artist"], <br>
+///     "description": "Passionate creator of webcomics and illustrations.", <br>
+///     "verified": true, <br>
+///     "socials": {<br>
+///         "twitter": "@creatorhandle",<br>
+///         "instagram": "@creatorinsta"<br>
+///     }, <br>
+///     "joined_at": "2025-07-22T16:45:03+00:00", <br>
+///     "avatar": "path/to/avatar.jpg" <br>
+/// }, ...]<br><br>
+/// 
 /// <p>
 ///     Empty parameters <br>
 ///     Need auth token <br>
@@ -188,8 +218,8 @@ pub async fn details_handler(State(db): State<Db>, req: Request) -> impl IntoRes
 /// <br><hr>
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 302</li>
-///     <li> <b>Err</b> : 404</li>
+///     <li> <b>Ok</b>  : 200</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
 /// </ul>
 pub async fn get_creators(State(db): State<Db>) -> impl IntoResponse {
     let db = db.unwrap();
@@ -205,7 +235,7 @@ pub async fn get_creators(State(db): State<Db>) -> impl IntoResponse {
 }
 
 /// <h1> Handles updating details of Creators </h1>
-/// <h2> <b>Endpoint:  <strong>[PATHC]</strong>  /creator </b> </h2>
+/// <h2> <b>Endpoint:  <strong>[PATCH]</strong>  /creator </b> </h2>
 ///
 /// <h3> Request body</h3>
 /// { <br>
@@ -213,6 +243,21 @@ pub async fn get_creators(State(db): State<Db>) -> impl IntoResponse {
 ///     "value": "test_creator1@gmail.com", <br>
 /// }<br><br>
 ///
+/// <h3> Request body</h3>
+/// { <br>
+///     "username": "test_creator1", <br>
+///     "email": "test_creator1@gmail.com", <br>
+///     "role": ["writer", "artist"], <br>
+///     "description": "Passionate creator of webcomics and illustrations.", <br>
+///     "verified": true, <br>
+///     "socials": {<br>
+///         "twitter": "@creatorhandle",<br>
+///         "instagram": "@creatorinsta"<br>
+///     }, <br>
+///     "joined_at": "2025-07-22T16:45:03+00:00", <br>
+///     "avatar": "path/to/avatar.jpg" <br>
+/// }<br><br>
+/// 
 /// <p>
 ///     Empty parameters <br>
 ///     Need auth token <br>
@@ -221,8 +266,8 @@ pub async fn get_creators(State(db): State<Db>) -> impl IntoResponse {
 /// <br><hr>
 /// <h4>Status Codes</h4>
 /// <ul>
-///     <li> <b>Ok</b>  : 302</li>
-///     <li> <b>Err</b> : 500</li>
+///     <li> <b>Ok</b>  : 200</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
 /// </ul>
 pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl IntoResponse {
     return if let Some(req_id) = req.extensions().get::<String>() {
@@ -247,7 +292,7 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
                 let creator = get_details(&db, id.to_owned()).await.unwrap();
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(json!({"msg": "Update error", "c":creator})),
+                    Json(json!({"msg": "Update error", "creator":creator})),
                 )
             }
         }
@@ -259,11 +304,26 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
     };
 }
 
-/// <h1> Handles deleting of Creators </h1>
+/// <h1> Handles deleting of a Creator </h1>
 /// <h2> <b>Endpoint:  <strong>[DELETE]</strong>  /creator </b> </h2>
 ///
 /// <h3> No request body</h3>
-///
+/// 
+/// <h3> Request body</h3>
+/// { <br>
+///     "username": "test_creator1", <br>
+///     "email": "test_creator1@gmail.com", <br>
+///     "role": ["writer", "artist"], <br>
+///     "description": "Passionate creator of webcomics and illustrations.", <br>
+///     "verified": true, <br>
+///     "socials": {<br>
+///         "twitter": "@creatorhandle",<br>
+///         "instagram": "@creatorinsta"<br>
+///     }, <br>
+///     "joined_at": "2025-07-22T16:45:03+00:00", <br>
+///     "avatar": "path/to/avatar.jpg" <br>
+/// }<br><br>
+/// 
 /// <p>
 ///     Empty parameters <br>
 ///     Need auth token <br>
@@ -273,7 +333,8 @@ pub async fn details_update_handler(State(db): State<Db>, req: Request) -> impl 
 /// <h4>Status Codes</h4>
 /// <ul>
 ///     <li> <b>Ok</b>  : 200</li>
-///     <li> <b>Err</b> : 500</li>
+///     <li> <b>Err: Not Found</b> : 404</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 pub async fn delete_handler(
     State(db): State<Db>,
@@ -302,6 +363,21 @@ pub async fn delete_handler(
     }
 }
 
+/// <h1> Handles the uploading of the content cover photo</h1>
+/// <h2> <b>Endpoint:  <strong>[POST]</strong>  /creator/cover/upload/:id </b> </h2>
+///
+/// <h3> Request body</h3>
+///     "FILE DATA" <br>
+///
+/// <p>
+///      Path parameter id represents the id of Content whose cover photo is being uploaded
+/// </p><br><hr>
+///
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok: Created</b>  : 201</li>
+///     <li> <b>Err: Bad Request</b> : 400</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
 #[axum::debug_handler]
 async fn avatar_upload(
     State(db): State<Db>,

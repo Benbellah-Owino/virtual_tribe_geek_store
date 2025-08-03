@@ -45,12 +45,27 @@ pub fn studio_router() -> Router<Db> {
 ///     "name":"test_studio1", <br>
 ///     "email":"test_studio1@gmail.com", <br>
 ///     "owner":"creator:"ds8dxstwqut33x" <br>
+///     "description": "A creative studio specializing in fantasy and sci-fi comics." <br>
 /// }<br><br>
 ///
+/// <h3> Response body </h3><br>
+/// {<br>
+///     "id":"studio.*******"
+///     "name":"test_studio1", <br>
+///     "email":"test_studio1@gmail.com", <br>
+///     "owner":"creator:"ds8dxstwqut33x" <br>
+///     "description": "A creative studio specializing in fantasy and sci-fi comics." <br>
+/// }<br>
+/// 
 /// <h5>
 ///     Parameters can be empty
-/// </h5>
-
+/// </h5> <br><hr>
+/// 
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok: Created</b>  : 201</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
+/// </ul>
 pub async fn create_handler(State(db): State<Db>, req: Request) -> impl IntoResponse {
     let db = db.unwrap();
     println!("CREATE");
@@ -96,10 +111,24 @@ pub async fn create_handler(State(db): State<Db>, req: Request) -> impl IntoResp
 ///
 /// <h3> Request body</h3>
 /// NO BODY
-///
+/// 
+/// <h3> Response body </h3><br>
+/// [{<br>
+///     "id":"studio.*******"
+///     "name":"test_studio1", <br>
+///     "email":"test_studio1@gmail.com", <br>
+///     "owner":"creator:"ds8dxstwqut33x" <br>
+///     "description": "A creative studio specializing in fantasy and sci-fi comics." <br>
+/// }, ...]<br>
+/// 
 /// <h5>
 ///     Parameters can be empty
-/// </h5>
+/// </h5> <br><hr>
+/// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok/b>  : 200</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
+/// </ul>
 #[axum_macros::debug_handler]
 pub async fn get_all_handler(State(db): State<Db>, req: Request) -> impl IntoResponse {
     // Subject to make free
@@ -124,10 +153,24 @@ pub async fn get_all_handler(State(db): State<Db>, req: Request) -> impl IntoRes
 ///
 /// <h3> Request body</h3>
 /// NO BODY
-///
+/// 
+/// <h3> Response body </h3><br>
+/// {<br>
+///     "id":"studio.*******"
+///     "name":"test_studio1", <br>
+///     "email":"test_studio1@gmail.com", <br>
+///     "owner":"creator:"ds8dxstwqut33x" <br>
+///     "description": "A creative studio specializing in fantasy and sci-fi comics." <br>
+/// } <br>
 /// <h5>
 ///     Parameters can be empty
-/// </h5>
+/// </h5><br><hr>
+/// 
+/// /// <h4>Status Codes</h4>
+/// <ul>
+///     <li> <b>Ok</b>  : 200</li>
+///     <li> <b>Err: Internal Server Error</b> : 500</li>
+/// </ul>
 #[axum_macros::debug_handler]
 pub async fn get_one(State(db): State<Db>, Path(studio_id): Path<String>) -> impl IntoResponse {
     // Subject to make free
@@ -149,6 +192,7 @@ pub async fn get_one(State(db): State<Db>, Path(studio_id): Path<String>) -> imp
     }
 }
 
+// TODO: Check this shit and finish this page
 pub async fn check_owner(
     creator: &String,
     studio: &String,
