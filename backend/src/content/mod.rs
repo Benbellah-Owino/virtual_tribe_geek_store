@@ -155,17 +155,37 @@ pub struct Chapter {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Video {
+    // pub id: Thing,
+    // pub seasons: u16,
+    // pub episodes: u16,
+    // pub writer: Vec<Thing>,
+    // pub animation: Vec<Thing>,
+    // pub average_run_length: f32,
+    // pub genre: ,
+    // pub created_at: String,
+    // pub cover: Option<String>,
+    // pub trailer: Option<String>,
+    // pub video_type: Option<String>,
     pub id: Thing,
     pub seasons: u16,
     pub episodes: u16,
-    pub writer: Vec<Thing>,
-    pub animation: Vec<Thing>,
-    pub average_run_length: f32,
-    pub category: String,
-    pub created_at: String,
+    pub writer: Vec<String>,
+    pub creator: Vec<Creator>, // Make it so that it fetches the creator details
     pub cover: Option<String>,
     pub trailer: Option<String>,
-    pub video_type: Option<String>,
+    pub video_content: Option<String>, // Series or Movie
+    pub average_run_length: String,
+    pub created_at: String,
+    pub content: Content,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct VideoForCreate {
+    pub writer: Vec<String>,
+    pub creator: Vec<Creator>, // Make it so that it fetches the creator details
+    pub video_content: Option<String>, // Series or Movie
+    pub average_run_length: String,
+    pub content: Content,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

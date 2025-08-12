@@ -78,3 +78,14 @@ export interface ComicFileDetails{
     count: number,
     content_type: string
 }
+
+
+// Video
+export interface VideoForCreate{
+    [key:string]: string | string[]|  number |SurrealId|  SurrealId[] |null;
+    content: string| SurrealId,
+    writer: string[],    
+    creator: SurrealId[] | string[],
+    video_content: string,
+    average_run_length: string
+}
