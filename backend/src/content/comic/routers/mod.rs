@@ -58,8 +58,6 @@ pub struct GetComicQuery {
 async fn create(State(db): State<Db>, Json(payload): Json<ComicForCreate>) -> impl IntoResponse {
     let db = db.unwrap();
     debug!("content/comic/create -> {:#?}", payload);
-    // eprintln!("");
-    dbg!(&payload);
     let comic = store(&db, payload).await;
 
     match comic {

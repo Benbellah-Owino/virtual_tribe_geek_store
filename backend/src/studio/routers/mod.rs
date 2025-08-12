@@ -130,7 +130,7 @@ pub async fn create_handler(State(db): State<Db>, req: Request) -> impl IntoResp
 ///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 #[axum_macros::debug_handler]
-pub async fn get_all_handler(State(db): State<Db>, req: Request) -> impl IntoResponse {
+pub async fn get_all_handler(State(db): State<Db>) -> impl IntoResponse {
     // Subject to make free
     let db = db.unwrap();
     println!("GET ALL");
