@@ -12,7 +12,7 @@ use serde_json::json;
 use tracing::{debug, info};
 
 use crate::{
-    content::{controllers::update_details, ContentForCreateServer, ContentForUpdate},
+    content::{controllers::update_details, video::routers::video_router, ContentForCreateServer, ContentForUpdate},
     dev_initial::db::Db,
     file_upload::{
         small_file::{self, extract_image},
@@ -32,6 +32,7 @@ use crate::content::ContentForCreateClient;
 pub fn content_router() -> Router<Db> {
     Router::new()
         .nest("/comic", comic_router())
+        .nest("/video", video_router())
         .nest("/genre", genre_router())
         .route("/studio/:studio", get(list_studio_handler))
         //.route("/cover/:path", get(get_image))

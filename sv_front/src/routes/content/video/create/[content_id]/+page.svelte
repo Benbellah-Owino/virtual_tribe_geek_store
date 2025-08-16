@@ -61,7 +61,11 @@
 		writer: [],
 		creator: [],
 		video_content: '',
-		average_run_length: ''
+		average_run_length: {
+			seconds: 0,
+			minutes: 0,
+			hours: 0
+		}
 	});
 
 	async function submit(e: Event) {
@@ -111,7 +115,7 @@
 					console.log($state.snapshot(formState));
 				}, 3000);
 				console.log('created');
-				window.open(`/content/${$page.params.content}`, '_self');
+				window.open(`/content/${$page.params.content_id}`, '_self');
 			} else if (response.status == 500) {
 				updateFormState(
 					formState,
@@ -161,7 +165,7 @@
 			<input type="file" name="cover" id="cover" /><br />
 		</form>
 		<form class="form alt_bg rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={submit}>
-			<h3 class="float-left mb-4 text-3xl font-extrabold">CREATE STUDIO</h3>
+			<h3 class="float-left mb-4 text-3xl font-extrabold">CREATE VIDEO</h3>
 			<br />
 			{#if formState.inner_state == Result.Ok && formState.target == 'form'}
 				<center><p class="error main_txt text-lg font-semibold">{formState.message}</p></center>
@@ -170,16 +174,16 @@
 			{/if}
 
 			<div class="form_div">
-				<label for="video_content">Content Type</label>
+				<label for="video_type">Content Type</label>
 				{#each ['series', 'movie'] as type}
 					<label class="flex_row">
 						<input
 							class="content_type_radio main_bg main_txt mr-2"
 							type="radio"
-							name="video_content"
-							id="video_content_{type}"
+							name="video_type"
+							id="video_type_{type}"
 							value={type}
-							bind:group={video_form.video_content}
+							bind:group={video_form.video_type}
 						/>
 						{type}
 					</label>
@@ -191,13 +195,32 @@
 
 			<div class="form_div">
 				<label for="average_run_length">Average run length</label>
+				<p class="text-xs">Hours</p>
 				<input
-					type="text"
-					name="average_run_length"
-					id="average_run_length"
-					bind:value={video_form.average_run_length}
+					type="number"
+					name="avr_hrs"
+					id="avr_hrs"
+					placeholder="enter hours"
+					bind:value={video_form.average_run_length.hours}
 				/>
 
+				<p class="text-xs">Minutes</p>
+				<input
+					type="number"
+					name="avr_mins"
+					id="avr_mins"
+					placeholder="enter minutes"
+					bind:value={video_form.average_run_length.minutes}
+				/>
+
+				<p class="text-xs">Seconds</p>
+				<input
+					type="number"
+					name="avr_sec"
+					id="avr_sec"
+					placeholder="enter seconds"
+					bind:value={video_form.average_run_length.seconds}
+				/>
 				{#if (formState.inner_state == Result.Err && formState.target == 'average_run_length') || formState.target == 'average_run_length&confirm_average_run_length'}
 					<p class="error text-red-500">{formState.message}</p>
 				{/if}

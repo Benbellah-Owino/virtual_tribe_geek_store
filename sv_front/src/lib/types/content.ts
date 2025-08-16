@@ -82,10 +82,17 @@ export interface ComicFileDetails{
 
 // Video
 export interface VideoForCreate{
-    [key:string]: string | string[]|  number |SurrealId|  SurrealId[] |null;
+    [key:string]: string | string[]|  number |SurrealId|  SurrealId[] | RunLength | null;
     content: string| SurrealId,
     writer: string[],    
     creator: SurrealId[] | string[],
-    video_content: string,
-    average_run_length: string
+    video_type: string,
+    average_run_length: RunLength
+}
+
+export interface RunLength{
+    [key: string] : number,
+        seconds: number,
+        minutes: number,
+        hours : number
 }

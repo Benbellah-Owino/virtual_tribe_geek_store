@@ -114,16 +114,16 @@ DEFINE FIELD created_at ON TABLE chapter TYPE datetime DEFAULT time::now();
 
 -- region:      --- Video
 DEFINE TABLE IF NOT EXISTS video SCHEMAFULL;
-DEFINE FIELD seasons ON TABLE video TYPE number;
-DEFINE FIELD episodes ON TABLE video TYPE number;
-DEFINE FIELD writer ON TABLE video TYPE array<record<creator>>;
-DEFINE FIELD animators ON TABLE video TYPE array<record<creator>>;
-DEFINE FIELD avarage_run_length ON TABLE video TYPE float;
-DEFINE FIELD category ON TABLE video TYPE string;
+DEFINE FIELD seasons ON TABLE video TYPE number DEFAULT 0;
+DEFINE FIELD episodes ON TABLE video TYPE number DEFAULT 0;
+DEFINE FIELD writer ON TABLE video TYPE array<string>;
+DEFINE FIELD creator ON TABLE video TYPE array<record<creator>>;
+DEFINE FIELD average_run_length ON TABLE video TYPE object;
 DEFINE FIELD created_at ON TABLE video TYPE datetime DEFAULT time::now();
 DEFINE FIELD cover ON TABLE video TYPE option<string>;
 DEFINE FIELD trailer ON TABLE video TYPE option<string>;
 DEFINE FIELD video_type ON TABLE video TYPE string; -- Animation OR Live Action
+DEFINE FIELD content ON TABLE video TYPE record<content>;
 
 -- Season
 DEFINE TABLE IF NOT EXISTS season SCHEMAFULL;
