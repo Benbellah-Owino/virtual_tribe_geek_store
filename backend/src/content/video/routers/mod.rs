@@ -2,7 +2,7 @@
 use crate::{
     content::{
         video::{
-            controllers::{show, store},
+            controllers::{index, show, store},
             VideoError,
         },
         VideoForCreate,
@@ -57,7 +57,7 @@ async fn video_create(
         }
     }
 }
-async fn video_list() -> impl IntoResponse {
+async fn video_list(State(db):State<Db>) -> impl IntoResponse {
     let db = db.unwrap();
     let video_list = index(&db).await;
     println!("video list");
