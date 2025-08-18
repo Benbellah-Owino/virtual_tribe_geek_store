@@ -114,7 +114,6 @@ pub struct ListComic {
     pub content: Content,
 }
 
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ComicForCreate {
     pub writer: Vec<String>,
@@ -165,9 +164,23 @@ pub struct Video {
     pub video_type: Option<String>, // Series or Movie
     pub average_run_length: RunLength,
     pub created_at: String,
-    pub content: Content,
+    pub content: Thing,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ListVideo {
+    pub id: Thing,
+    pub seasons: u16,
+    pub episodes: u16,
+    pub writer: Vec<String>,
+    pub creator: Vec<Creator>, // Make it so that it fetches the creator details
+    pub cover: Option<String>,
+    pub trailer: Option<String>,
+    pub video_type: Option<String>, // Series or Movie
+    pub average_run_length: RunLength,
+    pub created_at: String,
+    pub content: Content,
+}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct VideoForCreate {
     pub writer: Vec<String>,
@@ -181,7 +194,7 @@ pub struct VideoForCreate {
 pub struct RunLength {
     pub seconds: i32,
     pub minutes: i32,
-    pub hours: i32
+    pub hours: i32,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EpisodeRunlength {
