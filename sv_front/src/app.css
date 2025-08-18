@@ -166,6 +166,18 @@ body {
 /* endregion:   --- Hover text */
 
 
+/* region:      --- Inverted Hover */
+.main_invert{
+	background: var(--primary);
+	color: var(--secondary);
+	transition: all ease-in-out 0.3s;
+}
+
+.main_invert:hover{	
+	background: var(--secondary);
+	color: var(--primary)
+}
+/* endregion:   --- Inverted Hover */
 
 /* region:      --- Border */
 .primary_border {
