@@ -33,6 +33,7 @@
 	});
 
 	let comic: any|null = $state(null);
+	let video: any|null = $state(null);
 
 	onMount(async () => {
 		// Get content
@@ -77,6 +78,11 @@
 
 		// GET COMIC DETAILS
 		let cont = content_id.split(':');
+		getComic(cont)
+		getVideo(cont)
+	});
+	
+	async function getComic(cont:string[]) {
 		let response2 = await fetch(`http://localhost:7878/content/comic/index?content=${cont[1]}`, {
 			method: 'GET',
 			credentials: 'include',
@@ -116,8 +122,49 @@
 				console.log($state.snapshot(pageState));
 			}
 		}
-	});
+	}
 	// TODO: Finish this page
+	async function getVideo(cont:string[]) {
+		let response2 = await fetch(`http://localhost:7878/content/video/index?content=${cont[1]}`, {
+			method: 'GET',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		if (response2.ok == true) {
+			//UNIMPLEMENTED
+			let res = await response2.json();
+			// console.log($state.snapshot(res));
+			video = res.video;
+			console.log($state.snapshot(video));
+			pageState.loading = false;
+		} else if (response2.ok == false) {
+			console.error('failed');
+			if (response2.status == 401) {
+				updatePageState(
+					pageState,
+					Result.Err,
+					PageError.Unauthorized,
+					false,
+					'You are not authorized! Redirecting you to login page...'
+				);
+				setTimeout(() => {
+					window.open('content/login', '_self');
+				}, 5000);
+			} else if (response2.status == 404) {
+				updatePageState(
+					pageState,
+					Result.Ok,
+					PageError.NotFoundError,
+					false,
+					"The requested video doesn't exist"
+				);
+				console.log($state.snapshot(pageState));
+			}
+		}
+	}
 </script>
 
 <main class="page">
@@ -164,6 +211,7 @@
 		<!-- COMIC INFO -->
 		<section class="comic mt-5 p-2">
 			{#if comic}
+				<h2 class="my text-2xl"><b><u>COMIC</u></b></h2>
 				<h4><b>Writers</b></h4>
 				<ul class="style pl-4">
 					{#each comic.writer as writer}
@@ -199,6 +247,7 @@
 				<!-- TODO: Add routing to creator given an id in the URL. This is to make it enable
 					the usernames above to be links to creator page
 				-->
+
 			{:else}
 				<div class="back_btn flex_center w-full p-3">
 					<a
@@ -207,6 +256,35 @@
 					>
 				</div>
 
+			{/if}
+			{#if video}
+				<h2 class="my text-2xl"><b><u>VIDEO</u></b></h2>
+				<h4><b>Writers</b></h4>
+				<ul class="style pl-4">
+					{#each video.writer as writer}
+						<li>{writer}</li>
+					{/each}
+				</ul>
+				<br>
+				
+				<h4><b>creators</b></h4>
+				<ul class="style pl-4">
+					{#each video.creator as creator}
+						<li>{creator.username}</li>
+					{/each}
+				</ul>
+
+				<div class="back_btn flex_center w-full p-3">
+					<a
+						class="  primary_txt_hover secondary_bg_hover w-auto rounded-xl border border-yellow-300 p-1 text-center font-semibold"
+						href="/content/videos/{video.id.id.String}/">View Video</a
+					>
+				</div>
+				
+				<br>
+				
+				
+			{:else}
 				<div class="back_btn flex_center w-full p-3">
 					<a
 						class="  primary_txt_hover secondary_bg_hover w-auto rounded-xl border border-yellow-300 p-1 text-center font-semibold"
