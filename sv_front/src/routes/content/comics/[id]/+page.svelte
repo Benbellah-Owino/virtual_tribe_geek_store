@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import VolumeForm from '$lib/components/content/forms/volumeForm.svelte';
 	import { stringToSurrealId } from '$lib/helper_functions.ts/converters';
 	import type { VolumeForCreate } from '$lib/types/content';
 	import { FormError, PageError } from '$lib/types/error';
@@ -216,58 +217,12 @@
 		</center>
 		{#if form_on == true}
 			<center class="w-full">
-				<form class="form alt_bg mt-3 rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={submit}>
-					<h3 class="float-left mb-4 text-3xl font-extrabold">ADD VOLUME</h3>
-					<br />
-					{#if formState.inner_state == Result.Ok && formState.target == 'form'}
-						<center><p class="error main_txt text-lg font-semibold">{formState.message}</p></center>
-					{:else if formState.inner_state == Result.Err && formState.target == 'form'}
-						<center
-							><p class="error text-lg font-semibold text-red-400">{formState.message}</p></center
-						>
-					{/if}
-					<div class="form_div">
-						<label for="description">Synopsis</label>
-						<!--TODO: Add word limit to description field on server side -->
-						<textarea
-							name="description"
-							id="description"
-							class="w-11/12"
-							rows="10"
-							bind:value={volume_form.synopsis}
-						></textarea>
-					</div>
-					<button type="submit" class="btn primary_btn w-11/12">submit</button>
-					<!-- TODO: Next time number the volumes -->
-				</form>
+				<VolumeForm {volume_form} {comic_id}/>
 			</center>
 		{/if}
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == PageError.NotFoundError}
 		<center class="w-full">
-			<form class="form alt_bg mt-3 rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={submit}>
-				<h3 class="float-left mb-4 text-3xl font-extrabold">ADD VOLUME</h3>
-				<br />
-				{#if formState.inner_state == Result.Ok && formState.target == 'form'}
-					<center><p class="error main_txt text-lg font-semibold">{formState.message}</p></center>
-				{:else if formState.inner_state == Result.Err && formState.target == 'form'}
-					<center
-						><p class="error text-lg font-semibold text-red-400">{formState.message}</p></center
-					>
-				{/if}
-				<div class="form_div">
-					<label for="description">Synopsis</label>
-					<!--TODO: Add word limit to description field on server side -->
-					<textarea
-						name="description"
-						id="description"
-						class="w-11/12"
-						rows="10"
-						bind:value={volume_form.synopsis}
-					></textarea>
-				</div>
-				<button type="submit" class="btn primary_btn w-11/12">submit</button>
-				<!-- TODO: Next time number the volumes -->
-			</form>
+				<VolumeForm {volume_form} {comic_id}/>
 		</center>
 	{:else}
 		<h3>Not found</h3>
