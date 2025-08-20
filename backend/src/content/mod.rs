@@ -214,10 +214,19 @@ pub struct SeasonRunlength {
 pub struct Season {
     pub id: Thing,
     pub no_of_episodes: u16,
-    pub runlength: SeasonRunlength,
+    pub episodes_available: u16,
+    pub runlength: Option<SeasonRunlength>,
     pub synopsis: String,
     pub video: Thing,
     pub cover: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SeasonForCreate {
+    pub no_of_episodes: u16,
+    pub episodes_available: u16,
+    pub synopsis: String,
+    pub video: Thing,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

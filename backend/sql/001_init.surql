@@ -127,8 +127,9 @@ DEFINE FIELD content ON TABLE video TYPE record<content>;
 
 -- Season
 DEFINE TABLE IF NOT EXISTS season SCHEMAFULL;
-DEFINE FIELD no_of_episodes ON TABLE season TYPE number;
-DEFINE FIELD runlength ON TABLE season TYPE object;
+DEFINE FIELD no_of_episodes ON TABLE season TYPE number DEFAULT 0;
+DEFINE FIELD episodes_available ON TABLE season TYPE number DEFAULT 0 ;
+DEFINE FIELD runlength ON TABLE season TYPE option<object>;
 DEFINE FIELD synopsis ON TABLE season TYPE string ASSERT string::len($value) <= 1000 ;
 DEFINE FIELD video ON TABLE season TYPE record<video>;
 DEFINE FIELD cover ON TABLE season TYPE option<string>;

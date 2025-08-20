@@ -2,20 +2,21 @@ use serde::Serialize;
 
 pub mod controllers;
 pub mod routers;
-pub mod season;
+
 
 
 #[derive(Debug, Serialize)]
-pub enum VideoError {
+pub enum SeasonError {
     NotFound,
     FailedToCreate,
     RetrievalError,
     DetailsUpdateError,
+    InvalidFieldError,
     DbError(surrealdb::Error),
 }
 
-impl From<surrealdb::Error> for VideoError {
+impl From<surrealdb::Error> for SeasonError {
     fn from(value: surrealdb::Error) -> Self {
-        VideoError::DbError(value)
+        SeasonError::DbError(value)
     }
 }
