@@ -1,7 +1,7 @@
 use crate::content::comic::volume::chapter::{
     Chapter, ChapterError, ChapterForCreate, ChapterForCreateCount,
 };
-use crate::content::comic::volume::Volume;
+use crate::content::Volume;
 use crate::content::ContentForUpdate;
 use crate::helpers::db::id_from_thing;
 use crate::{ComicId, Count, DbId};

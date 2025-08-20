@@ -1,4 +1,4 @@
-use crate::{content::comic::volume::chapter::routers::chapter_router, dev_initial::db::Db};
+use crate::{content::{comic::volume::chapter::routers::chapter_router, VolumeForCreate}, dev_initial::db::Db};
 use axum::{
     extract::{Path as AxumPath, State},
     response::IntoResponse,
@@ -10,7 +10,6 @@ use serde_json::json;
 
 use super::{
     controllers::{index, store},
-    VolumeForCreate,
 };
 
 pub fn volume_router() -> Router<Db> {
