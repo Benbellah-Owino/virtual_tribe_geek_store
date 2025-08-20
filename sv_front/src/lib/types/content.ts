@@ -96,3 +96,18 @@ export interface RunLength{
         minutes: number,
         hours : number
 }
+
+
+export interface SeasonRunLength{
+    [key: string] : SurrealId,
+    start: SurrealId,
+    end: SurrealId
+}
+
+
+export interface SeasonForCreate{
+    [key:string]: string | string[]|  number |SurrealId|  SurrealId[] |  null;
+    no_of_episodes: number,
+    synopsis: string,
+    video: SurrealId,
+}

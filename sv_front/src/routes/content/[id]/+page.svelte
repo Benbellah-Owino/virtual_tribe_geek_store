@@ -277,7 +277,7 @@
 				<div class="back_btn flex_center w-full p-3">
 					<a
 						class="  primary_txt_hover secondary_bg_hover w-auto rounded-xl border border-yellow-300 p-1 text-center font-semibold"
-						href="/content/videos/{video.id.id.String}/">View Video</a
+						href="/content/video/{video.id.id.String}/">View Video</a
 					>
 				</div>
 				
