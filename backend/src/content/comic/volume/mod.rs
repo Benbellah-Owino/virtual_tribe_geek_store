@@ -6,50 +6,7 @@ pub mod controllers;
 pub mod routers;
 
 // region:      --- Structs
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Volume {
-    pub id: Thing,
-    pub no_of_chapters: i16,
-    pub runlength: Option<Runlength>,
-    pub synopsis: Option<String>,
-    pub comic: Thing,
-    pub cover: Option<String>,
-    pub vol_no: u32,
-}
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct VolumeForCreate {
-    pub synopsis: String,
-    pub comic: Thing,
-    pub cover: Option<String>,
-    pub no_of_chapters: i16,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct VolumeForCreateCount {
-    pub synopsis: String,
-    pub comic: Thing,
-    pub cover: Option<String>,
-    pub no_of_chapters: i16,
-    pub vol_no: u32,
-}
-
-impl VolumeForCreateCount {
-    fn from_vol_create(vol: VolumeForCreate, count: u32) -> Self {
-        VolumeForCreateCount {
-            vol_no: count,
-            synopsis: vol.synopsis,
-            comic: vol.comic,
-            cover: vol.cover,
-            no_of_chapters: vol.no_of_chapters,
-        }
-    }
-}
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Runlength {
-    pub start: Thing,
-    pub end: Thing,
-}
 // endregion:   --- Structs
 
 // region:      --- Error
@@ -68,3 +25,5 @@ impl From<surrealdb::Error> for VolumeError {
     }
 }
 // endregion:   --- Error
+
+// TODO:-> Some changes were made, make sure to test this module

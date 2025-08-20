@@ -1,10 +1,10 @@
 use crate::{
-    content::comic::volume::VolumeForCreateCount, helpers::db::id_from_thing, Count, DbId,
+    content::{comic::volume::VolumeError, Volume, VolumeForCreate, VolumeForCreateCount}, helpers::db::id_from_thing, Count, DbId,
 };
 use surrealdb::{engine::remote::ws::Client, Surreal};
 use tracing::debug;
 
-use super::{Volume, VolumeError, VolumeForCreate};
+
 
 // Shows list of volumes
 pub async fn index(db: &Surreal<Client>, comic: String) -> Result<Vec<Volume>, VolumeError> {
