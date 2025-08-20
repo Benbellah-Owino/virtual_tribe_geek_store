@@ -107,7 +107,7 @@
 			console.log(res_seasons);
 			let res = await res_seasons.json();
 			seasons = res.season_list;
-			seasons = seasons.sort((a,b) => a.vol_no - b.vol_no);
+			seasons = seasons.sort((a,b) => a.season_no - b.season_no);
 			console.log($state.snapshot(seasons));
 			pageState.loading = false;
 		} else if (res_seasons.ok == false) {
