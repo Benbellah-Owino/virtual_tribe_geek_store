@@ -215,6 +215,7 @@ pub struct Season {
     pub id: Thing,
     pub no_of_episodes: u16,
     pub episodes_available: u16,
+    pub season_no: u16,
     pub runlength: Option<SeasonRunlength>,
     pub synopsis: String,
     pub video: Thing,
@@ -228,6 +229,24 @@ pub struct SeasonForCreate {
     pub video: Thing,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SeasonForCreateCount {
+    pub no_of_episodes: u16,
+    pub synopsis: String,
+    pub video: Thing,
+    pub season_no: u32,
+}
+
+impl SeasonForCreateCount {
+    fn from_sn_create(season: SeasonForCreate, count: u32) -> Self {
+        SeasonForCreateCount {
+            no_of_episodes: season.no_of_episodes,
+            synopsis: season.synopsis,
+            video: season.video,
+            season_no: count,
+        }
+    }
+}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Episode {
     pub relative_episode: u32, // Relative to the season

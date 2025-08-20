@@ -1,7 +1,7 @@
 use surrealdb::{engine::remote::ws::Client, Surreal};
 use tracing::debug;
 
-use crate::{content::{video::season::SeasonError, Season, SeasonForCreate}, DbId};
+use crate::{content::{video::season::SeasonError, Season, SeasonForCreate, SeasonForCreateCount}, helpers::db::id_from_thing, Count, DbId};
 
 // Shows list of seasons
 pub async fn index(db: &Surreal<Client>, video: String) -> Result<Vec<Season>, SeasonError>{
@@ -30,6 +30,19 @@ pub async fn show(db: &Surreal<Client>, id: String) -> Result<Season, SeasonErro
 
 // Stores new season data in db and relevant storage
 pub async fn store(db: &Surreal<Client>, season: SeasonForCreate) -> Result<DbId, SeasonError>{
+    let id = id_from_thing(&season.video);
+    let query = format!("SELECT count() FROM season WHERE video = video:{id}");
+    let mut count = db.query(query).await.unwrap();
+    let count: Vec<Count> = count.take(0)?;
+    println!("{:#?}", count);
+    let count2: u32 = if count.len() > 0 {
+        count.len() as u32 + 1
+    } else {
+        1
+    };
+    println!("Final count is {:#?}", count);
+
+    let season = SeasonForCreateCount::from_sn_create(season, count2);
     let season_db: Option<DbId> = db.create("season").content(season).await?;
     eprintln!("{:?} created", season_db);
 

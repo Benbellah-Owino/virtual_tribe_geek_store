@@ -13,7 +13,7 @@ use tracing::debug;
 // region:      --- Struct definitions
 // endregion:   --- Struct definitions
 // region:      --- Router definition
-pub fn volume_router()-> Router<Db>{
+pub fn season_router()-> Router<Db>{
     return Router::new()
         .route("/:video", get(season_list))
         .route("/", post(season_create))

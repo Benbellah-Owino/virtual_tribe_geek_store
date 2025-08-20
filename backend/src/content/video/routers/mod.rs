@@ -2,8 +2,7 @@
 use crate::{
     content::{
         video::{
-            controllers::{index, show, store},
-            VideoError,
+            controllers::{index, show, store}, season::routers::season_router, VideoError
         },
         VideoForCreate,
     },
@@ -32,6 +31,7 @@ pub struct GetVideoQuery {
 // region:      --- Router
 pub fn video_router() -> Router<Db> {
     Router::new()
+        .nest("/season", season_router())
         .route("/index", get(video_get))
         .route("/", post(video_create).get(video_list))
 }
