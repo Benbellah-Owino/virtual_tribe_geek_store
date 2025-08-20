@@ -224,7 +224,6 @@ pub struct Season {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SeasonForCreate {
     pub no_of_episodes: u16,
-    pub episodes_available: u16,
     pub synopsis: String,
     pub video: Thing,
 }
