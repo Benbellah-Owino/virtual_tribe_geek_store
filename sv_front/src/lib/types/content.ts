@@ -111,3 +111,17 @@ export interface SeasonForCreate{
     synopsis: string,
     video: SurrealId,
 }
+
+export interface EpisodeRunLength{
+    [key: string] : RunLength,
+    start: RunLength,
+    end: RunLength
+}
+export interface EpisodeForCreate{
+    [key:string]: string | string[]|  number |SurrealId| RunLength| EpisodeRunLength |  null;
+    title: string,
+    runlength: RunLength,
+    skiplength: EpisodeRunLength,
+    sypnosis: string,
+    season: SurrealId,
+}

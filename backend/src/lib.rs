@@ -22,6 +22,10 @@ pub struct DbId {
 pub struct ComicId {
     pub comic: Thing,
 }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct VideoId {
+    pub video: Thing,
+}
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AvatarUrl {
     pub avatar: Option<String>,

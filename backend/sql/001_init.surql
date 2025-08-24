@@ -137,11 +137,13 @@ DEFINE FIELD cover ON TABLE season TYPE option<string>;
 
 --Episode
 DEFINE TABLE IF NOT EXISTS episode SCHEMAFULL;
+DEFINE FIELD title ON TABLE episode TYPE string ASSERT string::len($value) <=  100 ;
 DEFINE FIELD relative_episode ON TABLE episode TYPE number;
 DEFINE FIELD absolute_episode ON TABLE episode TYPE number;
-DEFINE FIELD runlength ON TABLE episode TYPE object;
-DEFINE FIELD skiplength ON TABLE episode TYPE object;
-DEFINE FIELD synopsis ON TABLE episode TYPE string ASSERT string::len($value) <= 350 ;
+DEFINE FIELD runlength ON TABLE episode TYPE option<object>;
+DEFINE FIELD opening_length ON TABLE episode TYPE object;
+DEFINE FIELD closing_length ON TABLE episode TYPE object;
+DEFINE FIELD synopsis ON TABLE episode TYPE string ASSERT string::len($value) <= 700 ;
 DEFINE FIELD file ON TABLE episode TYPE option<string>;
 DEFINE FIELD cover ON TABLE episode TYPE option<string>;
 DEFINE FIELD season ON TABLE episode TYPE record<season>;

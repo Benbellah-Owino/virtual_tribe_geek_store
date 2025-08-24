@@ -1,14 +1,13 @@
 <script lang="ts">
-	import { page } from "$app/stores";
-	import SeasonForm from "$lib/components/content/forms/seasonForm.svelte";
-	import { stringToSurrealId } from "$lib/helper_functions.ts/converters";
-	import type { SeasonForCreate } from "$lib/types/content";
-	import { FormError, PageError } from "$lib/types/error";
-	import { Result } from "$lib/types/result";
-	import { updateFormState, type FormState } from "$lib/types/state/form_state";
-	import { updatePageState, type PageState } from "$lib/types/state/page_state";
-	import { onMount } from "svelte";
-
+	import { page } from '$app/stores';
+	import SeasonForm from '$lib/components/content/forms/seasonForm.svelte';
+	import { stringToSurrealId } from '$lib/helper_functions.ts/converters';
+	import type { SeasonForCreate } from '$lib/types/content';
+	import { FormError, PageError } from '$lib/types/error';
+	import { Result } from '$lib/types/result';
+	import { updateFormState, type FormState } from '$lib/types/state/form_state';
+	import { updatePageState, type PageState } from '$lib/types/state/page_state';
+	import { onMount } from 'svelte';
 
 	// section:     --- State
 	let pageState: PageState = $state({
@@ -31,27 +30,24 @@
 	let form_on = $state(false);
 	// endsection:  --- State
 
-
-
 	// section:     --- Variables
 	let video: any | null = $state(null);
 	let seasons: any[] = $state([]);
 
-    let season_form: SeasonForCreate=  $state({
+	let season_form: SeasonForCreate = $state({
 		no_of_episodes: 0,
-		synopsis: "",
+		synopsis: '',
 		video: {
 			id: {
-				String: ""
+				String: ''
 			},
-			tb: ""
+			tb: ''
 		}
 	});
 
 	// endsection:  --- Variables
 
-	onMount(async()=>{
-
+	onMount(async () => {
 		season_form.video = stringToSurrealId(`video:${video_id}`);
 		let response = await fetch(`http://localhost:7878/content/video/index?video=${video_id}`, {
 			method: 'GET',
@@ -93,7 +89,6 @@
 			}
 		}
 
-
 		let res_seasons = await fetch(`http://localhost:7878/content/video/season/${video_id}`, {
 			method: 'GET',
 			credentials: 'include',
@@ -107,7 +102,7 @@
 			console.log(res_seasons);
 			let res = await res_seasons.json();
 			seasons = res.season_list;
-			seasons = seasons.sort((a,b) => a.season_no - b.season_no);
+			seasons = seasons.sort((a, b) => a.season_no - b.season_no);
 			console.log($state.snapshot(seasons));
 			pageState.loading = false;
 		} else if (res_seasons.ok == false) {
@@ -136,8 +131,7 @@
 				console.log($state.snapshot(pageState));
 			}
 		}
-
-    })
+	});
 </script>
 
 <main>
@@ -147,15 +141,23 @@
 		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Season list</h1>
 		<ul class="content_list flex_col" id="content_list">
 			{#each seasons as season}
-				<article class="seasons secondary_bg_hover primary_txt_hover secondary_border  m-2 p-1 rounded cursor-default">
-					<li><a class="tertiary_txt font-bold underline " href="/content/videos/{video_id}/season/{season.id.id.String}">Season {season.season_no}</a></li>
+				<article
+					class="seasons secondary_bg_hover primary_txt_hover secondary_border m-2 cursor-default rounded p-1"
+				>
+					<li>
+						<a
+							class="tertiary_txt font-bold underline"
+							href="/content/video/{video_id}/season/{season.id.id.String}"
+							>Season {season.season_no}</a
+						>
+					</li>
 					<p class="text-sm">
 						{season.synopsis}
 					</p>
 				</article>
 			{/each}
 		</ul>
-		<br><br>
+		<br /><br />
 		<center>
 			<button
 				class="btn primary_btn"
@@ -167,12 +169,12 @@
 		</center>
 		{#if form_on == true}
 			<center class="w-full">
-                <SeasonForm {video_id} {season_form}/>
-            </center>
+				<SeasonForm {video_id} {season_form} />
+			</center>
 		{/if}
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == PageError.NotFoundError}
 		<center class="w-full">
-                <SeasonForm {video_id} {season_form}/>
+			<SeasonForm {video_id} {season_form} />
 		</center>
 	{:else}
 		<h3>Not found</h3>

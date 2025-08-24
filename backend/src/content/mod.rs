@@ -198,7 +198,7 @@ pub struct Video {
     pub cover: Option<String>,
     pub trailer: Option<String>,
     pub video_type: Option<String>, // Series or Movie
-    pub average_run_length: RunLength,
+    pub average_run_length: EpiRunLength,
     pub created_at: String,
     pub content: Thing,
 }
@@ -213,7 +213,7 @@ pub struct ListVideo {
     pub cover: Option<String>,
     pub trailer: Option<String>,
     pub video_type: Option<String>, // Series or Movie
-    pub average_run_length: RunLength,
+    pub average_run_length: EpiRunLength,
     pub created_at: String,
     pub content: Content,
 }
@@ -222,21 +222,15 @@ pub struct VideoForCreate {
     pub writer: Vec<String>,
     pub creator: Vec<Thing>, // Make it so that it fetches the creator details
     pub video_type: Option<String>, // Series or Movie
-    pub average_run_length: RunLength,
+    pub average_run_length: EpiRunLength,
     pub content: Thing,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct RunLength {
+pub struct EpiRunLength {
     pub seconds: i32,
     pub minutes: i32,
     pub hours: i32,
-}
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct EpisodeRunlength {
-    pub id: Thing,
-    start: f32,
-    end: f32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -244,6 +238,12 @@ pub struct SeasonRunlength {
     pub id: Thing,
     start: Thing,
     end: Thing,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SkipRunLength {
+    pub start: EpiRunLength,
+    pub end: EpiRunLength,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -285,14 +285,62 @@ impl SeasonForCreateCount {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Episode {
+    pub title: String,
     pub relative_episode: u32, // Relative to the season
     pub absolute_episode: u32, // Numbering irregardless of season
-    pub runlength: EpisodeRunlength,
-    pub skiplength: EpisodeRunlength,
     pub sypnosis: String,
     pub file: Option<String>,
     pub cover: Option<String>,
     pub season: Thing,
+    pub runlength: Option<EpiRunLength>, // Default will be the one specified by the user
+    pub opening_length: SkipRunLength,
+    pub closing_length: SkipRunLength,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EpisodeForCreate {
+    pub title: String,
+    pub runlength: Option<EpiRunLength>,
+    pub opening_length: SkipRunLength,
+    pub closing_length: SkipRunLength,
+    pub sypnosis: String,
+    pub season: Thing,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EpisodeForCreateCount {
+    pub title: String,
+    pub runlength: Option<EpiRunLength>,
+    pub opening_length: SkipRunLength,
+    pub closing_length: SkipRunLength,
+    pub sypnosis: String,
+    pub season: Thing,
+    pub relative_episode: u32, // Relative to the season
+    pub absolute_episode: u32, // Numbering irregardless of season
+}
+
+
+impl EpisodeForCreateCount {
+    fn from_epi_create(epi: EpisodeForCreate,  relative_count: u32, absolute_count: u32) -> Self {
+        EpisodeForCreateCount {
+            title: epi.title,
+            runlength: epi.runlength,
+            sypnosis: epi.sypnosis,
+            season: epi.season,
+            absolute_episode: absolute_count,
+            relative_episode: relative_count,
+            opening_length: epi.opening_length,
+            closing_length: epi.closing_length,
+        }
+    }
+}
+
+
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EpisodeRunlength {
+    pub id: Thing,
+    start: Runlength,
+    end: Runlength,
 }
 
 // section error

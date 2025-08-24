@@ -1,4 +1,5 @@
 use crate::content::video::season::controllers::index;
+use crate::content::video::season::episode::routers::episode_router;
 use crate::{content::video::season::controllers::store, dev_initial::db::Db};
 use crate::content::SeasonForCreate;
 
@@ -15,6 +16,7 @@ use tracing::debug;
 // region:      --- Router definition
 pub fn season_router()-> Router<Db>{
     return Router::new()
+        .nest("/episode", episode_router())
         .route("/:video", get(season_list))
         .route("/", post(season_create))
 }

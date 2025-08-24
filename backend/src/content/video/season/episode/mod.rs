@@ -1,12 +1,15 @@
+// region:      --- Modules
+
 use serde::Serialize;
 
 pub mod controllers;
 pub mod routers;
-pub mod episode;
 
 
+// endregion:   --- Modules
+// region:      --- Enums
 #[derive(Debug, Serialize)]
-pub enum SeasonError {
+pub enum EpisodeError {
     NotFound,
     FailedToCreate,
     RetrievalError,
@@ -15,8 +18,9 @@ pub enum SeasonError {
     DbError(surrealdb::Error),
 }
 
-impl From<surrealdb::Error> for SeasonError {
+impl From<surrealdb::Error> for EpisodeError {
     fn from(value: surrealdb::Error) -> Self {
-        SeasonError::DbError(value)
+        EpisodeError::DbError(value)
     }
 }
+// endregion:   --- Enums
