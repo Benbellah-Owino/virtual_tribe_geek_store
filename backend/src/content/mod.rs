@@ -288,7 +288,7 @@ pub struct Episode {
     pub title: String,
     pub relative_episode: u32, // Relative to the season
     pub absolute_episode: u32, // Numbering irregardless of season
-    pub sypnosis: String,
+    pub synopsis: String,
     pub file: Option<String>,
     pub cover: Option<String>,
     pub season: Thing,
@@ -303,7 +303,7 @@ pub struct EpisodeForCreate {
     pub runlength: Option<EpiRunLength>,
     pub opening_length: SkipRunLength,
     pub closing_length: SkipRunLength,
-    pub sypnosis: String,
+    pub synopsis: String,
     pub season: Thing,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -312,7 +312,7 @@ pub struct EpisodeForCreateCount {
     pub runlength: Option<EpiRunLength>,
     pub opening_length: SkipRunLength,
     pub closing_length: SkipRunLength,
-    pub sypnosis: String,
+    pub synopsis: String,
     pub season: Thing,
     pub relative_episode: u32, // Relative to the season
     pub absolute_episode: u32, // Numbering irregardless of season
@@ -324,7 +324,7 @@ impl EpisodeForCreateCount {
         EpisodeForCreateCount {
             title: epi.title,
             runlength: epi.runlength,
-            sypnosis: epi.sypnosis,
+            synopsis: epi.synopsis,
             season: epi.season,
             absolute_episode: absolute_count,
             relative_episode: relative_count,

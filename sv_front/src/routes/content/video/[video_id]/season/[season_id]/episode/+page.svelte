@@ -37,12 +37,13 @@
 
 	let episode_form: EpisodeForCreate = $state({
         title: "",
+		synopsis: "",
 		runlength: {
 			seconds: 0,
 			minutes: 0,
 			hours: 0
 		},
-		skiplength: {
+		opening_length: {
 			start: {
 				seconds: 0,
 				minutes: 0,
@@ -54,7 +55,18 @@
 				hours: 0
 			}
 		},
-		sypnosis: '',
+		closing_length: {
+			start: {
+				seconds: 0,
+				minutes: 0,
+				hours: 0
+			},
+			end: {
+				seconds: 0,
+				minutes: 0,
+				hours: 0
+			}
+		},
 		season: {
 			id: {
 				String: ''

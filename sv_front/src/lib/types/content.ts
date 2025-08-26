@@ -121,7 +121,8 @@ export interface EpisodeForCreate{
     [key:string]: string | string[]|  number |SurrealId| RunLength| EpisodeRunLength |  null;
     title: string,
     runlength: RunLength,
-    skiplength: EpisodeRunLength,
-    sypnosis: string,
     season: SurrealId,
+    synopsis: string,
+    opening_length: EpisodeRunLength,
+    closing_length: EpisodeRunLength,
 }

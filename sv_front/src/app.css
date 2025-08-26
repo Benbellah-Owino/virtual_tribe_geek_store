@@ -42,6 +42,12 @@ body {
 	min-height: 100%;
 	height:fit-content;
 }
+
+hr{
+	border-color: var(--secondary);
+	border: none;
+	height: 1px
+}
 /* endregion:   --- Globals */
 
 /* region:      --- Backgrounds */
