@@ -1,6 +1,8 @@
+use serde_json::json;
 use surrealdb::{Surreal, engine::remote::ws::Client};
 use tracing::debug;
-
+use crate::content::video::season::episode;
+use crate::content::ContentForUpdate;
 use crate::{content::{video::season::episode::EpisodeError, Episode, EpisodeForCreate, EpisodeForCreateCount, Season}, helpers::db::id_from_thing, Count, DbId, VideoId};
 
 
@@ -29,7 +31,7 @@ pub async fn store(db: &Surreal<Client>, episode_for_create: EpisodeForCreate) -
     // Select the relevant seasons
     let query = format!("SELECT * FROM season WHERE video = video:{video_id}");
     let mut seasons = db.query(query).await.unwrap();
-    // TODO: Test this out as a vec of Id's first, also do this for chapter
+    // TODO: Test this out as a vec of Id's first, also do this for episode
     let mut seasons: Vec<Season> = seasons.take(0).unwrap();
 
     // Sorting the seasons
@@ -82,11 +84,41 @@ pub async fn index(db: &Surreal<Client>, season: String) -> Result<Vec<Episode>,
 }
 
 
-pub async fn show(db: &Surreal<Client>) -> Result<DbId, EpisodeError>{
-    unimplemented!();
+pub async fn show(db: &Surreal<Client>, id:String) -> Result<Episode, EpisodeError>{
+    let episode: Option<Episode> = db.select(("episode", id)).await?;
+    
+    if let Some(e) = episode {
+        Ok(e)
+    } else {
+        Err(EpisodeError::RetrievalError)
+    }
 }
-pub async fn update(db: &Surreal<Client>) -> Result<DbId, EpisodeError>{
-    unimplemented!();
+pub async fn update(
+    db: &Surreal<Client>,
+    id: &str,
+    payload: ContentForUpdate,
+) -> Result<DbId, EpisodeError>{
+    let field = payload.field.clone();
+
+    let res: Option<DbId>  = match field.as_str() {
+        "title" | "synopsis" | "file" | "cover" => {
+            db
+                .update(("episode", id))
+                .merge(json!({&payload.field: &payload.value}))
+                .await?
+        }
+
+        &_ => None 
+    };
+
+    if res.is_none() {
+        Err(EpisodeError::DetailsUpdateError)
+    } else if let Some(episode) = res {
+        debug!("{:?}", episode);
+        Ok(episode)
+    } else {
+        Err(EpisodeError::DetailsUpdateError)
+    }
 }
 pub async fn destroy(db: &Surreal<Client>) -> Result<DbId, EpisodeError>{
     unimplemented!();

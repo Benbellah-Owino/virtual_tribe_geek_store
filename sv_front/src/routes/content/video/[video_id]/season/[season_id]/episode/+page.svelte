@@ -36,8 +36,8 @@
 	let episodes: any[] = $state([]);
 
 	let episode_form: EpisodeForCreate = $state({
-        title: "",
-		synopsis: "",
+		title: '',
+		synopsis: '',
 		runlength: {
 			seconds: 0,
 			minutes: 0,
@@ -93,11 +93,13 @@
 
 		if (res_episodes.ok == true) {
 			//UNIMPLEMENTED
-			console.log(res_episodes);
 			let res = await res_episodes.json();
-			episodes = res.episodes_list;
+			episodes = res.episode_list;
 			episodes = episodes.sort((a, b) => a.relative_episode - b.relative_episode);
-			console.log($state.snapshot(episodes));
+			episodes.forEach((e) => {
+				console.log($state.snapshot(e));
+			});
+
 			pageState.loading = false;
 		} else if (res_episodes.ok == false) {
 			console.error('failed');
@@ -284,68 +286,12 @@
 </script>
 
 <main class="page">
-	<center><h1 class="text-6xl font-extrabold">Chapters</h1></center>
-	{#if pageState.loading}
-		<center>Loading content...</center>
-	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == null}
-		<ul
-			class="contentList my-5 flex h-fit w-full flex-col items-center justify-center p-2 md:grid md:grid-cols-3"
-			id="content_list"
-		>
-			{#each episodes as episode}
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-				<article
-					class="episode color2_bg_hover m-2 w-72 cursor-pointer bg-black duration-300 hover:scale-105"
-					onclick={() => {
-						window.open(
-							`/content/videos/${videoId}/season/${seasonId}/episode/${episode.id.id.String}`
-						);
-					}}
-				>
-					<img
-						src={episode?.cover
-							? `http://localhost:7878/content/video/season/episode/cover/${episode.cover}`
-							: ''}
-						alt="Picture of {episode?.title}"
-						height="384px"
-						class="episodeCover mx-auto w-72 object-contain"
-					/>
-					<div class="w-full pl-2">
-						<a
-							class="tertiary_txt secondary_txt_hover font-bold underline"
-							href="/content/videos/{videoId}/season/{seasonId}/episode/{episode.id.id.String}"
-							>{episode.relative_episode}. {episode.title}</a
-						>
-					</div>
-				</article>
-			{/each}
-		</ul>
-		<br /><br />
-		<center>
-			<button
-				class="btn primary_btn mt-5"
-				onclick={() => {
-					form_on = !form_on;
-					console.log($state.snapshot(form_on));
-				}}>Toggle Chapter form</button
-			>
-		</center>
+	<center><h1 class="text-6xl font-extrabold">EPISODE CREATION FORM</h1></center>
 
-		{#if form_on == true}
-			<br />
-			<center class="p-4">
-				<EpisodeForm {episode_form} />
-			</center>
-		{/if}
-	{:else if (pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == PageError.NotFoundError) || form_on == true}
-		<center class="mt-3">
-			<h2 class="mb-2 mt-8 text-3xl">Add new episode to this season below</h2>
-			<EpisodeForm {episode_form} />
-		</center>
-	{:else}
-		<h3>Not found</h3>
-	{/if}
+	<br />
+	<center class="p-4">
+		<EpisodeForm {episode_form} />
+	</center>
 </main>
 
 <style>

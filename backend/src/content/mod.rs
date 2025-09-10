@@ -285,6 +285,7 @@ impl SeasonForCreateCount {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Episode {
+    pub id: Thing,
     pub title: String,
     pub relative_episode: u32, // Relative to the season
     pub absolute_episode: u32, // Numbering irregardless of season
