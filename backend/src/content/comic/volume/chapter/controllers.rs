@@ -30,7 +30,7 @@ pub async fn show(db: &Surreal<Client>, id: String) -> Result<Chapter, ChapterEr
     if let Some(c) = chapter {
         Ok(c)
     } else {
-        Err(ChapterError::FailedToCreate)
+        Err(ChapterError::RetrievalError)
     }
 }
 
