@@ -57,7 +57,7 @@
 			console.log(res_episode);
 			let res = await res_episode.json();
 			episode = res.episode;
-			console.log($state.snapshot(episode.file));
+			console.log($state.snapshot(episode));
 			pageState.loading = false;
 		} else if (res_episode.ok == false) {
 			console.error('failed');
@@ -123,9 +123,14 @@
 		/>
 
 		<!-- svelte-ignore a11y_media_has_caption -->
-		<video controls>
-			<source src="http://localhost:7878/content/video/season/episode/file/{episode.file}" type="video/x-matroska" />
-		</video>
+		<center class="w-full">
+			<video class="h-96 w-11/12" controls>
+				<source
+					src="http://localhost:7878/content/video/season/episode/file/{episode.file}"
+					type="video/x-matroska"
+				/>
+			</video>
+		</center>
 	{:else}
 		<div class="back_btn flex_center w-full p-3">
 			<!-- <a

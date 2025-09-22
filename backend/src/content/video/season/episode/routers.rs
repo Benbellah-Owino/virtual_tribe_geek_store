@@ -7,9 +7,9 @@ use tokio_util::io::ReaderStream;
 use tracing::debug;
 use hyper::header;
 
-use crate::{content::{video::season::episode::controllers::{index, show, store, update}, ContentForUpdate, EpisodeForCreate}, dev_initial::db::Db, file_upload::{small_file::{self, extract_image}, storage::{self, save_to_disk}}};
+use crate::{content::{video::season::episode::{controllers::{index, show, store, update}, routers::file_handlers::convert_to_mp4}, ContentForUpdate, EpisodeForCreate}, dev_initial::db::Db, file_upload::{small_file::{self, extract_image}, storage::{self, save_to_disk}}};
 
-
+mod file_handlers;
 // endregion:   --- Imports
 
 
@@ -93,7 +93,7 @@ async fn episode_delete(State(db): State<Db>) -> impl IntoResponse{}
 ///     <li> <b>Err: Internal Server Error</b> : 500</li>
 /// </ul>
 #[axum::debug_handler]
-async fn video_upload(
+async fn video_upload1(
     State(db): State<Db>,
     AxumPath(id): AxumPath<String>,
     multipart: Multipart,
@@ -165,6 +165,93 @@ async fn video_upload(
         }
     }
 }
+
+#[axum::debug_handler]
+async fn video_upload(
+    State(db): State<Db>,
+    AxumPath(id): AxumPath<String>,
+    multipart: Multipart,
+) -> impl IntoResponse {
+    println!("Uploading");
+    let db = db.unwrap();
+
+    let id_string = id.split(':').collect::<Vec<&str>>();
+
+    // Try to extract the uploaded file (renamed from extract_image)
+    let file = match extract_image(multipart).await {
+        Ok(file) => file,
+        Err(e) => {
+            println!("File extraction failed.");
+            return match e {
+                small_file::Error::TooBig => (
+                    StatusCode::BAD_REQUEST,
+                    Json(json!({"msg": "File is too big, use a smaller file"})),
+                ),
+                _ => (
+                    StatusCode::BAD_REQUEST,
+                    Json(json!({"msg": "Upload Failed"})),
+                ),
+            };
+        }
+    };
+
+    
+    // Store the file in the specified directory
+    dbg!(&id_string[1]);
+    let path = format!("media\\video\\files\\vids\\{}", id_string[1]);
+
+    let new_path = path.replace(".mkv", ".mp4");
+    debug!("content_path-> {path}");
+    let file = match storage::store(Some(path), format!("{}video", id_string[1]), file).await {
+        Some(f) => f,
+        None => {
+            println!("File storage failed.");
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"msg": "File storage error"})),
+            );
+        }
+    };
+
+    // Convert to mp4
+
+    // TODO: Save output_path into DB here using `db`
+
+    let file = (&file.0.clone(), file.1, file.2);
+    let uploaded_path = file.0.clone();
+    let _ = save_to_disk(file).await;
+    
+
+  
+    if let Err(e) = convert_to_mp4(uploaded_path.to_str().unwrap(), &new_path).await {
+        eprintln!("Video conversion failed: {}", e);
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({"msg": "Video conversion failed"})),
+        );
+    }
+    //let value = new_path;
+    //debug!("{value}");
+
+    let payload = ContentForUpdate {
+        field: "file".to_string(),
+        value: new_path.to_string(),
+    };
+
+    println!("{:?}", &new_path);
+
+    match update(&db, id_string[1], payload).await {
+        Ok(_) => (StatusCode::CREATED, Json(json!({"msg": "File uploaded"}))),
+        Err(e) => {
+            dbg!(e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"msg": "Upload error"})),
+            )
+        }
+    }
+}
+
 
 async fn video_stream(
     //State(db): State<Db>,
