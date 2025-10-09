@@ -117,6 +117,7 @@
 				? `http://localhost:7878/content/video/season/episode/cover/${episode.cover}`
 				: ''}
 			alt="Picture of {episode?.title}"
+			type= "video/mp4"
 			width="281px"
 			height="500px"
 			class="profile secondary_border mx-auto mb-2 rounded-md"
@@ -127,7 +128,7 @@
 			<video class="h-96 w-11/12" controls>
 				<source
 					src="http://localhost:7878/content/video/season/episode/file/{episode.file}"
-					type="video/x-matroska"
+					type="video/mp4"
 				/>
 			</video>
 		</center>

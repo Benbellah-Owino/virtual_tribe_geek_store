@@ -1,60 +1,89 @@
+use std::path::PathBuf;
+
 // region:      --- Imports
-use axum::{body::Body,extract::{Multipart, Path as AxumPath, State}, response::IntoResponse, routing::{get, post}, Json, Router};
+use axum::{
+    body::Body,
+    extract::{Multipart, Path as AxumPath, State},
+    response::IntoResponse,
+    routing::{get, post},
+    Json, Router,
+};
+use http::Response;
 use http::{HeaderMap, StatusCode};
+use hyper::header;
 use serde_json::json;
 use tokio::fs::File;
-use tokio_util::io::ReaderStream;
 use tracing::debug;
-use hyper::header;
+use std::{fs::File as StdFile, io::SeekFrom};
+use tokio::io::{AsyncReadExt, AsyncSeekExt};
+use tokio_util::io::ReaderStream;
 
-use crate::{content::{video::season::episode::{controllers::{index, show, store, update}, routers::file_handlers::convert_to_mp4}, ContentForUpdate, EpisodeForCreate}, dev_initial::db::Db, file_upload::{small_file::{self, extract_image}, storage::{self, save_to_disk}}};
-
+use crate::{
+    content::{
+        video::season::episode::{
+            controllers::{index, show, store, update},
+            routers::file_handlers::convert_to_mp4,
+        },
+        ContentForUpdate, EpisodeForCreate,
+    },
+    dev_initial::db::Db,
+    file_upload::{
+        small_file::{self, extract_image},
+        storage::{self, save_to_disk},
+    },
+};
+const CHUNK_SIZE: u64 = 1024 * 1024;
 mod file_handlers;
 // endregion:   --- Imports
 
-
 // region:      --- Router
-pub fn episode_router() -> Router<Db>{
+pub fn episode_router() -> Router<Db> {
     Router::new()
         .route("/file/*file_path", get(video_stream))
         .route("/show/:chapter", get(episode_get))
-        .route("/video/upload/:id", post(video_upload)) 
+        .route("/video/upload/:id", post(video_upload))
         .route("/:season", get(episode_list))
         .route("/", post(episode_create))
 }
 // endregion:   --- Router
 
-
 // region:      --- Router handlers
-async fn episode_create(State(db): State<Db>, Json(payload): Json<EpisodeForCreate>) -> impl IntoResponse{
+async fn episode_create(
+    State(db): State<Db>,
+    Json(payload): Json<EpisodeForCreate>,
+) -> impl IntoResponse {
     let db = db.unwrap();
     debug!("content/episode/episode_create -> {:#?}", payload);
 
-    match store(&db, payload).await{
+    match store(&db, payload).await {
         Ok(episode) => (StatusCode::CREATED, Json(json!({"episode":episode}))).into_response(),
-        Err(error) =>{
+        Err(error) => {
             dbg!(error);
             (StatusCode::INTERNAL_SERVER_ERROR).into_response()
         }
     }
 }
 
-
-async fn episode_get(State(db): State<Db>, AxumPath(episode): AxumPath<String>) -> impl IntoResponse{ 
+async fn episode_get(
+    State(db): State<Db>,
+    AxumPath(episode): AxumPath<String>,
+) -> impl IntoResponse {
     let db = db.unwrap();
     eprintln!("GET EPISODE");
 
-    match show(&db, episode).await{
+    match show(&db, episode).await {
         Ok(episode) => (StatusCode::OK, Json(json!({"episode": episode}))),
         Err(_e) => (
             StatusCode::NOT_FOUND,
             Json(json!({"msg": "Episode is not found"})),
         ),
-
     }
 }
 
-async fn episode_list(State(db): State<Db>, AxumPath(season): AxumPath<String>) -> impl IntoResponse{ 
+async fn episode_list(
+    State(db): State<Db>,
+    AxumPath(season): AxumPath<String>,
+) -> impl IntoResponse {
     let db = db.unwrap();
     eprintln!("LIST EPISODES");
     match index(&db, season).await {
@@ -71,8 +100,8 @@ async fn episode_list(State(db): State<Db>, AxumPath(season): AxumPath<String>) 
         }
     }
 }
-async fn episode_upate(State(db): State<Db>) -> impl IntoResponse{}
-async fn episode_delete(State(db): State<Db>) -> impl IntoResponse{}
+async fn episode_upate(State(db): State<Db>) -> impl IntoResponse {}
+async fn episode_delete(State(db): State<Db>) -> impl IntoResponse {}
 
 /// <h1> Handles the uploading of the actual comic file </h1>
 /// <h2> <b>Endpoint:  <strong>[POST]</strong>  /content/comic/volume/chapter/file/upload/:id </b> </h2>
@@ -172,40 +201,37 @@ async fn video_upload(
     AxumPath(id): AxumPath<String>,
     multipart: Multipart,
 ) -> impl IntoResponse {
-    println!("Uploading");
     let db = db.unwrap();
 
     let id_string = id.split(':').collect::<Vec<&str>>();
 
-    // Try to extract the uploaded file (renamed from extract_image)
+    // Extract uploaded file
     let file = match extract_image(multipart).await {
         Ok(file) => file,
         Err(e) => {
-            println!("File extraction failed.");
+            eprintln!("File extraction failed.");
             return match e {
                 small_file::Error::TooBig => (
                     StatusCode::BAD_REQUEST,
-                    Json(json!({"msg": "File is too big, use a smaller file"})),
+                    Json(json!({"msg": "File is too big"})),
                 ),
                 _ => (
                     StatusCode::BAD_REQUEST,
-                    Json(json!({"msg": "Upload Failed"})),
+                    Json(json!({"msg": "Upload failed"})),
                 ),
             };
         }
     };
 
-    
-    // Store the file in the specified directory
-    dbg!(&id_string[1]);
-    let path = format!("media\\video\\files\\vids\\{}", id_string[1]);
+    // Store file to disk
+    let storage_dir = format!("media\\video\\files\\vids\\{}", id_string[1]);
+    let filename = format!("{}video.mkv", id_string[1]); // force mkv extension here
+    debug!("content_path -> {}", storage_dir);
 
-    let new_path = path.replace(".mkv", ".mp4");
-    debug!("content_path-> {path}");
-    let file = match storage::store(Some(path), format!("{}video", id_string[1]), file).await {
+    let file = match storage::store(Some(storage_dir.clone()), filename.clone(), file).await {
         Some(f) => f,
         None => {
-            println!("File storage failed.");
+            eprintln!("File storage failed.");
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({"msg": "File storage error"})),
@@ -213,33 +239,37 @@ async fn video_upload(
         }
     };
 
-    // Convert to mp4
-
-    // TODO: Save output_path into DB here using `db`
-
     let file = (&file.0.clone(), file.1, file.2);
     let uploaded_path = file.0.clone();
-    let _ = save_to_disk(file).await;
-    
+    let _ = save_to_disk(file).await.unwrap();
 
-  
-    if let Err(e) = convert_to_mp4(uploaded_path.to_str().unwrap(), &new_path).await {
+    // Build new output path
+    let output_path = uploaded_path.with_extension("mp4"); // replaces mkv with mp4 safely
+
+    // Convert MKV to MP4
+    if let Err(e) = convert_to_mp4(
+        uploaded_path.to_str().unwrap(),
+        output_path.to_str().unwrap(),
+    )
+    .await
+    {
         eprintln!("Video conversion failed: {}", e);
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({"msg": "Video conversion failed"})),
         );
     }
-    //let value = new_path;
-    //debug!("{value}");
 
+    // Update DB with new mp4 file path
     let payload = ContentForUpdate {
         field: "file".to_string(),
-        value: new_path.to_string(),
+        value: output_path.to_string_lossy().to_string(),
     };
 
-    println!("{:?}", &new_path);
-
+    if let Err(e) = tokio::fs::remove_file(&uploaded_path).await {
+        eprintln!("Failed to delete original file: {}", e);
+    };
+    
     match update(&db, id_string[1], payload).await {
         Ok(_) => (StatusCode::CREATED, Json(json!({"msg": "File uploaded"}))),
         Err(e) => {
@@ -250,31 +280,78 @@ async fn video_upload(
             )
         }
     }
-}
 
+}
 
 async fn video_stream(
     //State(db): State<Db>,
-    AxumPath(filepath): AxumPath<String>,
-) -> impl IntoResponse{
-    //let db = db.unwrap();
-    //let filepath = format!("media/video/files/vids"); //Add path to filename
-    println!("Serving video {filepath}");
+    AxumPath(file): AxumPath<String>,
+    headers: HeaderMap,
+) -> impl IntoResponse {
 
-    match File::open(filepath).await{
-        Ok(file) => {
-            let stream = ReaderStream::new(file);
-            let body = Body::from_stream(stream);
+    let path = PathBuf::from(file);
+    // if let Ok(file) = tokio::fs::File::open(&file_path).await {
+    //     let stream = tokio_util::io::ReaderStream::new(file);
+    //     Response::builder()
+    //         .header("Content-Type", "video/mp4")
+    //         .body(Body::from_stream(stream))
+    //         .unwrap()
+    // } else {
+    //     (StatusCode::NOT_FOUND, "File not found").into_response()
+    // }
 
-            let mut headers = HeaderMap::new();
-            headers.insert(
-                header::CONTENT_TYPE,
-                "video/x-matroska".parse().unwrap(), // 👈 important
-            );
-            (StatusCode::OK, headers, body).into_response()
-        },
-        Err(_) =>(StatusCode::NOT_FOUND).into_response()
+    // Check if file exists
+    let metadata = match tokio::fs::metadata(&path).await {
+        Ok(meta) => meta,
+        Err(_) => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let file_size = metadata.len();
+
+    // Parse Range header if present
+    let range_header = headers.get("Range").and_then(|val| val.to_str().ok());
+    let (start, end) = if let Some(range_header) = range_header {
+        if let Some(range) = range_header.strip_prefix("bytes=") {
+            let parts: Vec<&str> = range.split('-').collect();
+            let start = parts.get(0).and_then(|s| s.parse::<u64>().ok()).unwrap_or(0);
+            let end = parts
+                .get(1)
+                .and_then(|s| s.parse::<u64>().ok())
+                .unwrap_or((start + CHUNK_SIZE - 1).min(file_size - 1));
+            (start, end.min(file_size - 1))
+        } else {
+            (0, file_size - 1)
+        }
+    } else {
+        (0, file_size - 1)
+    };
+
+    let chunk_size = end - start + 1;
+
+    // Open file and seek to start position
+    let mut file = match tokio::fs::File::open(&path).await {
+        Ok(f) => f,
+        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    };
+    if let Err(_) = file.seek(SeekFrom::Start(start)).await {
+        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
     }
+
+    // Limit how much we read
+    let stream = ReaderStream::new(file.take(chunk_size));
+
+    // Build partial content response
+    let mut response = Response::builder()
+        .status(StatusCode::PARTIAL_CONTENT)
+        .header("Content-Type", "video/mp4")
+        .header("Accept-Ranges", "bytes")
+        .header(
+            "Content-Range",
+            format!("bytes {}-{}/{}", start, end, file_size),
+        )
+        .body(Body::from_stream(stream))
+        .unwrap();
+
+    response
 }
 // endregion:   --- Router handlers
 // region:      ---
