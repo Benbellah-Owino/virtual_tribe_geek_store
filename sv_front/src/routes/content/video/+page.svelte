@@ -155,7 +155,7 @@
 </script>
 
 <main class="page main_bg flex_col mt-5 h-full w-full">
-	<h1 class="mb-7 text-center text-3xl font-extrabold">STUDIO CREATION PAGE</h1>
+	<h1 class="mb-7 text-center text-3xl font-extrabold">VIDEO SERIES CREATION PAGE</h1>
 	<center class="w-full">
 		<form
 			enctype="multipart/form-data"
@@ -165,7 +165,7 @@
 			<input type="file" name="cover" id="cover" /><br />
 		</form>
 		<form class="form alt_bg rounded-lg p-3 md:w-96 lg:w-5/6" onsubmit={submit}>
-			<h3 class="float-left mb-4 text-3xl font-extrabold">CREATE STUDIO</h3>
+			<h3 class="float-left mb-4 text-3xl font-extrabold">CREATE VIDEO SERIES</h3>
 			<br />
 			{#if formState.inner_state == Result.Ok && formState.target == 'form'}
 				<center><p class="error main_txt text-lg font-semibold">{formState.message}</p></center>
