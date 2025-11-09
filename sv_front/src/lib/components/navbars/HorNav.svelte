@@ -14,7 +14,8 @@
 		<h1 class="text text-6xl font-bold">VRT</h1>
 	</div>
 	<ul class="links flex items-center justify-around text-sm md:text-base">
-		<li><a href="/content/comics/" class="nav_link underline">Comics</a></li>
+		<li><a href="/consume/comics/" class="nav_link underline">Comics</a></li>
+		<li><a href="/consume/video/" class="nav_link underline">Videos</a></li>
 		<li><a href="/user/creator/" class="nav_link underline">My Page</a></li>
 		{#if isLoggedIn}
 			<li><a href="/user/logout" class="nav_link underline">Logout</a></li>

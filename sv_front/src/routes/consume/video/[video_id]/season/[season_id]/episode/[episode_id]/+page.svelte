@@ -100,20 +100,10 @@
 		<center>Loading episode...</center>
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok}
 		<Banner text={episode?.title}></Banner><br />
-		<img
-			src={episode?.cover
-				? `http://localhost:7878/content/video/season/episode/cover/${episode.cover}`
-				: ''}
-			alt="Picture of {episode?.title}"
-			type= "video/mp4"
-			width="281px"
-			height="500px"
-			class="profile secondary_border mx-auto mb-2 rounded-md"
-		/>
 
 		<!-- svelte-ignore a11y_media_has_caption -->
 		<center class="w-full">
-			<video class="h-96 w-11/12" controls>
+			<video class="main_border h-96 w-11/12 rounded" controls>
 				<source
 					src="http://localhost:7878/content/video/season/episode/file/{episode.file}"
 					type="video/mp4"
