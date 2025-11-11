@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import SeasonCard from '$lib/components/content/cards/seasonCard.svelte';
 	import SeasonForm from '$lib/components/content/forms/seasonForm.svelte';
 	import { stringToSurrealId } from '$lib/helper_functions.ts/converters';
 	import type { SeasonForCreate } from '$lib/types/content';
@@ -25,7 +26,7 @@
 		locked: false
 	});
 
-	let video_id = $page.params.video_id;
+	let videoId = $page.params.video_id;
 
 	let form_on = $state(false);
 	// endsection:  --- State
@@ -48,8 +49,8 @@
 	// endsection:  --- Variables
 
 	onMount(async () => {
-		season_form.video = stringToSurrealId(`video:${video_id}`);
-		let response = await fetch(`http://localhost:7878/content/video/index?video=${video_id}`, {
+		season_form.video = stringToSurrealId(`video:${videoId}`);
+		let response = await fetch(`http://localhost:7878/content/video/index?video=${videoId}`, {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
@@ -89,7 +90,7 @@
 			}
 		}
 
-		let res_seasons = await fetch(`http://localhost:7878/content/video/season/${video_id}`, {
+		let res_seasons = await fetch(`http://localhost:7878/content/video/season/${videoId}`, {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
@@ -141,20 +142,12 @@
 		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Season list</h1>
 		<ul class="content_list flex_col" id="content_list">
 			{#each seasons as season}
-				<article
-					class="seasons secondary_bg_hover primary_txt_hover secondary_border m-2 cursor-default rounded p-1"
-				>
-					<li>
-						<a
-							class="tertiary_txt font-bold underline"
-							href="/content/video/{video_id}/season/{season.id.id.String}"
-							>Season {season.season_no}</a
-						>
-					</li>
-					<p class="text-sm">
-						{season.synopsis}
-					</p>
-				</article>
+				<SeasonCard
+					{videoId}
+					seasonId={season.id.id.String}
+					season_synopsis={season.synopsis}
+					season_no={season.season_no}
+				/>
 			{/each}
 		</ul>
 		<br /><br />
@@ -169,12 +162,12 @@
 		</center>
 		{#if form_on == true}
 			<center class="w-full">
-				<SeasonForm {video_id} {season_form} />
+				<SeasonForm {videoId} {season_form} />
 			</center>
 		{/if}
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == PageError.NotFoundError}
 		<center class="w-full">
-			<SeasonForm {video_id} {season_form} />
+			<SeasonForm {videoId} {season_form} />
 		</center>
 	{:else}
 		<h3>Not found</h3>
