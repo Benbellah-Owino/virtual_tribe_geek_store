@@ -7,6 +7,7 @@
     import { onMount } from 'svelte';
     import { stringToSurrealId, surrealIdToString } from '$lib/helper_functions.ts/converters';
     import type { PageState } from '$lib/types/state/page_state';
+	import { getChartDatesObject } from '$lib/helper_functions.ts/date_time';
     // import { ComicType } from '$lib/types/state/video_type';
 
     let videos: any[] = $state([]);
@@ -53,7 +54,7 @@
                     id="videoTile{video?.id.id.String}"
                 >
                     <a
-                        href="/content/{surrealIdToString(video.content.id)}"
+                        href="/consume/{surrealIdToString(video.content.id)}"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
@@ -79,7 +80,7 @@
                         href="/consume/{surrealIdToString(video.content.id)}"
                         class="videoTitle text-xl font-bold"
                     >
-                        {`${video.content.title}(${video.created_at.year})`}
+                        {`${video.content.title}(${getChartDatesObject(video.created_at).year})`}
                     </a>
 
                     <p class="videoDescription max-h-28 w-full cursor-default overflow-hidden p-2 text-sm">

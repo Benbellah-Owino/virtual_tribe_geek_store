@@ -5,12 +5,14 @@
 		videoId,
 		seasonId,
 		season_synopsis,
-		season_no
-	}: { videoId: string; seasonId: string; season_synopsis: string; season_no: number } = $props();
+		season_no,
+		path
+	}: { videoId: string; seasonId: string; season_synopsis: string; season_no: number, path:string } = $props();
 	let episodes: any[] = $state([]);
 	let episodesFetched: boolean = $state(false);
 	let episodesShow: boolean = $state(false);
 
+	onMount(showEpisodes)
 	async function showEpisodes() {
 		if (!episodesFetched) {
             console.log("RUN")
@@ -54,32 +56,26 @@
 </script>
 
 <article
-	class="seasons secondary_bg_hover primary_txt_hover secondary_border m-2 cursor-default rounded p-1"
-    onmouseenter={()=> {
-        episodesShow = true
-        showEpisodes()
-        }}
-    onmouseleave={()=> episodesShow = false}
+	class="seasons secondary_bg_hover primary_txt_hover secondary_borderb p-2 pb-4 cursor-default"
 >
 	<li>
-		<a class="tertiary_txt font-bold underline" href="/content/video/{videoId}/season/{seasonId}"
+		<a class="tertiary_txt font-bold text-2xl underline" href="/content/video/{videoId}/season/{seasonId}"
 			>Season {season_no}</a
 		>
 	</li>
-	<p class="text-sm">
+	<p class="text-sm mt-2">
 		{season_synopsis}
 	</p>
 	<br />
 	<hr />
-	{#if episodesShow}
-		<ul class="sn_epi_list border-t border-t-yellow-300 p-1">
+		<ul class="sn_epi_list  p-1">
+			<h5 class="text-xs underline">Episodes</h5>
 			{#each episodes as episode}
 				<li class="mb-1">
-					<a href="/content/video/${videoId}/season/${seasonId}/episode/${episode.id.id.String} "
+					<a href="/{path}/video/{videoId}/season/{seasonId}/episode/{episode.id.id.String} "
 						>Episode {episode.relative_episode}: {episode.title}</a
 					>
 				</li>
 			{/each}
 		</ul>
-	{/if}
 </article>

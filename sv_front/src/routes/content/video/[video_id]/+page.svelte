@@ -139,7 +139,7 @@
 	{#if pageState.loading}
 		<center>Loading content...</center>
 	{:else if pageState.loading == false && pageState.inner_state == Result.Ok && pageState.error == null}
-		<h1 class="mb-7 mt-4 text-center text-3xl font-extrabold">Season list</h1>
+		<h1 class="mb-7 mt-4 text-center text-5xl font-extrabold">Season list</h1>
 		<ul class="content_list flex_col" id="content_list">
 			{#each seasons as season}
 				<SeasonCard
@@ -147,6 +147,7 @@
 					seasonId={season.id.id.String}
 					season_synopsis={season.synopsis}
 					season_no={season.season_no}
+					path={"content"}
 				/>
 			{/each}
 		</ul>
